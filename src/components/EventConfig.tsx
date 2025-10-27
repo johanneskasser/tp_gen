@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { RaceEvent, RaceDistance, TerrainType } from '../types';
 import { Calendar, Mountain, MapPin, Timer } from 'lucide-react';
 import { calculatePace, formatPace } from '../utils/paceCalculator';

@@ -1,5 +1,5 @@
-import { TrainingSession, TrainingWeek, IntervalSet } from '../types';
-import { minutesToKm, estimateRecoveryPace, estimateEasyPace, paceToMinPerKm } from './paceConverter';
+import { TrainingSession, IntervalSet } from '../types';
+import { minutesToKm, estimateRecoveryPace, estimateEasyPace } from './paceConverter';
 
 export function calculateSessionDistance(session: TrainingSession): number {
   if (session.distance) {
