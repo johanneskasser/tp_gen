@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { TrainingSession, SessionType, IntervalSet } from '../types';
+import { useState, useMemo } from 'react';
+import { TrainingSession, SessionType, IntervalSet, DistanceUnit } from '../types';
 import { Save, X, Trash2, Plus } from 'lucide-react';
 import { generateSessionTitle } from '../utils/titleGenerator';
 import { SESSION_TYPE_CONFIG } from '../constants/sessionTypes';
+import { formatPace } from '../utils/paceCalculator';
 
 interface SessionEditorProps {
   session: TrainingSession;
@@ -25,22 +26,35 @@ export default function SessionEditor({
     session.intervals || []
   );
   const [warmUp, setWarmUp] = useState(session.warmUp?.toString() || '');
+  const [warmUpUnit, setWarmUpUnit] = useState<DistanceUnit>(session.warmUpUnit || 'km');
   const [coolDown, setCoolDown] = useState(session.coolDown?.toString() || '');
+  const [coolDownUnit, setCoolDownUnit] = useState<DistanceUnit>(session.coolDownUnit || 'km');
   const [notes, setNotes] = useState(session.notes || '');
 
-  const sessionTypes: { value: SessionType; label: string; color: string }[] = [
-    { value: 'easy', label: 'Locker', color: 'bg-green-100 text-green-800' },
-    { value: 'long', label: 'Lang', color: 'bg-blue-100 text-blue-800' },
-    { value: 'intervals', label: 'Intervall', color: 'bg-red-100 text-red-800' },
-    { value: 'tempo', label: 'Tempo', color: 'bg-orange-100 text-orange-800' },
-    { value: 'recovery', label: 'Regeneration', color: 'bg-slate-100 text-slate-800' },
-    { value: 'race', label: 'Wettkampf', color: 'bg-purple-100 text-purple-800' },
-  ];
+  const sessionTypes = Object.entries(SESSION_TYPE_CONFIG).map(([value, config]) => ({
+    value: value as SessionType,
+    label: config.label,
+    color: config.color,
+  }));
+
+  // Calculate pace for tempo runs when both distance and duration are provided
+  const calculatedPace = useMemo(() => {
+    if (!distance || !duration) return '';
+    const distKm = parseFloat(distance);
+    const durationMin = parseFloat(duration);
+    if (distKm > 0 && durationMin > 0) {
+      const paceMinPerKm = durationMin / distKm;
+      const minutes = Math.floor(paceMinPerKm);
+      const seconds = Math.round((paceMinPerKm - minutes) * 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return '';
+  }, [distance, duration]);
 
   const handleAddInterval = () => {
     setIntervals([
       ...intervals,
-      { distance: 1, repetitions: 1, pace: '', recovery: '' },
+      { distance: 1, repetitions: 1, pace: '', recovery: '', recoveryUnit: 'km' },
     ]);
   };
 
@@ -63,7 +77,9 @@ export default function SessionEditor({
       duration: duration ? parseFloat(duration) : undefined,
       intervals: type === 'intervals' && intervals.length > 0 ? intervals : undefined,
       warmUp: warmUp ? parseFloat(warmUp) : undefined,
+      warmUpUnit: warmUp ? warmUpUnit : undefined,
       coolDown: coolDown ? parseFloat(coolDown) : undefined,
+      coolDownUnit: coolDown ? coolDownUnit : undefined,
       notes: notes || undefined,
     };
 
@@ -153,36 +169,61 @@ export default function SessionEditor({
                   />
                 </div>
               </div>
+              {calculatedPace && (
+                <div className="mt-2 text-sm text-slate-600 bg-blue-50 px-3 py-2 rounded-lg">
+                  <strong>Pace:</strong> {formatPace(calculatedPace)}
+                </div>
+              )}
             </>
           ) : (
             <div>
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Warm Up (km)
+                    Warm Up
                   </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={warmUp}
-                    onChange={(e) => setWarmUp(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="2.0"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={warmUp}
+                      onChange={(e) => setWarmUp(e.target.value)}
+                      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="2.0"
+                    />
+                    <select
+                      value={warmUpUnit}
+                      onChange={(e) => setWarmUpUnit(e.target.value as DistanceUnit)}
+                      className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    >
+                      <option value="km">km</option>
+                      <option value="min">min</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Cool Down (km)
+                    Cool Down
                   </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={coolDown}
-                    onChange={(e) => setCoolDown(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="2.0"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={coolDown}
+                      onChange={(e) => setCoolDown(e.target.value)}
+                      className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="2.0"
+                    />
+                    <select
+                      value={coolDownUnit}
+                      onChange={(e) => setCoolDownUnit(e.target.value as DistanceUnit)}
+                      className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                    >
+                      <option value="km">km</option>
+                      <option value="min">min</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -205,81 +246,99 @@ export default function SessionEditor({
                     key={index}
                     className="bg-slate-50 p-4 rounded-lg border border-slate-200"
                   >
-                    <div className="grid grid-cols-4 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">
-                          Distanz (km)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          value={interval.distance}
-                          onChange={(e) =>
-                            handleUpdateInterval(
-                              index,
-                              'distance',
-                              parseFloat(e.target.value)
-                            )
-                          }
-                          className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">
-                          Wiederholungen
-                        </label>
-                        <input
-                          type="number"
-                          value={interval.repetitions}
-                          onChange={(e) =>
-                            handleUpdateInterval(
-                              index,
-                              'repetitions',
-                              parseInt(e.target.value)
-                            )
-                          }
-                          className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">
-                          Pace
-                        </label>
-                        <input
-                          type="text"
-                          value={interval.pace}
-                          onChange={(e) =>
-                            handleUpdateInterval(index, 'pace', e.target.value)
-                          }
-                          className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
-                          placeholder="4:30"
-                        />
-                      </div>
-
-                      <div className="flex gap-2">
-                        <div className="flex-1">
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
                           <label className="block text-xs font-medium text-slate-600 mb-1">
-                            Pause (km)
+                            Distanz (km)
                           </label>
                           <input
-                            type="text"
-                            value={interval.recovery}
+                            type="number"
+                            step="0.1"
+                            value={interval.distance}
                             onChange={(e) =>
                               handleUpdateInterval(
                                 index,
-                                'recovery',
-                                e.target.value
+                                'distance',
+                                parseFloat(e.target.value)
                               )
                             }
                             className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
-                            placeholder="0.2"
                           />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">
+                            Wiederholungen
+                          </label>
+                          <input
+                            type="number"
+                            value={interval.repetitions}
+                            onChange={(e) =>
+                              handleUpdateInterval(
+                                index,
+                                'repetitions',
+                                parseInt(e.target.value)
+                              )
+                            }
+                            className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-slate-600 mb-1">
+                            Pace
+                          </label>
+                          <input
+                            type="text"
+                            value={interval.pace}
+                            onChange={(e) =>
+                              handleUpdateInterval(index, 'pace', e.target.value)
+                            }
+                            className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                            placeholder="4:30"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 items-end">
+                        <div className="flex-1">
+                          <label className="block text-xs font-medium text-slate-600 mb-1">
+                            Pause
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={interval.recovery}
+                              onChange={(e) =>
+                                handleUpdateInterval(
+                                  index,
+                                  'recovery',
+                                  e.target.value
+                                )
+                              }
+                              className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                              placeholder="0.2"
+                            />
+                            <select
+                              value={interval.recoveryUnit || 'km'}
+                              onChange={(e) =>
+                                handleUpdateInterval(
+                                  index,
+                                  'recoveryUnit',
+                                  e.target.value as DistanceUnit
+                                )
+                              }
+                              className="px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 bg-white"
+                            >
+                              <option value="km">km</option>
+                              <option value="min">min</option>
+                            </select>
+                          </div>
                         </div>
                         <button
                           onClick={() => handleDeleteInterval(index)}
-                          className="mt-5 p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
                         >
                           <Trash2 size={16} />
                         </button>

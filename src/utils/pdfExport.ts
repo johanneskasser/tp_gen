@@ -161,7 +161,8 @@ export function exportToPDF(plan: TrainingPlan) {
               doc.addPage();
               yPosition = 20;
             }
-            doc.text(`  Warm Up: ${session.warmUp}km`, 25, yPosition);
+            const warmUpUnit = session.warmUpUnit || 'km';
+            doc.text(`  Warm Up: ${session.warmUp}${warmUpUnit}`, 25, yPosition);
             yPosition += 4;
           }
 
@@ -171,7 +172,8 @@ export function exportToPDF(plan: TrainingPlan) {
               doc.addPage();
               yPosition = 20;
             }
-            const intervalText = `  ${interval.repetitions}x ${interval.distance}km${interval.pace ? ` @ ${interval.pace}` : ''}${interval.recovery ? ` (${interval.recovery}km Pause)` : ''}`;
+            const recoveryUnit = interval.recoveryUnit || 'km';
+            const intervalText = `  ${interval.repetitions}x ${interval.distance}km${interval.pace ? ` @ ${interval.pace}` : ''}${interval.recovery ? ` (${interval.recovery}${recoveryUnit} Pause)` : ''}`;
             doc.text(intervalText, 25, yPosition);
             yPosition += 4;
           }
@@ -182,7 +184,8 @@ export function exportToPDF(plan: TrainingPlan) {
               doc.addPage();
               yPosition = 20;
             }
-            doc.text(`  Cool Down: ${session.coolDown}km`, 25, yPosition);
+            const coolDownUnit = session.coolDownUnit || 'km';
+            doc.text(`  Cool Down: ${session.coolDown}${coolDownUnit}`, 25, yPosition);
             yPosition += 4;
           }
 

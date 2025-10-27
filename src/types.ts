@@ -1,6 +1,7 @@
 export type RaceDistance = '5K' | '10K' | 'HM' | 'M' | 'CUSTOM';
 export type TerrainType = 'road' | 'trail';
 export type SessionType = 'easy' | 'long' | 'intervals' | 'tempo' | 'recovery' | 'race';
+export type DistanceUnit = 'km' | 'min';
 
 export interface RaceEvent {
   name: string;
@@ -17,6 +18,7 @@ export interface IntervalSet {
   pace?: string;
   repetitions: number;
   recovery?: string;
+  recoveryUnit?: DistanceUnit;
 }
 
 export interface TrainingSession {
@@ -27,7 +29,9 @@ export interface TrainingSession {
   duration?: number;
   intervals?: IntervalSet[];
   warmUp?: number;
+  warmUpUnit?: DistanceUnit;
   coolDown?: number;
+  coolDownUnit?: DistanceUnit;
   notes?: string;
   title: string;
 }
