@@ -1,10 +1,11 @@
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { TrainingPlan } from '../types';
 import { formatDate, getDayName } from './dateUtils';
 import { calculateSessionDistance, getRaceDistanceKm } from './calculationUtils';
 import { calculatePace, formatPace } from './paceCalculator';
 
-export function exportToPDF(plan: TrainingPlan) {
+export async function exportToPDF(plan: TrainingPlan) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -70,7 +71,35 @@ export function exportToPDF(plan: TrainingPlan) {
     { align: 'center' }
   );
 
-  yPosition += 15;
+  yPosition += 10;
+
+  // Capture and add chart image
+  const chartElement = document.getElementById('weekly-chart');
+  if (chartElement) {
+    try {
+      const canvas = await html2canvas(chartElement, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = pageWidth - 30; // 15mm margin on each side
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Check if we need a new page
+      if (yPosition + imgHeight > pageHeight - 20) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.addImage(imgData, 'PNG', 15, yPosition, imgWidth, imgHeight);
+      yPosition += imgHeight + 10;
+    } catch (error) {
+      console.error('Error capturing chart:', error);
+    }
+  }
+
+  yPosition += 5;
 
   // Weekly Plans
   for (let i = 0; i < plan.weeks.length; i++) {

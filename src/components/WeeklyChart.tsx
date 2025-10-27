@@ -92,7 +92,7 @@ export default function WeeklyChart({ weeks }: WeeklyChartProps) {
   });
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div id="weekly-chart" className="bg-white rounded-lg shadow-md p-6">
       <div className="mb-6">
         <h3 className="text-xl font-bold text-slate-800 mb-2">
           Wöchentliche Kilometer
