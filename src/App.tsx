@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { TrainingPlan, TrainingWeek, RaceEvent } from './types';
+import { TrainingPlan, TrainingWeek, RaceEvent, TrainingSession } from './types';
 import { calculateWeeks } from './utils/dateUtils';
 import { calculateWeeklyKm, getRaceDistanceKm } from './utils/calculationUtils';
 import EventConfig from './components/EventConfig';
@@ -19,7 +19,7 @@ function App() {
     const weekData = calculateWeeks(startDate, event.date);
 
     const weeks: TrainingWeek[] = weekData.map((week, index) => {
-      const sessions = [];
+      const sessions: TrainingSession[] = [];
 
       // Add race session to the last week on the event date
       if (index === weekData.length - 1) {
@@ -30,14 +30,16 @@ function App() {
           ? event.customDistance || 0
           : getRaceDistanceKm(event.distance);
 
-        sessions.push({
+        const raceSession: TrainingSession = {
           id: `race-${Date.now()}`,
           dayOfWeek: eventDayOfWeek,
-          type: 'race',
+          type: 'race' as const,
           title: event.name,
           distance: raceDistance,
           notes: event.targetTime ? `Zielzeit: ${event.targetTime}` : undefined,
-        });
+        };
+
+        sessions.push(raceSession);
       }
 
       return {
