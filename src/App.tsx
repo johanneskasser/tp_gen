@@ -18,14 +18,37 @@ function App() {
   const handleEventSubmit = (event: RaceEvent, startDate: string) => {
     const weekData = calculateWeeks(startDate, event.date);
 
-    const weeks: TrainingWeek[] = weekData.map((week) => ({
-      weekNumber: week.weekNumber,
-      startDate: week.startDate,
-      endDate: week.endDate,
-      sessions: [],
-      totalKm: 0,
-      startDayOfWeek: week.startDayOfWeek,
-    }));
+    const weeks: TrainingWeek[] = weekData.map((week, index) => {
+      const sessions = [];
+
+      // Add race session to the last week on the event date
+      if (index === weekData.length - 1) {
+        const eventDate = new Date(event.date);
+        const eventDayOfWeek = eventDate.getDay() === 0 ? 6 : eventDate.getDay() - 1; // Convert to ISO day (0 = Monday)
+
+        const raceDistance = event.distance === 'CUSTOM'
+          ? event.customDistance || 0
+          : getRaceDistanceKm(event.distance);
+
+        sessions.push({
+          id: `race-${Date.now()}`,
+          dayOfWeek: eventDayOfWeek,
+          type: 'race',
+          title: event.name,
+          distance: raceDistance,
+          notes: event.targetTime ? `Zielzeit: ${event.targetTime}` : undefined,
+        });
+      }
+
+      return {
+        weekNumber: week.weekNumber,
+        startDate: week.startDate,
+        endDate: week.endDate,
+        sessions,
+        totalKm: calculateWeeklyKm(sessions),
+        startDayOfWeek: week.startDayOfWeek,
+      };
+    });
 
     setPlan({
       event,

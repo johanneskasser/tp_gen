@@ -1,8 +1,15 @@
 import { useState } from 'react';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { de } from 'date-fns/locale';
+import 'react-datepicker/dist/react-datepicker.css';
+import '../datepicker-custom.css';
 import { RaceEvent, RaceDistance, TerrainType } from '../types';
 import { Calendar, Mountain, MapPin, Timer } from 'lucide-react';
 import { calculatePace, formatPace } from '../utils/paceCalculator';
 import { getRaceDistanceKm } from '../utils/calculationUtils';
+
+// Register German locale for DatePicker
+registerLocale('de', de);
 
 interface EventConfigProps {
   onSubmit: (event: RaceEvent, startDate: string) => void;
@@ -16,8 +23,12 @@ export default function EventConfig({
   initialStartDate,
 }: EventConfigProps) {
   const [name, setName] = useState(initialData?.name || '');
-  const [date, setDate] = useState(initialData?.date || '');
-  const [startDate, setStartDate] = useState(initialStartDate || '');
+  const [eventDate, setEventDate] = useState<Date | null>(
+    initialData?.date ? new Date(initialData.date) : null
+  );
+  const [startDate, setStartDate] = useState<Date | null>(
+    initialStartDate ? new Date(initialStartDate) : null
+  );
   const [distance, setDistance] = useState<RaceDistance>(
     initialData?.distance || '10K'
   );
@@ -35,9 +46,19 @@ export default function EventConfig({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!eventDate || !startDate) return;
+
+    // Convert dates to YYYY-MM-DD format
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
     const event: RaceEvent = {
       name,
-      date,
+      date: formatDate(eventDate),
       distance,
       customDistance: distance === 'CUSTOM' ? parseFloat(customDistance) : undefined,
       terrain,
@@ -45,7 +66,7 @@ export default function EventConfig({
       targetTime: targetTime || undefined,
     };
 
-    onSubmit(event, startDate);
+    onSubmit(event, formatDate(startDate));
   };
 
   // Calculate pace when targetTime or distance changes
@@ -55,9 +76,36 @@ export default function EventConfig({
       ? parseFloat(customDistance)
       : getRaceDistanceKm(distance);
 
-    console.log('Debug Pace Calc:', { targetTime, distance, distKm, calculatedPace: calculatePace(targetTime, distKm) });
-
     return calculatePace(targetTime, distKm);
+  })();
+
+  // Calculate training duration and days until start
+  const trainingInfo = (() => {
+    if (!startDate || !eventDate) return null;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(eventDate);
+    end.setHours(0, 0, 0, 0);
+
+    // Calculate days between dates
+    const totalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    const weeks = Math.floor(totalDays / 7);
+    const remainingDays = totalDays % 7;
+
+    // Calculate days until training start
+    const daysUntilStart = Math.ceil((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+
+    return {
+      totalDays,
+      weeks,
+      remainingDays,
+      daysUntilStart,
+    };
   })();
 
   return (
@@ -87,13 +135,15 @@ export default function EventConfig({
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Startdatum Training
             </label>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+            <DatePicker
+              selected={startDate}
+              onChange={(date: Date | null) => setStartDate(date)}
+              locale="de"
+              dateFormat="dd.MM.yyyy"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholderText="Datum wählen"
               required
-              lang="de-DE"
+              calendarStartDay={1}
             />
             <p className="text-xs text-slate-500 mt-1">
               Woche startet am gewählten Wochentag
@@ -104,16 +154,55 @@ export default function EventConfig({
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Event Datum
             </label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+            <DatePicker
+              selected={eventDate}
+              onChange={(date: Date | null) => setEventDate(date)}
+              locale="de"
+              dateFormat="dd.MM.yyyy"
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholderText="Datum wählen"
               required
-              lang="de-DE"
+              calendarStartDay={1}
+              minDate={startDate || undefined}
             />
           </div>
         </div>
+
+        {trainingInfo && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-blue-700">
+                  {trainingInfo.weeks}
+                </div>
+                <div className="text-xs text-slate-600 mt-1">
+                  {trainingInfo.weeks === 1 ? 'Woche' : 'Wochen'}
+                </div>
+                {trainingInfo.remainingDays > 0 && (
+                  <div className="text-xs text-slate-500 mt-0.5">
+                    + {trainingInfo.remainingDays} {trainingInfo.remainingDays === 1 ? 'Tag' : 'Tage'}
+                  </div>
+                )}
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-blue-700">
+                  {trainingInfo.totalDays}
+                </div>
+                <div className="text-xs text-slate-600 mt-1">
+                  {trainingInfo.totalDays === 1 ? 'Tag' : 'Tage'} Training
+                </div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-indigo-700">
+                  {trainingInfo.daysUntilStart}
+                </div>
+                <div className="text-xs text-slate-600 mt-1">
+                  {trainingInfo.daysUntilStart === 1 ? 'Tag' : 'Tage'} bis Start
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
