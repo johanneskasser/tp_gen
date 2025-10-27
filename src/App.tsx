@@ -24,6 +24,7 @@ function App() {
       endDate: week.endDate,
       sessions: [],
       totalKm: 0,
+      startDayOfWeek: week.startDayOfWeek,
     }));
 
     setPlan({

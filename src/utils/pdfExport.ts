@@ -83,17 +83,38 @@ export async function exportToPDF(plan: TrainingPlan) {
       });
 
       const imgData = canvas.toDataURL('image/png');
-      const imgWidth = pageWidth - 30; // 15mm margin on each side
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      // Scale image intelligently based on number of weeks
+      // For few weeks, use smaller width; for many weeks, use full width
+      const maxWidth = pageWidth - 30; // 15mm margin on each side
+      const minWidth = 80; // Minimum width for readability
+
+      // Calculate ideal width: scale with number of weeks, but cap at maxWidth
+      // Each week gets ~15mm, with min/max bounds
+      const idealWidth = Math.min(maxWidth, Math.max(minWidth, plan.weeks.length * 15));
+
+      const imgHeight = (canvas.height * idealWidth) / canvas.width;
+
+      // Cap height to reasonable maximum (80mm)
+      const maxHeight = 80;
+      let finalWidth = idealWidth;
+      let finalHeight = imgHeight;
+
+      if (imgHeight > maxHeight) {
+        finalHeight = maxHeight;
+        finalWidth = (canvas.width * maxHeight) / canvas.height;
+      }
 
       // Check if we need a new page
-      if (yPosition + imgHeight > pageHeight - 20) {
+      if (yPosition + finalHeight > pageHeight - 20) {
         doc.addPage();
         yPosition = 20;
       }
 
-      doc.addImage(imgData, 'PNG', 15, yPosition, imgWidth, imgHeight);
-      yPosition += imgHeight + 10;
+      // Center the image horizontally
+      const xPosition = (pageWidth - finalWidth) / 2;
+      doc.addImage(imgData, 'PNG', xPosition, yPosition, finalWidth, finalHeight);
+      yPosition += finalHeight + 10;
     } catch (error) {
       console.error('Error capturing chart:', error);
     }

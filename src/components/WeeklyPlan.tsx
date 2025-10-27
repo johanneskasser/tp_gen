@@ -18,7 +18,8 @@ export default function WeeklyPlan({
   onUpdate,
 }: WeeklyPlanProps) {
   const [isExpanded, setIsExpanded] = useState(weekIndex === 0);
-  const [editingSession, setEditingSession] = useState<string | null>(null);
+  const [editingSession, setEditingSession] = useState<TrainingSession | null>(null);
+  const [editingExistingSession, setEditingExistingSession] = useState(false);
 
   const handleAddSession = (dayOfWeek: number) => {
     const newSession: TrainingSession = {
@@ -29,27 +30,35 @@ export default function WeeklyPlan({
       distance: 0,
     };
 
-    const updatedSessions = [...week.sessions, newSession].sort(
-      (a, b) => a.dayOfWeek - b.dayOfWeek
-    );
-
-    onUpdate({
-      ...week,
-      sessions: updatedSessions,
-    });
-
-    setEditingSession(newSession.id);
+    setEditingSession(newSession);
+    setEditingExistingSession(false);
   };
 
   const handleUpdateSession = (updatedSession: TrainingSession) => {
-    const updatedSessions = week.sessions.map((s) =>
-      s.id === updatedSession.id ? updatedSession : s
-    );
+    let updatedSessions: TrainingSession[];
+
+    if (editingExistingSession) {
+      // Update existing session
+      updatedSessions = week.sessions.map((s) =>
+        s.id === updatedSession.id ? updatedSession : s
+      );
+    } else {
+      // Add new session
+      updatedSessions = [...week.sessions, updatedSession].sort(
+        (a, b) => a.dayOfWeek - b.dayOfWeek
+      );
+    }
 
     onUpdate({
       ...week,
       sessions: updatedSessions,
     });
+
+    setEditingSession(null);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingSession(null);
   };
 
   const handleDeleteSession = (sessionId: string) => {
@@ -63,9 +72,18 @@ export default function WeeklyPlan({
     setEditingSession(null);
   };
 
+  const handleEditExistingSession = (session: TrainingSession) => {
+    setEditingSession(session);
+    setEditingExistingSession(true);
+  };
+
   const getSessionsForDay = (dayOfWeek: number) => {
     return week.sessions.filter((s) => s.dayOfWeek === dayOfWeek);
   };
+
+  // Calculate which days to show based on week start
+  const startDayOfWeek = week.startDayOfWeek ?? 0; // Default to Monday if not set
+  const daysToShow = Array.from({ length: 7 }, (_, i) => (startDayOfWeek + i) % 7);
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -90,7 +108,7 @@ export default function WeeklyPlan({
       {isExpanded && (
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-            {[0, 1, 2, 3, 4, 5, 6].map((dayOfWeek) => {
+            {daysToShow.map((dayOfWeek) => {
               const daySessions = getSessionsForDay(dayOfWeek);
               return (
                 <div
@@ -104,32 +122,23 @@ export default function WeeklyPlan({
                   <div className="space-y-2">
                     {daySessions.map((session) => (
                       <div key={session.id}>
-                        {editingSession === session.id ? (
-                          <SessionEditor
-                            session={session}
-                            onSave={handleUpdateSession}
-                            onCancel={() => setEditingSession(null)}
-                            onDelete={() => handleDeleteSession(session.id)}
-                          />
-                        ) : (
-                          <button
-                            onClick={() => setEditingSession(session.id)}
-                            className="w-full text-left p-2 bg-white rounded border border-slate-200 hover:border-blue-400 hover:shadow-sm transition-all"
-                          >
-                            <div className="font-medium text-sm text-slate-800">
-                              {session.title || generateSessionTitle(session)}
+                        <button
+                          onClick={() => handleEditExistingSession(session)}
+                          className="w-full text-left p-2 bg-white rounded border border-slate-200 hover:border-blue-400 hover:shadow-sm transition-all"
+                        >
+                          <div className="font-medium text-sm text-slate-800">
+                            {session.title || generateSessionTitle(session)}
+                          </div>
+                          <div className="text-xs text-slate-600 mt-1">
+                            {calculateSessionDistance(session).toFixed(1)} km
+                          </div>
+                          {session.notes && (
+                            <div className="text-xs text-slate-500 mt-1 italic">
+                              {session.notes.substring(0, 30)}
+                              {session.notes.length > 30 ? '...' : ''}
                             </div>
-                            <div className="text-xs text-slate-600 mt-1">
-                              {calculateSessionDistance(session).toFixed(1)} km
-                            </div>
-                            {session.notes && (
-                              <div className="text-xs text-slate-500 mt-1 italic">
-                                {session.notes.substring(0, 30)}
-                                {session.notes.length > 30 ? '...' : ''}
-                              </div>
-                            )}
-                          </button>
-                        )}
+                          )}
+                        </button>
                       </div>
                     ))}
 
@@ -146,6 +155,15 @@ export default function WeeklyPlan({
             })}
           </div>
         </div>
+      )}
+
+      {editingSession && (
+        <SessionEditor
+          session={editingSession}
+          onSave={handleUpdateSession}
+          onCancel={handleCancelEdit}
+          onDelete={() => handleDeleteSession(editingSession.id)}
+        />
       )}
     </div>
   );

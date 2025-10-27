@@ -1,9 +1,10 @@
-import { addDays, differenceInWeeks, format } from 'date-fns';
+import { addDays, differenceInWeeks, format, getDay } from 'date-fns';
 
 export function calculateWeeks(startDate: string, endDate: string) {
   const start = new Date(startDate);
   const end = new Date(endDate);
 
+  // Calculate number of weeks
   const numberOfWeeks = differenceInWeeks(end, start) + 1;
 
   const weeks = [];
@@ -17,10 +18,21 @@ export function calculateWeeks(startDate: string, endDate: string) {
       endDate: format(weekEnd, 'yyyy-MM-dd'),
       displayStart: format(weekStart, 'dd.MM.yyyy'),
       displayEnd: format(weekEnd, 'dd.MM.yyyy'),
+      startDayOfWeek: getISODayOfWeek(weekStart),
     });
   }
 
   return weeks;
+}
+
+/**
+ * Get ISO day of week (0 = Monday, 6 = Sunday)
+ * date-fns getDay returns 0 = Sunday, 1 = Monday, etc.
+ */
+function getISODayOfWeek(date: Date): number {
+  const day = getDay(date);
+  // Convert Sunday (0) to 6, and shift others down by 1
+  return day === 0 ? 6 : day - 1;
 }
 
 export function formatDate(date: string): string {

@@ -42,6 +42,7 @@ export interface TrainingWeek {
   endDate: string;
   sessions: TrainingSession[];
   totalKm: number;
+  startDayOfWeek?: number; // 0 = Monday, 6 = Sunday
 }
 
 export interface TrainingPlan {
