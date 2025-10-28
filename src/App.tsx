@@ -9,6 +9,7 @@ import { FileDown, Download, Upload } from 'lucide-react';
 import { exportToPDF } from './utils/pdfExport';
 import { calculatePace, formatPace } from './utils/paceCalculator';
 import { exportToJSON, importFromJSON } from './utils/jsonExportImport';
+import { Analytics } from "@vercel/analytics/react"
 
 function App() {
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
@@ -322,6 +323,7 @@ function App() {
           </>
         )}
       </div>
+      <Analytics />
     </div>
   );
 }
