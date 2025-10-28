@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { TrainingPlan, TrainingWeek, RaceEvent, TrainingSession } from './types';
 import { calculateWeeks } from './utils/dateUtils';
 import { calculateWeeklyKm, getRaceDistanceKm } from './utils/calculationUtils';
@@ -13,7 +13,29 @@ import { exportToJSON, importFromJSON } from './utils/jsonExportImport';
 function App() {
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
   const [showEventConfig, setShowEventConfig] = useState(true);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const beforeUnloadCallbackRef = useRef<((e: BeforeUnloadEvent) => void) | null>(null);
+
+  // Set up beforeunload event listener
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    beforeUnloadCallbackRef.current = handleBeforeUnload;
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      if (beforeUnloadCallbackRef.current) {
+        window.removeEventListener('beforeunload', beforeUnloadCallbackRef.current);
+      }
+    };
+  }, [hasUnsavedChanges]);
 
   const handleEventSubmit = (event: RaceEvent, startDate: string) => {
     const weekData = calculateWeeks(startDate, event.date);
@@ -58,6 +80,7 @@ function App() {
       weeks,
     });
     setShowEventConfig(false);
+    setHasUnsavedChanges(true);
   };
 
   const handleUpdateWeek = (weekIndex: number, updatedWeek: TrainingWeek) => {
@@ -73,6 +96,7 @@ function App() {
       ...plan,
       weeks: updatedWeeks,
     });
+    setHasUnsavedChanges(true);
   };
 
   const handleExportPDF = async () => {
@@ -88,6 +112,7 @@ function App() {
   const handleExportJSON = () => {
     if (plan) {
       exportToJSON(plan);
+      setHasUnsavedChanges(false);
     }
   };
 
@@ -102,12 +127,27 @@ function App() {
         const importedPlan = await importFromJSON(file);
         setPlan(importedPlan);
         setShowEventConfig(false);
+        setHasUnsavedChanges(false);
       } catch (error) {
         alert((error as Error).message);
       }
       // Reset input so same file can be selected again
       event.target.value = '';
     }
+  };
+
+  const handleSaveAndContinue = () => {
+    handleExportJSON();
+    setShowUnsavedDialog(false);
+  };
+
+  const handleDontSave = () => {
+    setHasUnsavedChanges(false);
+    setShowUnsavedDialog(false);
+  };
+
+  const handleCancelClose = () => {
+    setShowUnsavedDialog(false);
   };
 
   return (
@@ -142,6 +182,40 @@ function App() {
           onChange={handleFileChange}
           className="hidden"
         />
+
+        {/* Unsaved Changes Dialog */}
+        {showUnsavedDialog && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold text-slate-800 mb-4">
+                Unsaved changes will be lost
+              </h3>
+              <p className="text-slate-600 mb-6">
+                Du hast ungespeicherte Änderungen. Möchtest du diese speichern, bevor du fortfährst?
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={handleCancelClose}
+                  className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+                >
+                  Abbrechen
+                </button>
+                <button
+                  onClick={handleDontSave}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Nicht speichern
+                </button>
+                <button
+                  onClick={handleSaveAndContinue}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Speichern
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showEventConfig ? (
           <EventConfig
