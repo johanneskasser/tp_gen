@@ -89,25 +89,27 @@ export default function WeeklyPlan({
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-6 py-4 flex items-center justify-between bg-gradient-to-r from-blue-50 to-slate-50 hover:from-blue-100 hover:to-slate-100 transition-colors"
+        className="w-full px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between bg-gradient-to-r from-blue-50 to-slate-50 hover:from-blue-100 hover:to-slate-100 transition-colors"
       >
-        <div className="flex items-center gap-4">
-          <span className="text-2xl font-bold text-blue-600">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 items-start">
+          <span className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600">
             Woche {week.weekNumber}
           </span>
-          <span className="text-slate-600">
+          <span className="text-xs sm:text-sm md:text-base text-slate-600">
             {formatDate(week.startDate)} - {formatDate(week.endDate)}
           </span>
-          <span className="px-3 py-1 bg-blue-600 text-white rounded-full text-sm font-medium">
+          <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-600 text-white rounded-full text-xs sm:text-sm font-medium">
             {week.totalKm.toFixed(1)} km
           </span>
         </div>
-        {isExpanded ? <ChevronUp /> : <ChevronDown />}
+        <div className="flex-shrink-0">
+          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        </div>
       </button>
 
       {isExpanded && (
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
+        <div className="p-3 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4">
             {daysToShow.map((dayOfWeek) => {
               const daySessions = getSessionsForDay(dayOfWeek);
               return (

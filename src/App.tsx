@@ -40,8 +40,25 @@ function App() {
   const handleEventSubmit = (event: RaceEvent, startDate: string) => {
     const weekData = calculateWeeks(startDate, event.date);
 
+    // If we're editing an existing plan, try to preserve existing sessions
+    const existingSessions = plan?.weeks.flatMap(w => w.sessions.filter(s => s.type !== 'race')) || [];
+
     const weeks: TrainingWeek[] = weekData.map((week, index) => {
-      const sessions: TrainingSession[] = [];
+      // Try to find existing sessions that match this week's date range
+      const matchingSessions = existingSessions.filter(session => {
+        // Find which week this session belonged to in the old plan
+        const oldWeek = plan?.weeks.find(w =>
+          w.sessions.some(s => s.id === session.id)
+        );
+
+        if (!oldWeek) return false;
+
+        // Check if the old week's number matches the new week's number
+        // This preserves sessions when the structure is similar
+        return oldWeek.weekNumber === week.weekNumber;
+      });
+
+      const sessions: TrainingSession[] = [...matchingSessions];
 
       // Add race session to the last week on the event date
       if (index === weekData.length - 1) {
@@ -152,21 +169,21 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <header className="mb-8">
-          <div className="flex justify-between items-start">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-7xl">
+        <header className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div>
-              <h1 className="text-4xl font-bold text-slate-800 mb-2">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 mb-2">
                 Trainingsplan Generator
               </h1>
-              <p className="text-slate-600">
+              <p className="text-sm sm:text-base text-slate-600">
                 Erstelle deinen individuellen Lauftrainingsplan
               </p>
             </div>
             {showEventConfig && (
               <button
                 onClick={handleImportJSON}
-                className="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors flex items-center gap-2"
+                className="w-full sm:w-auto px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
               >
                 <Upload size={20} />
                 Plan laden
@@ -185,30 +202,30 @@ function App() {
 
         {/* Unsaved Changes Dialog */}
         {showUnsavedDialog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-              <h3 className="text-xl font-bold text-slate-800 mb-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl p-4 sm:p-6 max-w-sm sm:max-w-md w-full">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-3 sm:mb-4">
                 Unsaved changes will be lost
               </h3>
-              <p className="text-slate-600 mb-6">
+              <p className="text-sm sm:text-base text-slate-600 mb-4 sm:mb-6">
                 Du hast ungespeicherte Änderungen. Möchtest du diese speichern, bevor du fortfährst?
               </p>
-              <div className="flex gap-3 justify-end">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:justify-end">
                 <button
                   onClick={handleCancelClose}
-                  className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+                  className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors text-sm sm:text-base"
                 >
                   Abbrechen
                 </button>
                 <button
                   onClick={handleDontSave}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm sm:text-base"
                 >
                   Nicht speichern
                 </button>
                 <button
                   onClick={handleSaveAndContinue}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base"
                 >
                   Speichern
                 </button>
@@ -227,13 +244,13 @@ function App() {
           <>
             {plan && (
               <>
-                <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h2 className="text-2xl font-bold text-slate-800">
+                <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-4 sm:mb-6">
+                  <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-4">
+                    <div className="flex-1">
+                      <h2 className="text-xl sm:text-2xl font-bold text-slate-800">
                         {plan.event.name}
                       </h2>
-                      <p className="text-slate-600">
+                      <p className="text-sm sm:text-base text-slate-600">
                         {plan.event.distance}
                         {plan.event.distance === 'CUSTOM' &&
                           ` (${plan.event.customDistance} km)`}{' '}
@@ -243,7 +260,7 @@ function App() {
                           ` - ${plan.event.elevationGain} HM`}
                       </p>
                       {plan.event.targetTime && (
-                        <p className="text-sm text-slate-600 mt-1">
+                        <p className="text-xs sm:text-sm text-slate-600 mt-1">
                           <strong>Zielzeit:</strong> {plan.event.targetTime} |{' '}
                           <strong>Pace:</strong>{' '}
                           {formatPace(
@@ -257,30 +274,30 @@ function App() {
                           )}
                         </p>
                       )}
-                      <p className="text-sm text-slate-500 mt-1">
+                      <p className="text-xs sm:text-sm text-slate-500 mt-1">
                         {plan.weeks.length} Wochen Training
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
                       <button
                         onClick={handleEditEvent}
-                        className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+                        className="px-3 sm:px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors text-sm sm:text-base whitespace-nowrap"
                       >
                         Event bearbeiten
                       </button>
                       <button
                         onClick={handleExportJSON}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                        className="px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                       >
-                        <Download size={20} />
-                        Plan speichern
+                        <Download size={18} className="sm:w-5 sm:h-5" />
+                        <span className="whitespace-nowrap">Plan speichern</span>
                       </button>
                       <button
                         onClick={handleExportPDF}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                        className="px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
                       >
-                        <FileDown size={20} />
-                        PDF exportieren
+                        <FileDown size={18} className="sm:w-5 sm:h-5" />
+                        <span className="whitespace-nowrap">PDF exportieren</span>
                       </button>
                     </div>
                   </div>
@@ -288,7 +305,7 @@ function App() {
 
                 <WeeklyChart weeks={plan.weeks} />
 
-                <div className="mt-8 space-y-6">
+                <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6">
                   {plan.weeks.map((week, index) => (
                     <WeeklyPlan
                       key={week.weekNumber}

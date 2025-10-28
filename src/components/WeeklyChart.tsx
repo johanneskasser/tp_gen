@@ -52,26 +52,26 @@ export default function WeeklyChart({ weeks }: WeeklyChartProps) {
       const total = payload.reduce((sum: number, entry: any) => sum + (entry.value || 0), 0);
 
       return (
-        <div className="bg-white border border-slate-200 rounded-lg p-3 shadow-lg">
-          <p className="font-bold text-slate-800 mb-2">{payload[0].payload.name}</p>
-          <p className="text-sm text-slate-600 mb-2">Gesamt: {total.toFixed(1)} km</p>
-          <div className="space-y-1">
+        <div className="bg-white border border-slate-200 rounded-lg p-2 sm:p-3 shadow-lg max-w-xs">
+          <p className="font-bold text-slate-800 mb-1 sm:mb-2 text-xs sm:text-sm">{payload[0].payload.name}</p>
+          <p className="text-xs sm:text-sm text-slate-600 mb-1 sm:mb-2">Gesamt: {total.toFixed(1)} km</p>
+          <div className="space-y-0.5 sm:space-y-1">
             {payload.map((entry: any, index: number) => {
               const percentage = total > 0 ? ((entry.value / total) * 100).toFixed(1) : 0;
               return (
-                <div key={index} className="flex items-center justify-between gap-4 text-sm">
-                  <div className="flex items-center gap-2">
+                <div key={index} className="flex items-center justify-between gap-2 sm:gap-4 text-xs sm:text-sm">
+                  <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                     <div
-                      className="w-3 h-3 rounded"
+                      className="w-2 h-2 sm:w-3 sm:h-3 rounded flex-shrink-0"
                       style={{ backgroundColor: entry.color }}
                     />
-                    <span className="text-slate-700">{entry.name}</span>
+                    <span className="text-slate-700 truncate">{entry.name}</span>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right whitespace-nowrap flex-shrink-0">
                     <span className="font-medium text-slate-800">
                       {entry.value.toFixed(1)} km
                     </span>
-                    <span className="text-slate-500 ml-2">({percentage}%)</span>
+                    <span className="text-slate-500 ml-1 sm:ml-2 text-[10px] sm:text-xs">({percentage}%)</span>
                   </div>
                 </div>
               );
@@ -92,12 +92,12 @@ export default function WeeklyChart({ weeks }: WeeklyChartProps) {
   });
 
   return (
-    <div id="weekly-chart" className="bg-white rounded-lg shadow-md p-6">
-      <div className="mb-6">
-        <h3 className="text-xl font-bold text-slate-800 mb-2">
+    <div id="weekly-chart" className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+      <div className="mb-4 sm:mb-6">
+        <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-2">
           Wöchentliche Kilometer
         </h3>
-        <div className="flex gap-6 text-sm">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 text-xs sm:text-sm">
           <div>
             <span className="text-slate-600">Gesamt: </span>
             <span className="font-bold text-blue-600">{totalKm.toFixed(1)} km</span>
@@ -109,8 +109,8 @@ export default function WeeklyChart({ weeks }: WeeklyChartProps) {
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+      <ResponsiveContainer width="100%" height={250} className="sm:!h-[300px]">
+        <BarChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }} className="sm:!mr-[30px] sm:!ml-[20px]">
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
           <YAxis label={{ value: 'Kilometer', angle: -90, position: 'insideLeft' }} />

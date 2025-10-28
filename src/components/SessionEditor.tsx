@@ -91,19 +91,19 @@ export default function SessionEditor({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
-          <h3 className="text-xl font-bold text-slate-800">Training bearbeiten</h3>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-sm sm:max-w-md md:max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-slate-200 px-3 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-800">Training bearbeiten</h3>
           <button
             onClick={onCancel}
-            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+            className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-full transition-colors"
           >
             <X size={20} />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Titel (optional)
@@ -127,7 +127,7 @@ export default function SessionEditor({
                   key={st.value}
                   type="button"
                   onClick={() => setType(st.value)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg font-medium transition-all text-xs sm:text-sm ${
                     type === st.value
                       ? st.color + ' ring-2 ring-offset-2 ring-blue-500'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -141,7 +141,7 @@ export default function SessionEditor({
 
           {type !== 'intervals' ? (
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Distanz (km)
@@ -151,7 +151,7 @@ export default function SessionEditor({
                     step="0.1"
                     value={distance}
                     onChange={(e) => setDistance(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                     placeholder="10.0"
                   />
                 </div>
@@ -164,7 +164,7 @@ export default function SessionEditor({
                     type="number"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
                     placeholder="60"
                   />
                 </div>
@@ -177,7 +177,7 @@ export default function SessionEditor({
             </>
           ) : (
             <div>
-              <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Warm Up
@@ -247,7 +247,7 @@ export default function SessionEditor({
                     className="bg-slate-50 p-4 rounded-lg border border-slate-200"
                   >
                     <div className="space-y-3">
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                         <div>
                           <label className="block text-xs font-medium text-slate-600 mb-1">
                             Distanz (km)
@@ -370,27 +370,27 @@ export default function SessionEditor({
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 px-6 py-4 flex justify-between">
+        <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row gap-2 sm:justify-between">
           <button
             onClick={onDelete}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+            className="px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base order-last sm:order-first"
           >
-            <Trash2 size={18} />
+            <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
             Löschen
           </button>
 
           <div className="flex gap-2">
             <button
               onClick={onCancel}
-              className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors text-sm sm:text-base"
             >
               Abbrechen
             </button>
             <button
               onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
             >
-              <Save size={18} />
+              <Save size={16} className="sm:w-[18px] sm:h-[18px]" />
               Speichern
             </button>
           </div>

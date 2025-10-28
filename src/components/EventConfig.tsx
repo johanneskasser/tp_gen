@@ -109,13 +109,13 @@ export default function EventConfig({
   })();
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-        <Calendar className="text-blue-600" />
+    <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8 max-w-sm sm:max-w-2xl mx-auto">
+      <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4 sm:mb-6 flex items-center gap-2">
+        <Calendar className="text-blue-600" size={20} />
         Event Konfiguration
       </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">
             Event Name
@@ -130,7 +130,7 @@ export default function EventConfig({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Startdatum Training
@@ -140,7 +140,7 @@ export default function EventConfig({
               onChange={(date: Date | null) => setStartDate(date)}
               locale="de"
               dateFormat="dd.MM.yyyy"
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
               placeholderText="Datum wählen"
               required
               calendarStartDay={1}
@@ -159,7 +159,7 @@ export default function EventConfig({
               onChange={(date: Date | null) => setEventDate(date)}
               locale="de"
               dateFormat="dd.MM.yyyy"
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
               placeholderText="Datum wählen"
               required
               calendarStartDay={1}
@@ -169,10 +169,10 @@ export default function EventConfig({
         </div>
 
         {trainingInfo && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
-            <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-blue-700">
+                <div className="text-xl sm:text-2xl font-bold text-blue-700">
                   {trainingInfo.weeks}
                 </div>
                 <div className="text-xs text-slate-600 mt-1">
@@ -185,7 +185,7 @@ export default function EventConfig({
                 )}
               </div>
               <div>
-                <div className="text-2xl font-bold text-blue-700">
+                <div className="text-xl sm:text-2xl font-bold text-blue-700">
                   {trainingInfo.totalDays}
                 </div>
                 <div className="text-xs text-slate-600 mt-1">
@@ -193,7 +193,7 @@ export default function EventConfig({
                 </div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-indigo-700">
+                <div className="text-xl sm:text-2xl font-bold text-indigo-700">
                   {trainingInfo.daysUntilStart}
                 </div>
                 <div className="text-xs text-slate-600 mt-1">
@@ -209,14 +209,14 @@ export default function EventConfig({
             <MapPin size={16} />
             Distanz
           </label>
-          <div className="flex gap-2 mb-2">
+          <div className="flex flex-wrap gap-2 mb-2">
             {(['5K', '10K', 'HM', 'M', 'CUSTOM'] as RaceDistance[]).map(
               (dist) => (
                 <button
                   key={dist}
                   type="button"
                   onClick={() => setDistance(dist)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
                     distance === dist
                       ? 'bg-blue-600 text-white'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -249,7 +249,7 @@ export default function EventConfig({
             <button
               type="button"
               onClick={() => setTerrain('road')}
-              className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+              className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base ${
                 terrain === 'road'
                   ? 'bg-blue-600 text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -260,7 +260,7 @@ export default function EventConfig({
             <button
               type="button"
               onClick={() => setTerrain('trail')}
-              className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
+              className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base ${
                 terrain === 'trail'
                   ? 'bg-blue-600 text-white'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -309,7 +309,7 @@ export default function EventConfig({
 
         <button
           type="submit"
-          className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
+          className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-base sm:text-lg"
         >
           Trainingsplan erstellen
         </button>
