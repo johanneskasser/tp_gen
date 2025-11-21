@@ -7,6 +7,8 @@ import { RaceEvent, RaceDistance, TerrainType } from '../types';
 import { Calendar, Mountain, MapPin, Timer } from 'lucide-react';
 import { calculatePace, formatPace } from '../utils/paceCalculator';
 import { getRaceDistanceKm } from '../utils/calculationUtils';
+import { Button, Input, Card } from './ui';
+import { typography, cn } from '../lib/designSystem';
 
 // Register German locale for DatePicker
 registerLocale('de', de);
@@ -109,30 +111,25 @@ export default function EventConfig({
   })();
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 md:p-8 max-w-sm sm:max-w-2xl mx-auto">
-      <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-4 sm:mb-6 flex items-center gap-2">
-        <Calendar className="text-blue-600" size={20} />
+    <Card variant="default" className="max-w-sm sm:max-w-2xl mx-auto">
+      <h2 className={cn(typography.h2, 'mb-4 sm:mb-6 flex items-center gap-2')}>
+        <Calendar className="text-primary-700" size={20} />
         Event Konfiguration
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            Event Name
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="z.B. Berlin Marathon 2024"
-            required
-          />
-        </div>
+        <Input
+          type="text"
+          label="Event Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="z.B. Berlin Marathon 2024"
+          required
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-text-secondary mb-2">
               Startdatum Training
             </label>
             <DatePicker
@@ -140,18 +137,18 @@ export default function EventConfig({
               onChange={(date: Date | null) => setStartDate(date)}
               locale="de"
               dateFormat="dd.MM.yyyy"
-              className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+              className="w-full px-3 sm:px-4 py-2.5 border border-border-medium rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400 text-sm sm:text-base bg-white"
               placeholderText="Datum wählen"
               required
               calendarStartDay={1}
             />
-            <p className="text-xs text-slate-500 mt-1">
+            <p className={cn(typography.caption, 'text-text-tertiary mt-1.5')}>
               Woche startet am gewählten Wochentag
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-text-secondary mb-2">
               Event Datum
             </label>
             <DatePicker
@@ -159,7 +156,7 @@ export default function EventConfig({
               onChange={(date: Date | null) => setEventDate(date)}
               locale="de"
               dateFormat="dd.MM.yyyy"
-              className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+              className="w-full px-3 sm:px-4 py-2.5 border border-border-medium rounded-lg focus:ring-2 focus:ring-primary-400 focus:border-primary-400 text-sm sm:text-base bg-white"
               placeholderText="Datum wählen"
               required
               calendarStartDay={1}
@@ -169,34 +166,34 @@ export default function EventConfig({
         </div>
 
         {trainingInfo && (
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+          <div className="bg-gradient-to-r from-primary-50 to-primary-100 border border-primary-200 rounded-lg p-3 sm:p-4">
             <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
               <div>
-                <div className="text-xl sm:text-2xl font-bold text-blue-700">
+                <div className={cn(typography.numberLarge, 'text-primary-700')}>
                   {trainingInfo.weeks}
                 </div>
-                <div className="text-xs text-slate-600 mt-1">
+                <div className={cn(typography.caption, 'text-text-secondary mt-1')}>
                   {trainingInfo.weeks === 1 ? 'Woche' : 'Wochen'}
                 </div>
                 {trainingInfo.remainingDays > 0 && (
-                  <div className="text-xs text-slate-500 mt-0.5">
+                  <div className={cn(typography.caption, 'text-text-tertiary mt-0.5')}>
                     + {trainingInfo.remainingDays} {trainingInfo.remainingDays === 1 ? 'Tag' : 'Tage'}
                   </div>
                 )}
               </div>
               <div>
-                <div className="text-xl sm:text-2xl font-bold text-blue-700">
+                <div className={cn(typography.numberLarge, 'text-primary-700')}>
                   {trainingInfo.totalDays}
                 </div>
-                <div className="text-xs text-slate-600 mt-1">
+                <div className={cn(typography.caption, 'text-text-secondary mt-1')}>
                   {trainingInfo.totalDays === 1 ? 'Tag' : 'Tage'} Training
                 </div>
               </div>
               <div>
-                <div className="text-xl sm:text-2xl font-bold text-indigo-700">
+                <div className={cn(typography.numberLarge, 'text-primary-800')}>
                   {trainingInfo.daysUntilStart}
                 </div>
-                <div className="text-xs text-slate-600 mt-1">
+                <div className={cn(typography.caption, 'text-text-secondary mt-1')}>
                   {trainingInfo.daysUntilStart === 1 ? 'Tag' : 'Tage'} bis Start
                 </div>
               </div>
@@ -205,7 +202,7 @@ export default function EventConfig({
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+          <label className="block text-sm font-medium text-text-secondary mb-2 flex items-center gap-2">
             <MapPin size={16} />
             Distanz
           </label>
@@ -216,11 +213,12 @@ export default function EventConfig({
                   key={dist}
                   type="button"
                   onClick={() => setDistance(dist)}
-                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium transition-colors text-sm sm:text-base ${
+                  className={cn(
+                    'px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-medium transition-colors text-sm sm:text-base',
                     distance === dist
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                  }`}
+                      ? 'bg-primary-700 text-white'
+                      : 'bg-background-tertiary text-text-primary hover:bg-primary-100'
+                  )}
                 >
                   {dist}
                 </button>
@@ -229,12 +227,11 @@ export default function EventConfig({
           </div>
 
           {distance === 'CUSTOM' && (
-            <input
+            <Input
               type="number"
               step="0.1"
               value={customDistance}
               onChange={(e) => setCustomDistance(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Distanz in km"
               required
             />
@@ -242,29 +239,31 @@ export default function EventConfig({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">
+          <label className="block text-sm font-medium text-text-secondary mb-2">
             Terrain
           </label>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setTerrain('road')}
-              className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base ${
+              className={cn(
+                'flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base',
                 terrain === 'road'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
+                  ? 'bg-primary-700 text-white'
+                  : 'bg-background-tertiary text-text-primary hover:bg-primary-100'
+              )}
             >
               Straße
             </button>
             <button
               type="button"
               onClick={() => setTerrain('trail')}
-              className={`flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base ${
+              className={cn(
+                'flex-1 px-3 sm:px-4 py-2 sm:py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm sm:text-base',
                 terrain === 'trail'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
+                  ? 'bg-primary-700 text-white'
+                  : 'bg-background-tertiary text-text-primary hover:bg-primary-100'
+              )}
             >
               <Mountain size={18} />
               Trail
@@ -273,47 +272,51 @@ export default function EventConfig({
         </div>
 
         {terrain === 'trail' && (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
-              <Mountain size={16} />
-              Höhenmeter (optional)
-            </label>
-            <input
-              type="number"
-              value={elevationGain}
-              onChange={(e) => setElevationGain(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="z.B. 1500"
-            />
-          </div>
+          <Input
+            type="number"
+            label={
+              <span className="flex items-center gap-2">
+                <Mountain size={16} />
+                Höhenmeter (optional)
+              </span>
+            }
+            value={elevationGain}
+            onChange={(e) => setElevationGain(e.target.value)}
+            placeholder="z.B. 1500"
+          />
         )}
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
-            <Timer size={16} />
-            Zielzeit (optional)
-          </label>
-          <input
+          <Input
             type="text"
+            label={
+              <span className="flex items-center gap-2">
+                <Timer size={16} />
+                Zielzeit (optional)
+              </span>
+            }
             value={targetTime}
             onChange={(e) => setTargetTime(e.target.value)}
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="z.B. 45 oder 45:00 oder 1:30:00"
           />
           {calculatedPace && (
-            <div className="mt-2 text-sm text-slate-600 bg-blue-50 px-3 py-2 rounded-lg">
+            <div className={cn(
+              typography.bodySmall,
+              'mt-2 text-text-secondary bg-primary-50 px-3 py-2 rounded-lg'
+            )}>
               <strong>Pace:</strong> {formatPace(calculatedPace)}
             </div>
           )}
         </div>
 
-        <button
+        <Button
           type="submit"
-          className="w-full px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-base sm:text-lg"
+          fullWidth
+          size="lg"
         >
           Trainingsplan erstellen
-        </button>
+        </Button>
       </form>
-    </div>
+    </Card>
   );
 }
