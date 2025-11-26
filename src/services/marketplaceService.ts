@@ -28,6 +28,8 @@ export const marketplaceService = {
       tags,
       distance,
       duration_weeks,
+      from_following,
+      creator_id,
       sort_by = 'recent',
       page = 1,
       page_size = 12,
@@ -37,6 +39,38 @@ export const marketplaceService = {
       .from('training_plans')
       .select('*', { count: 'exact' })
       .in('visibility', ['public', 'public_anonymous']);
+
+    // Filter by creator
+    if (creator_id) {
+      query = query.eq('user_id', creator_id);
+    }
+
+    // Filter by following users
+    if (from_following) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        // Get list of user IDs that current user follows
+        const { data: followingData } = await supabase
+          .from('user_follows')
+          .select('following_id')
+          .eq('follower_id', user.id);
+
+        const followingIds = (followingData || []).map((f) => f.following_id);
+
+        if (followingIds.length > 0) {
+          query = query.in('user_id', followingIds);
+        } else {
+          // User doesn't follow anyone, return empty result
+          return { plans: [], total: 0 };
+        }
+      } else {
+        // Not authenticated, can't show following feed
+        return { plans: [], total: 0 };
+      }
+    }
 
     // Search filter
     if (search) {

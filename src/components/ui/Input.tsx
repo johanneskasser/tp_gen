@@ -31,8 +31,12 @@ export function Input({
   const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
   const finalState = errorText ? 'error' : state;
 
+  // Extract flex classes from className for the wrapper
+  const flexClasses = className?.match(/(flex-\S+|min-w-\S+|max-w-\S+|w-\S+)/g)?.join(' ') || '';
+  const inputClasses = className?.replace(/(flex-\S+|min-w-\S+|max-w-\S+)/g, '').trim() || '';
+
   return (
-    <div className={spacing.tight}>
+    <div className={cn(spacing.tight, flexClasses)}>
       {label && (
         <label
           htmlFor={inputId}
@@ -58,7 +62,7 @@ export function Input({
             getInputClasses(finalState),
             leftIcon && 'pl-10',
             rightIcon && 'pr-10',
-            className
+            inputClasses
           )}
           {...props}
         />

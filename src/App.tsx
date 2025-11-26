@@ -9,17 +9,21 @@ import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import MarketplacePage from './pages/MarketplacePage';
 import PlanDetailPage from './pages/PlanDetailPage';
+import UserProfilePage from './pages/UserProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AppLayout } from './components/AppLayout';
 import { Analytics } from '@vercel/analytics/react';
+import './i18n/config'; // Initialize i18n
+import { useTranslation } from 'react-i18next';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background-primary to-primary-50 flex items-center justify-center">
-        <div className="text-text-tertiary">Lädt...</div>
+        <div className="text-text-tertiary">{t('common.loading')}</div>
       </div>
     );
   }
@@ -89,6 +93,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <AppLayout>
               <PlanDetailPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/:userId"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <UserProfilePage />
             </AppLayout>
           </ProtectedRoute>
         }

@@ -19,11 +19,14 @@ import {
   Calendar,
   MapPin,
   User,
+  Users,
 } from 'lucide-react';
 import { Button, Card, Input, Badge } from '../components/ui';
 import { typography, cn, flex } from '../lib/designSystem';
 import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { de, enUS } from 'date-fns/locale';
+import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 export default function MarketplacePage() {
   const [plans, setPlans] = useState<MarketplacePlan[]>([]);
@@ -37,8 +40,13 @@ export default function MarketplacePage() {
   const [searchInput, setSearchInput] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [showFollowingOnly, setShowFollowingOnly] = useState(false);
 
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { t, i18n } = useTranslation();
+
+  const dateLocale = i18n.language === 'de' ? de : enUS;
 
   useEffect(() => {
     loadPlans();
@@ -62,12 +70,23 @@ export default function MarketplacePage() {
       ...filters,
       search: searchInput || undefined,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
+      from_following: showFollowingOnly || undefined,
       page: 1,
     });
   };
 
   const handleSortChange = (sort_by: MarketplaceFilters['sort_by']) => {
-    setFilters({ ...filters, sort_by, page: 1 });
+    setFilters({ ...filters, sort_by, from_following: showFollowingOnly || undefined, page: 1 });
+  };
+
+  const toggleFollowing = () => {
+    const newValue = !showFollowingOnly;
+    setShowFollowingOnly(newValue);
+    setFilters({
+      ...filters,
+      from_following: newValue || undefined,
+      page: 1
+    });
   };
 
   const toggleTag = (tag: string) => {
@@ -81,6 +100,7 @@ export default function MarketplacePage() {
   const clearFilters = () => {
     setSearchInput('');
     setSelectedTags([]);
+    setShowFollowingOnly(false);
     setFilters({
       page: 1,
       page_size: 12,
@@ -93,8 +113,8 @@ export default function MarketplacePage() {
     if (typeof distance === 'number') {
       if (distance === 5) return '5K';
       if (distance === 10) return '10K';
-      if (distance === 21.0975) return 'Halbmarathon';
-      if (distance === 42.195) return 'Marathon';
+      if (distance === 21.0975) return t('marketplace.distance.halfMarathon');
+      if (distance === 42.195) return t('marketplace.distance.marathon');
       return `${distance} km`;
     }
     return distance || 'N/A';
@@ -105,93 +125,127 @@ export default function MarketplacePage() {
   };
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-7xl">
-      {/* Search & Filters */}
-      <div className="mb-6 space-y-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="flex-1 flex gap-2">
-            <Input
-              type="text"
-              placeholder="Trainingspläne durchsuchen..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              leftIcon={<Search size={18} />}
-              className="flex-1"
-            />
-            <Button onClick={handleSearch} variant="primary">
-              Suchen
-            </Button>
-          </div>
-          <Button
-            onClick={() => setShowFilters(!showFilters)}
-            variant={showFilters || selectedTags.length > 0 ? 'primary' : 'secondary'}
-            leftIcon={<Filter size={18} />}
-          >
-            Filter {selectedTags.length > 0 && `(${selectedTags.length})`}
-          </Button>
-        </div>
-
-        {/* Filter Panel */}
-        {showFilters && (
-          <Card variant="default" className="p-4">
-            <div className="space-y-4">
-              <div>
-                <h3 className={cn(typography.h3, 'mb-3')}>Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {PREDEFINED_TAGS.map((tag) => (
-                    <Badge
-                      key={tag}
-                      onClick={() => toggleTag(tag)}
-                      className={cn(
-                        'cursor-pointer transition-all',
-                        selectedTags.includes(tag)
-                          ? 'bg-primary-600 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      )}
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
+    <div className="min-h-screen bg-background-primary">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-20 bg-background-primary border-b border-border-light backdrop-blur-sm bg-opacity-95">
+        <div className="container mx-auto px-3 sm:px-4 max-w-7xl">
+          {/* Search Bar */}
+          <div className="py-4">
+            <div className="flex gap-2">
+              <div className="flex-1 relative">
+                <Input
+                  type="text"
+                  placeholder={t('marketplace.searchPlaceholder')}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  leftIcon={<Search size={18} />}
+                  className="w-full"
+                />
               </div>
-              <div className="flex gap-2">
-                <Button onClick={handleSearch} variant="primary" size="sm">
-                  Filter anwenden
-                </Button>
-                <Button onClick={clearFilters} variant="secondary" size="sm">
-                  Zurücksetzen
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Sort Options */}
-        <div className={flex.row}>
-          <span className={cn(typography.small, 'text-text-tertiary')}>
-            Sortieren:
-          </span>
-          <div className="flex gap-2">
-            {[
-              { value: 'recent', label: 'Neueste', icon: Clock },
-              { value: 'popular', label: 'Beliebt', icon: TrendingUp },
-              { value: 'rating', label: 'Bewertung', icon: Star },
-              { value: 'clones', label: 'Meist kopiert', icon: Copy },
-            ].map((option) => (
               <Button
-                key={option.value}
-                onClick={() => handleSortChange(option.value as any)}
-                variant={filters.sort_by === option.value ? 'primary' : 'ghost'}
-                size="sm"
-                leftIcon={<option.icon size={16} />}
+                onClick={() => setShowFilters(!showFilters)}
+                variant={showFilters || selectedTags.length > 0 ? 'primary' : 'secondary'}
+                className="relative"
               >
-                {option.label}
+                <Filter size={18} />
+                {selectedTags.length > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {selectedTags.length}
+                  </span>
+                )}
               </Button>
-            ))}
+            </div>
+          </div>
+
+          {/* Tabs for Sorting and Filtering */}
+          <div className="flex items-center gap-4 overflow-x-auto -mx-3 sm:mx-0">
+            {/* Sorting Tabs */}
+            <div className="flex gap-1 px-3 sm:px-0 min-w-max">
+              {[
+                { value: 'recent', labelKey: 'marketplace.sortBy.recent', icon: Clock },
+                { value: 'popular', labelKey: 'marketplace.sortBy.popular', icon: TrendingUp },
+                { value: 'rating', labelKey: 'marketplace.sortBy.rating', icon: Star },
+                { value: 'clones', labelKey: 'marketplace.sortBy.clones', icon: Copy },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleSortChange(option.value as any)}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all relative',
+                    'hover:text-text-primary',
+                    filters.sort_by === option.value
+                      ? 'text-text-primary'
+                      : 'text-text-tertiary'
+                  )}
+                >
+                  <option.icon size={16} />
+                  <span className="whitespace-nowrap">{t(option.labelKey)}</span>
+                  {filters.sort_by === option.value && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-700 rounded-t-full" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Following Filter - Only show if authenticated */}
+            {user && (
+              <>
+                <div className="h-8 w-px bg-border-light" />
+                <button
+                  onClick={toggleFollowing}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap',
+                    showFollowingOnly
+                      ? 'bg-primary-700 text-white shadow-sm'
+                      : 'bg-background-secondary text-text-secondary hover:bg-primary-100 border border-border-light'
+                  )}
+                >
+                  <Users size={16} />
+                  <span>{t('marketplace.filters.fromFollowing')}</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Filter Panel */}
+      {showFilters && (
+        <div className="border-b border-border-light bg-background-secondary">
+          <div className="container mx-auto px-3 sm:px-4 py-4 max-w-7xl">
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {PREDEFINED_TAGS.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTag(tag)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                      selectedTags.includes(tag)
+                        ? 'bg-primary-700 text-white shadow-sm'
+                        : 'bg-white text-text-secondary hover:bg-primary-50 border border-border-light'
+                    )}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleSearch} variant="primary" size="sm">
+                  {t('marketplace.filters.apply')}
+                </Button>
+                <Button onClick={clearFilters} variant="secondary" size="sm">
+                  {t('marketplace.filters.reset')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="container mx-auto px-3 sm:px-4 py-6 max-w-7xl">
 
       {/* Results */}
       {loading ? (
@@ -199,7 +253,7 @@ export default function MarketplacePage() {
           <div className={flex.row}>
             <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
             <span className={cn(typography.body, 'text-text-tertiary')}>
-              Lade Trainingspläne...
+              {t('marketplace.loadingPlans')}
             </span>
           </div>
         </div>
@@ -207,13 +261,13 @@ export default function MarketplacePage() {
         <Card variant="default" className="p-8 text-center max-w-md mx-auto">
           <Search size={48} className="mx-auto text-text-tertiary mb-4" />
           <h3 className={cn(typography.h3, 'mb-2')}>
-            Keine Trainingspläne gefunden
+            {t('marketplace.noResults')}
           </h3>
           <p className={cn(typography.body, 'text-text-tertiary mb-4')}>
-            Versuche es mit anderen Suchbegriffen oder Filtern
+            {t('marketplace.noResultsDescription')}
           </p>
           <Button onClick={clearFilters} variant="secondary">
-            Filter zurücksetzen
+            {t('marketplace.filters.resetFilters')}
           </Button>
         </Card>
       ) : (
@@ -221,7 +275,7 @@ export default function MarketplacePage() {
           {/* Results Count */}
           <div className="mb-4">
             <p className={cn(typography.small, 'text-text-tertiary')}>
-              {total} {total === 1 ? 'Trainingsplan' : 'Trainingspläne'} gefunden
+              {t('marketplace.resultsCount', { count: total })}
             </p>
           </div>
 
@@ -235,7 +289,7 @@ export default function MarketplacePage() {
                 onClick={() => navigate(`/marketplace/${plan.id}`)}
               >
                 {/* Plan Header - Sticky Top */}
-                <div className="p-4 border-b border-gray-200 sticky top-0 z-10 flex-shrink-0 bg-background-primary">
+                <div className="p-4 border-b border-gray-200 sticky top-0 z-10 flex-shrink-0">
                   <h3 className={cn(typography.h3, 'mb-2')}>{plan.name}</h3>
                   {plan.description && (
                     <p className={cn(typography.small, 'text-text-tertiary line-clamp-2')}>
@@ -245,21 +299,21 @@ export default function MarketplacePage() {
                 </div>
 
                 {/* Plan Details - Scrollable Middle */}
-                <div className="p-4 space-y-3 flex-1 overflow-y-auto bg-background-primary">
+                <div className="p-4 space-y-3 flex-1 overflow-y-auto">
                   <div className="flex items-center gap-2 text-sm text-text-secondary">
                     <MapPin size={16} />
                     <span>{getDistanceLabel(plan)}</span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-text-secondary">
                     <Calendar size={16} />
-                    <span>{getDuration(plan)} Wochen</span>
+                    <span>{t('marketplace.weeks', { count: getDuration(plan) })}</span>
                   </div>
 
                   {/* Target Time */}
                   {plan.plan_data?.event?.targetTime && (
                     <div className="flex items-center gap-2 text-sm text-text-secondary">
                       <Clock size={16} />
-                      <span>Ziel: {plan.plan_data.event.targetTime} min</span>
+                      <span>{t('marketplace.targetTime', { time: plan.plan_data.event.targetTime })}</span>
                     </div>
                   )}
 
@@ -267,7 +321,7 @@ export default function MarketplacePage() {
                   {plan.creator && plan.visibility === 'public' && (
                     <div className="flex items-center gap-2 text-sm text-text-secondary">
                       <User size={16} />
-                      <span>{plan.creator.full_name || 'Anonym'}</span>
+                      <span>{plan.creator.full_name || t('marketplace.anonymous')}</span>
                     </div>
                   )}
 
@@ -281,7 +335,7 @@ export default function MarketplacePage() {
                       ))}
                       {plan.tags.length > 3 && (
                         <Badge size="sm" className="bg-gray-100 text-gray-600">
-                          +{plan.tags.length - 3}
+                          {t('marketplace.tags.more', { count: plan.tags.length - 3 })}
                         </Badge>
                       )}
                     </div>
@@ -289,7 +343,7 @@ export default function MarketplacePage() {
                 </div>
 
                 {/* Stats Footer - Sticky Bottom */}
-                <div className="p-4 border-t border-gray-200 sticky bottom-0 flex items-center justify-between text-sm text-text-tertiary flex-shrink-0 bg-background-primary">
+                <div className="p-4 border-t border-gray-200 sticky bottom-0 flex items-center justify-between text-sm text-text-tertiary flex-shrink-0">
                   <div className={flex.row}>
                     <Heart size={16} />
                     <span>{plan.stats?.likes_count || 0}</span>
@@ -323,10 +377,10 @@ export default function MarketplacePage() {
                 disabled={filters.page === 1}
                 variant="secondary"
               >
-                Vorherige
+                {t('marketplace.pagination.previous')}
               </Button>
               <span className={cn(typography.body, 'px-4 py-2')}>
-                Seite {filters.page} von {Math.ceil(total / (filters.page_size || 12))}
+                {t('marketplace.page', { current: filters.page, total: Math.ceil(total / (filters.page_size || 12)) })}
               </span>
               <Button
                 onClick={() => setFilters({ ...filters, page: (filters.page || 1) + 1 })}
@@ -335,12 +389,13 @@ export default function MarketplacePage() {
                 }
                 variant="secondary"
               >
-                Nächste
+                {t('marketplace.pagination.next')}
               </Button>
             </div>
           )}
         </>
       )}
+      </div>
     </div>
   );
 }

@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { trainingPlanService, SavedTrainingPlan } from '../services/trainingPlanService';
 import { Plus, Edit, Trash2, Calendar, MapPin, Loader2, Globe, Lock, EyeOff, Share2, Eye, Heart } from 'lucide-react';
 import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { de, enUS } from 'date-fns/locale';
 import { Button, Card, Badge } from '../components/ui';
 import { typography, cn, flex } from '../lib/designSystem';
 import { useToast } from '../contexts/ToastContext';
 import PublishPlanModal from '../components/PublishPlanModal';
+import { useTranslation } from 'react-i18next';
 
 export default function Dashboard() {
   const [plans, setPlans] = useState<SavedTrainingPlan[]>([]);
@@ -17,6 +18,9 @@ export default function Dashboard() {
 
   const navigate = useNavigate();
   const toast = useToast();
+  const { t, i18n } = useTranslation();
+
+  const dateLocale = i18n.language === 'de' ? de : enUS;
 
   useEffect(() => {
     loadPlans();
@@ -28,7 +32,7 @@ export default function Dashboard() {
       const data = await trainingPlanService.getAllPlans();
       setPlans(data);
     } catch (err) {
-      toast.error('Fehler beim Laden der Trainingspläne');
+      toast.error(t('dashboard.loadError'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -36,15 +40,15 @@ export default function Dashboard() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Trainingsplan "${name}" wirklich löschen?`)) return;
+    if (!confirm(t('dashboard.confirmDelete', { name }))) return;
 
     try {
       setDeletingId(id);
       await trainingPlanService.deletePlan(id);
       setPlans(plans.filter((p) => p.id !== id));
-      toast.success(`Trainingsplan "${name}" erfolgreich gelöscht`);
+      toast.success(t('dashboard.deleteSuccess', { name }));
     } catch (err) {
-      toast.error('Fehler beim Löschen des Plans');
+      toast.error(t('dashboard.deleteError'));
       console.error(err);
     } finally {
       setDeletingId(null);
@@ -74,18 +78,18 @@ export default function Dashboard() {
   const getVisibilityLabel = (visibility: SavedTrainingPlan['visibility']) => {
     switch (visibility) {
       case 'public':
-        return 'Öffentlich mit Profil';
+        return t('dashboard.visibility.publicWithProfile');
       case 'public_anonymous':
-        return 'Öffentlich (Anonym)';
+        return t('dashboard.visibility.publicAnonymousDesc');
       case 'private':
       default:
-        return 'Privat';
+        return t('dashboard.visibility.private');
     }
   };
 
   const handlePublishSuccess = async () => {
     setPublishingPlanId(null);
-    toast.success('Plan-Status aktualisiert!');
+    toast.success(t('dashboard.planUpdated'));
     await loadPlans();
   };
 
@@ -98,7 +102,7 @@ export default function Dashboard() {
           leftIcon={<Plus size={20} />}
           size="lg"
         >
-          Neuer Plan
+          {t('dashboard.createNewPlan')}
         </Button>
       </div>
 
@@ -108,7 +112,7 @@ export default function Dashboard() {
             <div className={flex.row}>
               <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
               <span className={cn(typography.body, 'text-text-tertiary')}>
-                Lade Trainingspläne...
+                {t('dashboard.loadingPlans')}
               </span>
             </div>
           </div>
@@ -118,17 +122,17 @@ export default function Dashboard() {
             <div>
               <Calendar size={48} className="mx-auto text-text-tertiary mb-4" />
               <h2 className={cn(typography.h2, 'mb-2')}>
-                Noch keine Trainingspläne
+                {t('dashboard.noPlanYet')}
               </h2>
               <p className={cn(typography.body, 'text-text-tertiary mb-6')}>
-                Erstelle deinen ersten Trainingsplan und starte dein Training!
+                {t('dashboard.noPlanDescription')}
               </p>
               <Button
                 onClick={() => navigate('/plan/new')}
                 leftIcon={<Plus size={20} />}
                 size="lg"
               >
-                Ersten Plan erstellen
+                {t('dashboard.createFirstPlan')}
               </Button>
             </div>
           </Card>
@@ -161,10 +165,10 @@ export default function Dashboard() {
                       {getVisibilityIcon(plan.visibility)}
                       <span className={cn(typography.caption, 'font-medium')}>
                         {plan.visibility === 'public'
-                          ? 'Öffentlich'
+                          ? t('dashboard.visibility.public')
                           : plan.visibility === 'public_anonymous'
-                          ? 'Anonym'
-                          : 'Privat'}
+                          ? t('dashboard.visibility.publicAnonymous')
+                          : t('dashboard.visibility.private')}
                       </span>
                     </div>
                   </div>
@@ -174,17 +178,17 @@ export default function Dashboard() {
                     <div className={cn(flex.rowTight, typography.bodySmall, 'text-text-secondary')}>
                       <MapPin size={16} className="flex-shrink-0 text-text-tertiary" />
                       <span className="truncate">
-                        {getDistanceLabel(plan)} - {plan.plan_data.event.terrain === 'road' ? 'Straße' : 'Trail'}
+                        {getDistanceLabel(plan)} - {plan.plan_data.event.terrain === 'road' ? t('dashboard.road') : t('dashboard.trail')}
                       </span>
                     </div>
                     <div className={cn(flex.rowTight, typography.bodySmall, 'text-text-secondary')}>
                       <Calendar size={16} className="flex-shrink-0 text-text-tertiary" />
                       <span>
-                        {format(new Date(plan.plan_data.event.date), 'dd. MMM yyyy', { locale: de })}
+                        {format(new Date(plan.plan_data.event.date), 'dd. MMM yyyy', { locale: dateLocale })}
                       </span>
                     </div>
                     <div className={cn(typography.bodySmall, 'text-text-tertiary')}>
-                      {plan.plan_data.weeks.length} Wochen Training
+                      {t('dashboard.weeks', { count: plan.plan_data.weeks.length })}
                     </div>
                   </div>
 
@@ -192,11 +196,11 @@ export default function Dashboard() {
                   {plan.visibility !== 'private' && (
                     <div className="mb-4 pb-4 border-b border-border-light">
                       <div className="flex gap-4 text-text-tertiary">
-                        <div className={cn(flex.rowTight, typography.caption)} title="Ansichten">
+                        <div className={cn(flex.rowTight, typography.caption)} title={t('dashboard.stats.views')}>
                           <Eye size={14} />
                           <span>{plan.view_count}</span>
                         </div>
-                        <div className={cn(flex.rowTight, typography.caption)} title="Kopiert">
+                        <div className={cn(flex.rowTight, typography.caption)} title={t('dashboard.stats.clones')}>
                           <Share2 size={14} />
                           <span>{plan.clone_count}</span>
                         </div>
@@ -206,7 +210,7 @@ export default function Dashboard() {
 
                   {/* Last Updated */}
                   <div className={cn(typography.caption, 'text-text-tertiary mb-4 pb-4 border-b border-border-light')}>
-                    Aktualisiert: {format(new Date(plan.updated_at), 'dd.MM.yyyy HH:mm', { locale: de })}
+                    {t('dashboard.updatedAt', { date: format(new Date(plan.updated_at), 'dd.MM.yyyy HH:mm', { locale: dateLocale }) })}
                   </div>
 
                   {/* Action Buttons */}
@@ -218,7 +222,7 @@ export default function Dashboard() {
                         size="sm"
                         className="flex-1"
                       >
-                        Bearbeiten
+                        {t('common.edit')}
                       </Button>
                       <Button
                         onClick={() => handleDelete(plan.id, plan.name)}
@@ -237,7 +241,7 @@ export default function Dashboard() {
                       size="sm"
                       fullWidth
                     >
-                      {plan.visibility !== 'private' ? 'Veröffentlichung verwalten' : 'Veröffentlichen'}
+                      {plan.visibility !== 'private' ? t('dashboard.managePublication') : t('dashboard.publish')}
                     </Button>
                   </div>
                 </div>

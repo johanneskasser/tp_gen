@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { marketplaceService } from '../services/marketplaceService';
+import { userService } from '../services/userService';
 import { MarketplacePlan, PlanComment } from '../types/marketplace';
 import {
   ArrowLeft,
@@ -19,6 +20,8 @@ import {
   ChevronDown,
   ChevronUp,
   MessageCircle,
+  UserPlus,
+  UserMinus,
 } from 'lucide-react';
 import { Button, Card, Input, Badge } from '../components/ui';
 import { typography, cn, flex } from '../lib/designSystem';
@@ -43,6 +46,10 @@ export default function PlanDetailPage() {
   const [selectedRating, setSelectedRating] = useState<number>(0);
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(new Set([0]));
+  const [showChart, setShowChart] = useState(true);
+  const [showPlanDetails, setShowPlanDetails] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
 
   const toggleWeek = (weekNumber: number) => {
     const newExpanded = new Set(expandedWeeks);
@@ -60,6 +67,23 @@ export default function PlanDetailPage() {
       loadComments();
     }
   }, [planId]);
+
+  useEffect(() => {
+    if (plan && plan.creator && user) {
+      checkFollowStatus();
+    }
+  }, [plan, user]);
+
+  const checkFollowStatus = async () => {
+    if (!plan?.creator?.id) return;
+
+    try {
+      const following = await userService.isFollowing(plan.creator.id);
+      setIsFollowing(following);
+    } catch (err) {
+      console.error('Error checking follow status:', err);
+    }
+  };
 
   const loadPlan = async () => {
     if (!planId) return;
@@ -187,6 +211,33 @@ export default function PlanDetailPage() {
     } catch (err) {
       console.error('Error deleting comment:', err);
       toast.error('Fehler beim Löschen');
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!user) {
+      toast.error('Bitte melde dich an, um Usern zu folgen');
+      return;
+    }
+
+    if (!plan?.creator?.id) return;
+
+    // Don't allow following yourself
+    if (user.id === plan.creator.id) {
+      toast.error('Du kannst dir selbst nicht folgen');
+      return;
+    }
+
+    try {
+      setFollowLoading(true);
+      const nowFollowing = await userService.toggleFollow(plan.creator.id);
+      setIsFollowing(nowFollowing);
+      toast.success(nowFollowing ? 'Du folgst jetzt diesem User' : 'Du folgst diesem User nicht mehr');
+    } catch (err) {
+      console.error('Error toggling follow:', err);
+      toast.error('Fehler beim Folgen');
+    } finally {
+      setFollowLoading(false);
     }
   };
 
@@ -335,10 +386,26 @@ export default function PlanDetailPage() {
             {plan.creator && plan.visibility === 'public' && (
               <div className={flex.row}>
                 <User size={20} className="text-primary-600" />
-                <div>
+                <div className="flex-1">
                   <div className={cn(typography.small, 'text-text-tertiary')}>Ersteller</div>
-                  <div className={typography.body}>
-                    {plan.creator.full_name || 'Anonym'}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => navigate(`/profile/${plan.creator!.id}`)}
+                      className={cn(typography.body, 'hover:text-primary-700 hover:underline transition-colors')}
+                    >
+                      {plan.creator.full_name || 'Anonym'}
+                    </button>
+                    {user && user.id !== plan.creator.id && (
+                      <Button
+                        onClick={handleFollow}
+                        disabled={followLoading}
+                        variant={isFollowing ? 'secondary' : 'primary'}
+                        size="sm"
+                        leftIcon={isFollowing ? <UserMinus size={14} /> : <UserPlus size={14} />}
+                      >
+                        {isFollowing ? 'Entfolgen' : 'Folgen'}
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -397,20 +464,46 @@ export default function PlanDetailPage() {
 
       {/* Weekly Chart */}
       {plan.plan_data?.weeks && plan.plan_data.weeks.length > 0 && (
-        <Card variant="default" className="mb-6">
-          <div className="p-6">
-            <h2 className={cn(typography.h2, 'mb-4')}>Wöchentlicher Überblick</h2>
-            <WeeklyChart weeks={plan.plan_data.weeks} />
-          </div>
-        </Card>
+        <div className="mb-6 border-b border-border-light">
+          <button
+            onClick={() => setShowChart(!showChart)}
+            className="w-full flex items-center justify-between py-4 px-2 hover:bg-background-secondary transition-colors group"
+          >
+            <h2 className={cn(typography.h2, 'group-hover:text-primary-700 transition-colors')}>
+              Wöchentlicher Überblick
+            </h2>
+            {showChart ? (
+              <ChevronUp size={24} className="text-text-tertiary group-hover:text-primary-700 transition-colors" />
+            ) : (
+              <ChevronDown size={24} className="text-text-tertiary group-hover:text-primary-700 transition-colors" />
+            )}
+          </button>
+          {showChart && (
+            <div className="pb-6 px-2 animate-fade-in">
+              <WeeklyChart weeks={plan.plan_data.weeks} />
+            </div>
+          )}
+        </div>
       )}
 
       {/* Training Plan Content */}
-      <Card variant="default" className="mb-6">
-        <div className="p-6">
-          <h2 className={cn(typography.h2, 'mb-4')}>Trainingsplan</h2>
-
-          {plan.plan_data?.weeks && plan.plan_data.weeks.length > 0 ? (
+      <div className="mb-6 border-b border-border-light">
+        <button
+          onClick={() => setShowPlanDetails(!showPlanDetails)}
+          className="w-full flex items-center justify-between py-4 px-2 hover:bg-background-secondary transition-colors group"
+        >
+          <h2 className={cn(typography.h2, 'group-hover:text-primary-700 transition-colors')}>
+            Trainingsplan
+          </h2>
+          {showPlanDetails ? (
+            <ChevronUp size={24} className="text-text-tertiary group-hover:text-primary-700 transition-colors" />
+          ) : (
+            <ChevronDown size={24} className="text-text-tertiary group-hover:text-primary-700 transition-colors" />
+          )}
+        </button>
+        {showPlanDetails && (
+          <div className="pb-6 px-2 animate-fade-in">
+            {plan.plan_data?.weeks && plan.plan_data.weeks.length > 0 ? (
             <div className="space-y-3">
               {plan.plan_data.weeks.map((week, idx) => (
                 <div key={idx} className="border border-gray-200 rounded-lg overflow-hidden">
@@ -505,59 +598,65 @@ export default function PlanDetailPage() {
               Kein Trainingsplan verfügbar
             </p>
           )}
-        </div>
-      </Card>
+          </div>
+        )}
+      </div>
 
       {/* Comments Section */}
       <Card variant="default" id="comments-section">
-        <div className="p-6">
+        <div className="p-6 pb-4">
           <h2 className={cn(typography.h2, 'mb-4')}>
             Kommentare ({comments.length})
           </h2>
+        </div>
 
-          {/* Add Comment */}
+        {/* Add Comment - Full Width */}
+        <div className="pb-4">
           {user ? (
-            <div className="mb-6">
-              <div className="space-y-2">
-                <Input
-                  type="text"
-                  placeholder="Schreibe einen Kommentar... (Strg+Enter zum Senden)"
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && e.ctrlKey) {
-                      e.preventDefault();
-                      handleSubmitComment();
-                    }
-                  }}
-                  className="w-full"
-                />
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handleSubmitComment}
-                    disabled={!commentText.trim() || submittingComment}
-                    variant="primary"
-                    size="sm"
-                    title="Kommentar senden (Strg+Enter)"
-                  >
-                    {submittingComment ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <Send size={18} />
-                    )}
-                  </Button>
-                </div>
-              </div>
+            <div className="flex gap-2 items-stretch">
+              <Input
+                type="text"
+                placeholder="Schreibe einen Kommentar..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.ctrlKey) {
+                    e.preventDefault();
+                    handleSubmitComment();
+                  }
+                  if (e.key === 'Enter' && !e.ctrlKey) {
+                    e.preventDefault();
+                    handleSubmitComment();
+                  }
+                }}
+                className="flex-1 min-w-0"
+              />
+              <Button
+                onClick={handleSubmitComment}
+                disabled={!commentText.trim() || submittingComment}
+                variant="primary"
+                size="md"
+                title="Senden (Enter)"
+                className="flex-shrink-0"
+              >
+                {submittingComment ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Send size={18} />
+                )}
+              </Button>
             </div>
           ) : (
-            <div className="mb-6 p-4 bg-gray-50 rounded-lg text-center">
+            <div className="mx-6 p-4 bg-gray-50 rounded-lg text-center">
               <p className={cn(typography.body, 'text-text-tertiary')}>
                 Melde dich an, um zu kommentieren
               </p>
             </div>
           )}
+        </div>
 
-          {/* Comments List */}
+        {/* Comments List */}
+        <div className="px-6 pb-6">
           <div className="space-y-4">
             {comments.length === 0 ? (
               <p className={cn(typography.body, 'text-text-tertiary text-center py-8')}>

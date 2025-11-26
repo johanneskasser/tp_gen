@@ -1,6 +1,8 @@
 import { useLocation } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { cn, typography } from '../lib/designSystem';
+import { useTranslation } from 'react-i18next';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface PageHeaderProps {
   onMenuClick: () => void;
@@ -12,42 +14,40 @@ interface PageInfo {
   description: string;
 }
 
-const PAGE_TITLES: Record<string, PageInfo> = {
-  '/dashboard': {
-    title: 'Meine Trainingspläne',
-    description: 'Verwalte und erstelle deine Trainingspläne',
-  },
-  '/marketplace': {
-    title: 'Trainingsplan-Marktplatz',
-    description: 'Entdecke und nutze Trainingspläne von anderen Läufern',
-  },
-  '/profile': {
-    title: 'Profil',
-    description: 'Verwalte deine Profil-Einstellungen',
-  },
-  '/settings': {
-    title: 'Einstellungen',
-    description: 'Passe deine App-Einstellungen an',
-  },
-};
-
-const DEFAULT_PAGE_INFO: PageInfo = {
-  title: 'Trainingsplan Generator',
-  description: 'Erstelle und verwalte deine Trainingspläne',
-};
-
 export function PageHeader({ onMenuClick, isMobileMenuOpen }: PageHeaderProps) {
   const location = useLocation();
+  const { t } = useTranslation();
 
   const getPageInfo = (): PageInfo => {
-    // Check exact match first
-    if (PAGE_TITLES[location.pathname]) {
-      return PAGE_TITLES[location.pathname];
+    const pathname = location.pathname;
+
+    // Exact matches
+    const pageTitles: Record<string, PageInfo> = {
+      '/dashboard': {
+        title: t('dashboard.title'),
+        description: 'Verwalte und erstelle deine Trainingspläne',
+      },
+      '/marketplace': {
+        title: t('marketplace.title'),
+        description: t('marketplace.subtitle'),
+      },
+      '/profile': {
+        title: t('profile.title'),
+        description: 'Verwalte deine Profil-Einstellungen',
+      },
+      '/settings': {
+        title: t('settings.title'),
+        description: 'Passe deine App-Einstellungen an',
+      },
+    };
+
+    if (pageTitles[pathname]) {
+      return pageTitles[pathname];
     }
 
     // Check for dynamic routes
-    if (location.pathname.startsWith('/plan/')) {
-      const isNew = location.pathname === '/plan/new';
+    if (pathname.startsWith('/plan/')) {
+      const isNew = pathname === '/plan/new';
       return {
         title: isNew ? 'Neuer Trainingsplan' : 'Trainingsplan bearbeiten',
         description: isNew
@@ -56,21 +56,24 @@ export function PageHeader({ onMenuClick, isMobileMenuOpen }: PageHeaderProps) {
       };
     }
 
-    if (location.pathname.startsWith('/marketplace/')) {
+    if (pathname.startsWith('/marketplace/')) {
       return {
         title: 'Trainingsplan Details',
         description: 'Informationen und Details zum Trainingsplan',
       };
     }
 
-    return DEFAULT_PAGE_INFO;
+    return {
+      title: t('app.title'),
+      description: 'Erstelle und verwalte deine Trainingspläne',
+    };
   };
 
   const pageInfo = getPageInfo();
 
   return (
     <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-border-light shadow-sm">
-      <div className="flex items-center gap-4 px-4 py-4">
+      <div className="flex items-center gap-4 px-4 h-[72px]">
         {/* Menu Toggle Button */}
         <button
           onClick={onMenuClick}
@@ -104,6 +107,11 @@ export function PageHeader({ onMenuClick, isMobileMenuOpen }: PageHeaderProps) {
           <p className={cn(typography.small, 'text-text-tertiary truncate')}>
             {pageInfo.description}
           </p>
+        </div>
+
+        {/* Language Switcher - visible on all screen sizes */}
+        <div className="hidden sm:block">
+          <LanguageSwitcher variant="inline" showLabel={false} />
         </div>
       </div>
     </header>

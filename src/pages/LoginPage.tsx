@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogIn, UserPlus, Mail, Lock } from 'lucide-react';
 import { Button, Input, Alert } from '../components/ui';
 import { typography, cn } from '../lib/designSystem';
+import { useTranslation } from 'react-i18next';
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -15,6 +16,7 @@ export default function LoginPage() {
 
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +30,7 @@ export default function LoginPage() {
         if (error) {
           setError(error.message);
         } else {
-          setSuccessMessage('Account erstellt! Bitte überprüfe deine E-Mail zur Bestätigung.');
+          setSuccessMessage(t('auth.accountCreatedSuccess'));
           setEmail('');
           setPassword('');
           setIsSignUp(false);
@@ -42,24 +44,69 @@ export default function LoginPage() {
         }
       }
     } catch (err) {
-      setError('Ein Fehler ist aufgetreten. Bitte versuche es erneut.');
+      setError(t('auth.errorOccurred'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background-primary via-background-secondary to-primary-50 flex items-center justify-center px-4 py-8">
-      <div className="max-w-md w-full">
-        {/* Card Container */}
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 border border-border-light">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className={cn(typography.h1, 'mb-2')}>
-              Trainingsplan Generator
+    <div className="min-h-screen flex">
+      {/* Left Side - Image Section */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-gradient-to-br from-slate-900 to-slate-800 overflow-hidden">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-60"
+          style={{ backgroundImage: 'url(/running-6252827_1920.jpg)' }}
+        />
+
+        {/* Overlay Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-900/50 to-slate-900/70" />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center justify-center w-full p-12 text-white">
+          {/* Logo */}
+          <div className="mb-8">
+            <img
+              src="/img.png"
+              alt="Logo"
+              className="h-32 w-32 drop-shadow-2xl"
+            />
+          </div>
+
+          {/* Branding Text */}
+          <div className="text-center max-w-md">
+            <h1 className="text-4xl font-bold mb-4 drop-shadow-lg">
+              {t('app.title')}
             </h1>
+            <p className="text-lg text-slate-200 drop-shadow-md">
+              {t('app.subtitle')}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Side - Form Section */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 bg-white">
+        <div className="max-w-md w-full">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex justify-center mb-8">
+            <img
+              src="/img.png"
+              alt="Logo"
+              className="h-20 w-20"
+            />
+          </div>
+
+          {/* Header */}
+          <div className="mb-8">
+            <h2 className={cn(typography.h1, 'mb-2 text-slate-900')}>
+              {isSignUp ? t('auth.createAccount') : t('auth.welcomeBack')}
+            </h2>
             <p className={cn(typography.body, 'text-text-tertiary')}>
-              {isSignUp ? 'Account erstellen' : 'Willkommen zurück'}
+              {isSignUp
+                ? t('auth.startTrainingJourney')
+                : t('auth.loginToStart')}
             </p>
           </div>
 
@@ -68,8 +115,8 @@ export default function LoginPage() {
             <Input
               id="email"
               type="email"
-              label="E-Mail"
-              placeholder="deine@email.de"
+              label={t('auth.email')}
+              placeholder={t('auth.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -79,14 +126,14 @@ export default function LoginPage() {
             <Input
               id="password"
               type="password"
-              label="Passwort"
-              placeholder={isSignUp ? 'Mindestens 6 Zeichen' : 'Dein Passwort'}
+              label={t('auth.password')}
+              placeholder={isSignUp ? t('auth.passwordPlaceholderSignUp') : t('auth.passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
               leftIcon={<Lock className="w-5 h-5" />}
-              helperText={isSignUp ? 'Mindestens 6 Zeichen erforderlich' : undefined}
+              helperText={isSignUp ? t('auth.passwordHelperText') : undefined}
             />
 
             {/* Error Alert */}
@@ -112,12 +159,15 @@ export default function LoginPage() {
               size="lg"
               className="mt-6"
             >
-              {isSignUp ? 'Registrieren' : 'Anmelden'}
+              {isSignUp ? t('auth.signUp') : t('auth.signIn')}
             </Button>
           </form>
 
           {/* Toggle Sign Up / Sign In */}
-          <div className="mt-6 text-center border-t border-border-light pt-6">
+          <div className="mt-8 text-center pt-6 border-t border-border-light">
+            <p className={cn(typography.body, 'text-text-secondary mb-2')}>
+              {isSignUp ? t('auth.alreadyHaveAccount') : t('auth.noAccountYet')}
+            </p>
             <button
               type="button"
               onClick={() => {
@@ -126,20 +176,20 @@ export default function LoginPage() {
                 setSuccessMessage('');
               }}
               className={cn(
-                'text-primary-700 hover:text-primary-800 font-medium',
-                'transition-colors duration-fast',
+                'text-primary-600 hover:text-primary-700 font-semibold',
+                'transition-colors duration-fast underline underline-offset-2',
                 typography.body
               )}
             >
-              {isSignUp ? 'Bereits registriert? Anmelden' : 'Noch kein Account? Registrieren'}
+              {isSignUp ? t('auth.signInNow') : t('auth.signUpFree')}
             </button>
           </div>
-        </div>
 
-        {/* Footer */}
-        <p className={cn(typography.caption, 'text-center text-text-tertiary mt-6')}>
-          Dein persönlicher Trainingsplan für Laufevents
-        </p>
+          {/* Mobile Footer */}
+          <p className={cn(typography.caption, 'text-center text-text-tertiary mt-8 lg:hidden')}>
+            {t('auth.personalTrainingPlan')}
+          </p>
+        </div>
       </div>
     </div>
   );

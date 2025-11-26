@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn, typography, flex } from '../lib/designSystem';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -25,6 +26,7 @@ export function Sidebar({ isCollapsed, onToggle, isMobile = false }: SidebarProp
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const [imageError, setImageError] = useState(false);
+  const { t } = useTranslation();
 
   const handleSignOut = async () => {
     await signOut();
@@ -33,24 +35,19 @@ export function Sidebar({ isCollapsed, onToggle, isMobile = false }: SidebarProp
 
   const navigation = [
     {
-      name: 'Dashboard',
+      name: t('navigation.dashboard'),
       href: '/dashboard',
       icon: LayoutDashboard,
     },
     {
-      name: 'Marktplatz',
+      name: t('navigation.marketplace'),
       href: '/marketplace',
       icon: Store,
     },
     {
-      name: 'Profil',
+      name: t('navigation.profile'),
       href: '/profile',
       icon: User,
-    },
-    {
-      name: 'Einstellungen',
-      href: '/settings',
-      icon: Settings,
     },
   ];
 
@@ -78,40 +75,16 @@ export function Sidebar({ isCollapsed, onToggle, isMobile = false }: SidebarProp
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-border-light">
-        <div className={cn(flex.rowJustified)}>
-          {!isCollapsed && (
-            <h1 className={cn(typography.h3, 'text-primary-800')}>
-              Trainingsplan
-            </h1>
-          )}
-          {/* Desktop Toggle Button */}
-          {!isMobile && (
-            <button
-              onClick={onToggle}
-              className={cn(
-                'p-2 rounded-lg hover:bg-background-tertiary transition-colors',
-                isCollapsed && 'mx-auto'
-              )}
-              aria-label={isCollapsed ? 'Sidebar erweitern' : 'Sidebar einklappen'}
-            >
-              {isCollapsed ? (
-                <ChevronRight className="w-5 h-5 text-text-tertiary" />
-              ) : (
-                <ChevronLeft className="w-5 h-5 text-text-tertiary" />
-              )}
-            </button>
-          )}
-          {/* Mobile Close Button */}
-          {isMobile && (
-            <button
-              onClick={onToggle}
-              className="p-2 rounded-lg hover:bg-background-tertiary transition-colors"
-              aria-label="Menü schließen"
-            >
-              <ChevronRight className="w-5 h-5 text-text-tertiary" />
-            </button>
-          )}
+      <div className="border-b border-border-light">
+        <div className={cn('flex items-center px-4 h-[72px]', isCollapsed ? 'justify-center' : 'justify-start')}>
+          <img
+            src="/img.png"
+            alt="Logo"
+            className={cn(
+              'transition-all duration-300',
+              isCollapsed ? 'h-10 w-10' : 'h-12 w-12'
+            )}
+          />
         </div>
       </div>
 
@@ -141,6 +114,25 @@ export function Sidebar({ isCollapsed, onToggle, isMobile = false }: SidebarProp
           );
         })}
       </nav>
+
+      {/* Settings Section */}
+      <div className="p-4 border-t border-border-light">
+        <Link
+          to="/settings"
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150',
+            isActive('/settings')
+              ? 'bg-primary-100 text-primary-800 font-medium'
+              : 'text-text-secondary hover:bg-background-tertiary hover:text-text-primary',
+            isCollapsed && 'justify-center'
+          )}
+        >
+          <Settings className={cn('w-5 h-5 flex-shrink-0')} />
+          {!isCollapsed && (
+            <span className={cn(typography.body)}>{t('navigation.settings')}</span>
+          )}
+        </Link>
+      </div>
 
       {/* User Profile */}
       <div className="p-4 border-t border-border-light">
@@ -184,7 +176,7 @@ export function Sidebar({ isCollapsed, onToggle, isMobile = false }: SidebarProp
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
                 <p className={cn(typography.bodySmall, 'font-semibold text-text-primary truncate')}>
-                  {profile?.full_name || 'Unbenannt'}
+                  {profile?.full_name || t('profile.unnamed')}
                 </p>
                 <p className={cn(typography.caption, 'text-text-tertiary truncate')}>
                   {user?.email}
@@ -201,8 +193,8 @@ export function Sidebar({ isCollapsed, onToggle, isMobile = false }: SidebarProp
                 'p-2 rounded-lg text-text-tertiary hover:bg-error-bg hover:text-error-text transition-all duration-150 flex-shrink-0',
                 'focus:outline-none focus:ring-2 focus:ring-error-text focus:ring-offset-2'
               )}
-              aria-label="Abmelden"
-              title="Abmelden"
+              aria-label={t('auth.signOut')}
+              title={t('auth.signOut')}
             >
               <LogOut className="w-5 h-5" />
             </button>

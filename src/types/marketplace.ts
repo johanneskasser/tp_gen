@@ -76,6 +76,8 @@ export interface MarketplaceFilters {
   distance?: number[];
   duration_weeks?: [number, number];
   sort_by?: 'recent' | 'popular' | 'rating' | 'clones';
+  from_following?: boolean; // Filter to show only plans from followed users
+  creator_id?: string; // Filter by specific creator
   page?: number;
   page_size?: number;
 }
