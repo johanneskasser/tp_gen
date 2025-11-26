@@ -4,7 +4,7 @@ import { useToast } from '../contexts/ToastContext';
 import { profileService } from '../services/profileService';
 import { Camera, Save, Loader2 } from 'lucide-react';
 import { Button, Input, Card } from '../components/ui';
-import { typography, cn, flex } from '../lib/designSystem';
+import { typography, cn } from '../lib/designSystem';
 
 export default function ProfilePage() {
   const { user, profile, refreshProfile } = useAuth();

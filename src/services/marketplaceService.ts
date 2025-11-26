@@ -27,7 +27,6 @@ export const marketplaceService = {
       search,
       tags,
       distance,
-      duration_weeks,
       from_following,
       creator_id,
       sort_by = 'recent',

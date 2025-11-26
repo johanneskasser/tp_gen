@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { TrainingSession, SessionType, IntervalSet, DistanceUnit } from '../types';
 import { Save, X, Trash2, Plus } from 'lucide-react';
 import { generateSessionTitle } from '../utils/titleGenerator';
-import { SESSION_TYPE_CONFIG } from '../constants/sessionTypes';
+import { SESSION_TYPE_CONFIG, getSessionTypeLabel } from '../constants/sessionTypes';
 import { formatPace } from '../utils/paceCalculator';
 
 interface SessionEditorProps {
@@ -33,7 +33,7 @@ export default function SessionEditor({
 
   const sessionTypes = Object.entries(SESSION_TYPE_CONFIG).map(([value, config]) => ({
     value: value as SessionType,
-    label: config.label,
+    label: getSessionTypeLabel(value as SessionType),
     color: config.color,
   }));
 

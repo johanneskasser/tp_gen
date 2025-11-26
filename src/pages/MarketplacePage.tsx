@@ -23,8 +23,6 @@ import {
 } from 'lucide-react';
 import { Button, Card, Input, Badge } from '../components/ui';
 import { typography, cn, flex } from '../lib/designSystem';
-import { format } from 'date-fns';
-import { de, enUS } from 'date-fns/locale';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 
@@ -44,9 +42,7 @@ export default function MarketplacePage() {
 
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t, i18n } = useTranslation();
-
-  const dateLocale = i18n.language === 'de' ? de : enUS;
+  const { t } = useTranslation();
 
   useEffect(() => {
     loadPlans();
@@ -232,10 +228,10 @@ export default function MarketplacePage() {
                 ))}
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleSearch} variant="primary" size="sm">
+                <Button onClick={handleSearch} variant="primary">
                   {t('marketplace.filters.apply')}
                 </Button>
-                <Button onClick={clearFilters} variant="secondary" size="sm">
+                <Button onClick={clearFilters} variant="secondary">
                   {t('marketplace.filters.reset')}
                 </Button>
               </div>
@@ -274,7 +270,7 @@ export default function MarketplacePage() {
         <>
           {/* Results Count */}
           <div className="mb-4">
-            <p className={cn(typography.small, 'text-text-tertiary')}>
+            <p className={cn(typography.bodySmall, 'text-text-tertiary')}>
               {t('marketplace.resultsCount', { count: total })}
             </p>
           </div>
@@ -292,7 +288,7 @@ export default function MarketplacePage() {
                 <div className="p-4 border-b border-gray-200 sticky top-0 z-10 flex-shrink-0">
                   <h3 className={cn(typography.h3, 'mb-2')}>{plan.name}</h3>
                   {plan.description && (
-                    <p className={cn(typography.small, 'text-text-tertiary line-clamp-2')}>
+                    <p className={cn(typography.bodySmall, 'text-text-tertiary line-clamp-2')}>
                       {plan.description}
                     </p>
                   )}
@@ -329,12 +325,12 @@ export default function MarketplacePage() {
                   {plan.tags && plan.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {plan.tags.slice(0, 3).map((tag, idx) => (
-                        <Badge key={idx} size="sm">
+                        <Badge key={idx}>
                           {tag}
                         </Badge>
                       ))}
                       {plan.tags.length > 3 && (
-                        <Badge size="sm" className="bg-gray-100 text-gray-600">
+                        <Badge className="bg-gray-100 text-gray-600">
                           {t('marketplace.tags.more', { count: plan.tags.length - 3 })}
                         </Badge>
                       )}

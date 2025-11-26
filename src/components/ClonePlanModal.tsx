@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { Modal } from './ui/Modal';
 import { Button, Input } from './ui';
 import { MarketplacePlan } from '../types/marketplace';
-import { TrainingPlan, TrainingWeek } from '../types';
+import { TrainingPlan, TrainingWeek, TrainingSession } from '../types';
 import { marketplaceService } from '../services/marketplaceService';
 import { calculateWeeks } from '../utils/dateUtils';
 import { calculateWeeklyKm } from '../utils/calculationUtils';
 import { typography, cn } from '../lib/designSystem';
 import { Calendar, Loader2 } from 'lucide-react';
-import { format, parseISO, addDays } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { format, parseISO } from 'date-fns';
 
 interface ClonePlanModalProps {
   plan: MarketplacePlan;
@@ -53,13 +52,14 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
 
         const newWeek: TrainingWeek = {
           ...weekStructure,
-          sessions: originalWeek.sessions.map((session) => ({
+          sessions: originalWeek.sessions.map((session: TrainingSession) => ({
             ...session,
           })),
+          totalKm: 0, // Will be recalculated below
         };
 
         // Recalculate totalKm
-        newWeek.totalKm = calculateWeeklyKm(newWeek);
+        newWeek.totalKm = calculateWeeklyKm(newWeek.sessions);
 
         return newWeek;
       });
@@ -127,7 +127,7 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
       <div className="space-y-6">
         {/* Info */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className={cn(typography.small, 'text-blue-800')}>
+          <p className={cn(typography.bodySmall, 'text-blue-800')}>
             Du kannst diesen Plan an deinen eigenen Zeitraum anpassen. Die Trainingseinheiten
             werden automatisch auf die neuen Wochen verteilt.
           </p>
@@ -135,7 +135,7 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
 
         {/* Event Name */}
         <div>
-          <label className={cn(typography.small, 'font-semibold mb-2 block')}>
+          <label className={cn(typography.bodySmall, 'font-semibold mb-2 block')}>
             Event-Name
           </label>
           <Input
@@ -148,7 +148,7 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
 
         {/* Start Date */}
         <div>
-          <label className={cn(typography.small, 'font-semibold mb-2 block')}>
+          <label className={cn(typography.bodySmall, 'font-semibold mb-2 block')}>
             Startdatum
           </label>
           <Input
@@ -161,7 +161,7 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
 
         {/* Event Date */}
         <div>
-          <label className={cn(typography.small, 'font-semibold mb-2 block')}>
+          <label className={cn(typography.bodySmall, 'font-semibold mb-2 block')}>
             Event-Datum
           </label>
           <Input
@@ -179,16 +179,16 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
             <h4 className={cn(typography.h4, 'mb-2')}>Trainingsumfang</h4>
             <div className="space-y-1">
               <div className="flex justify-between">
-                <span className={typography.small}>Original:</span>
-                <span className={cn(typography.small, 'font-semibold')}>
+                <span className={typography.bodySmall}>Original:</span>
+                <span className={cn(typography.bodySmall, 'font-semibold')}>
                   {originalWeeksCount} Wochen
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className={typography.small}>Angepasst:</span>
+                <span className={typography.bodySmall}>Angepasst:</span>
                 <span
                   className={cn(
-                    typography.small,
+                    typography.bodySmall,
                     'font-semibold',
                     newWeeksCount < originalWeeksCount
                       ? 'text-orange-600'
@@ -202,7 +202,7 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
               </div>
             </div>
             {newWeeksCount !== originalWeeksCount && (
-              <p className={cn(typography.small, 'text-text-tertiary mt-2')}>
+              <p className={cn(typography.bodySmall, 'text-text-tertiary mt-2')}>
                 {newWeeksCount < originalWeeksCount
                   ? '⚠️ Der angepasste Plan ist kürzer. Einheiten werden komprimiert.'
                   : '✓ Der angepasste Plan ist länger. Einheiten werden gestreckt.'}
@@ -213,7 +213,7 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
 
         {/* Additional Info */}
         <div className="border-t border-gray-200 pt-4">
-          <p className={cn(typography.small, 'text-text-tertiary')}>
+          <p className={cn(typography.bodySmall, 'text-text-tertiary')}>
             <strong>Hinweis:</strong> Nach dem Kopieren kannst du den Plan in deinem Dashboard
             weiter bearbeiten und an deine Bedürfnisse anpassen.
           </p>

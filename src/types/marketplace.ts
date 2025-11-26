@@ -1,4 +1,4 @@
-import { TrainingPlan } from './index';
+import { TrainingPlan } from '../types';
 import { PlanVisibility } from './database';
 import { UserProfile } from './profile';
 

@@ -15,7 +15,6 @@ import {
   Clock,
   Loader2,
   Send,
-  Edit2,
   Trash2,
   ChevronDown,
   ChevronUp,
@@ -281,7 +280,7 @@ export default function PlanDetailPage() {
           onClick={() => navigate('/marketplace')}
           variant="ghost"
           leftIcon={<ArrowLeft size={18} />}
-          size="sm"
+         
         >
           Zurück
         </Button>
@@ -346,7 +345,7 @@ export default function PlanDetailPage() {
                   />
                 </button>
               ))}
-              <span className={cn(typography.small, 'ml-2 text-text-tertiary')}>
+              <span className={cn(typography.bodySmall, 'ml-2 text-text-tertiary')}>
                 {plan.stats?.rating_avg
                   ? `${plan.stats.rating_avg.toFixed(1)} (${plan.stats.rating_count})`
                   : 'Noch keine Bewertungen'}
@@ -359,14 +358,14 @@ export default function PlanDetailPage() {
             <div className={flex.row}>
               <MapPin size={20} className="text-primary-600" />
               <div>
-                <div className={cn(typography.small, 'text-text-tertiary')}>Distanz</div>
+                <div className={cn(typography.bodySmall, 'text-text-tertiary')}>Distanz</div>
                 <div className={typography.body}>{getDistanceLabel()}</div>
               </div>
             </div>
             <div className={flex.row}>
               <Calendar size={20} className="text-primary-600" />
               <div>
-                <div className={cn(typography.small, 'text-text-tertiary')}>Dauer</div>
+                <div className={cn(typography.bodySmall, 'text-text-tertiary')}>Dauer</div>
                 <div className={typography.body}>
                   {plan.plan_data?.weeks?.length || 0} Wochen
                 </div>
@@ -376,7 +375,7 @@ export default function PlanDetailPage() {
               <div className={flex.row}>
                 <Clock size={20} className="text-primary-600" />
                 <div>
-                  <div className={cn(typography.small, 'text-text-tertiary')}>Zielzeit</div>
+                  <div className={cn(typography.bodySmall, 'text-text-tertiary')}>Zielzeit</div>
                   <div className={typography.body}>
                     {plan.plan_data.event.targetTime} min
                   </div>
@@ -387,7 +386,7 @@ export default function PlanDetailPage() {
               <div className={flex.row}>
                 <User size={20} className="text-primary-600" />
                 <div className="flex-1">
-                  <div className={cn(typography.small, 'text-text-tertiary')}>Ersteller</div>
+                  <div className={cn(typography.bodySmall, 'text-text-tertiary')}>Ersteller</div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => navigate(`/profile/${plan.creator!.id}`)}
@@ -400,7 +399,7 @@ export default function PlanDetailPage() {
                         onClick={handleFollow}
                         disabled={followLoading}
                         variant={isFollowing ? 'secondary' : 'primary'}
-                        size="sm"
+                       
                         leftIcon={isFollowing ? <UserMinus size={14} /> : <UserPlus size={14} />}
                       >
                         {isFollowing ? 'Entfolgen' : 'Folgen'}
@@ -439,7 +438,7 @@ export default function PlanDetailPage() {
             <Button
               onClick={handleLike}
               variant={plan.user_interaction?.has_liked ? 'primary' : 'ghost'}
-              size="sm"
+             
               title={plan.user_interaction?.has_liked ? 'Like entfernen' : 'Liken'}
             >
               <Heart
@@ -453,7 +452,7 @@ export default function PlanDetailPage() {
                 commentsSection?.scrollIntoView({ behavior: 'smooth' });
               }}
               variant="ghost"
-              size="sm"
+             
               title="Zu den Kommentaren"
             >
               <MessageCircle size={20} />
@@ -514,7 +513,7 @@ export default function PlanDetailPage() {
                   >
                     <div className="flex items-center gap-4">
                       <span className={cn(typography.h3)}>Woche {week.weekNumber}</span>
-                      <span className={cn(typography.small, 'text-text-tertiary')}>
+                      <span className={cn(typography.bodySmall, 'text-text-tertiary')}>
                         {week.startDate} - {week.endDate}
                       </span>
                       <Badge>{week.totalKm.toFixed(1)} km</Badge>
@@ -543,43 +542,43 @@ export default function PlanDetailPage() {
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <Badge size="sm">{['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][session.dayOfWeek]}</Badge>
-                                  <Badge size="sm" className={`bg-${session.type === 'easy' ? 'green' : session.type === 'long' ? 'blue' : session.type === 'intervals' ? 'orange' : session.type === 'tempo' ? 'red' : session.type === 'recovery' ? 'gray' : 'purple'}-100`}>
+                                  <Badge>{['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][session.dayOfWeek]}</Badge>
+                                  <Badge className={`bg-${session.type === 'easy' ? 'green' : session.type === 'long' ? 'blue' : session.type === 'intervals' ? 'orange' : session.type === 'tempo' ? 'red' : session.type === 'recovery' ? 'gray' : 'purple'}-100`}>
                                     {session.type === 'easy' ? 'Locker' : session.type === 'long' ? 'Langer Lauf' : session.type === 'intervals' ? 'Intervalle' : session.type === 'tempo' ? 'Tempo' : session.type === 'recovery' ? 'Regeneration' : 'Wettkampf'}
                                   </Badge>
                                 </div>
                                 <h4 className={cn(typography.h4, 'mb-1')}>{session.title || 'Training'}</h4>
-                                {session.distance > 0 && (
-                                  <p className={cn(typography.small, 'text-text-tertiary')}>
+                                {session.distance && session.distance > 0 && (
+                                  <p className={cn(typography.bodySmall, 'text-text-tertiary')}>
                                     Distanz: {session.distance} km
                                   </p>
                                 )}
                                 {session.duration && (
-                                  <p className={cn(typography.small, 'text-text-tertiary')}>
+                                  <p className={cn(typography.bodySmall, 'text-text-tertiary')}>
                                     Dauer: {session.duration} min
                                   </p>
                                 )}
                                 {session.intervals && session.intervals.length > 0 && (
                                   <div className="mt-2 space-y-1">
                                     {session.warmUp && (
-                                      <p className={cn(typography.small, 'text-text-secondary')}>
+                                      <p className={cn(typography.bodySmall, 'text-text-secondary')}>
                                         Aufwärmen: {session.warmUp} {session.warmUpUnit || 'min'}
                                       </p>
                                     )}
                                     {session.intervals.map((interval, iIdx) => (
-                                      <p key={iIdx} className={cn(typography.small, 'text-text-secondary')}>
+                                      <p key={iIdx} className={cn(typography.bodySmall, 'text-text-secondary')}>
                                         • {interval.repetitions}x {interval.distance}km @ {interval.pace} (Pause: {interval.recovery} {interval.recoveryUnit || 'min'})
                                       </p>
                                     ))}
                                     {session.coolDown && (
-                                      <p className={cn(typography.small, 'text-text-secondary')}>
+                                      <p className={cn(typography.bodySmall, 'text-text-secondary')}>
                                         Auslaufen: {session.coolDown} {session.coolDownUnit || 'min'}
                                       </p>
                                     )}
                                   </div>
                                 )}
                                 {session.notes && (
-                                  <p className={cn(typography.small, 'text-text-secondary mt-2 italic')}>
+                                  <p className={cn(typography.bodySmall, 'text-text-secondary mt-2 italic')}>
                                     {session.notes}
                                   </p>
                                 )}
@@ -603,7 +602,7 @@ export default function PlanDetailPage() {
       </div>
 
       {/* Comments Section */}
-      <Card variant="default" id="comments-section">
+      <div id="comments-section"><Card variant="default">
         <div className="p-6 pb-4">
           <h2 className={cn(typography.h2, 'mb-4')}>
             Kommentare ({comments.length})
@@ -668,10 +667,10 @@ export default function PlanDetailPage() {
                   <div className="flex justify-between items-start mb-2">
                     <div className={flex.row}>
                       <User size={16} className="text-text-tertiary" />
-                      <span className={cn(typography.small, 'font-semibold')}>
+                      <span className={cn(typography.bodySmall, 'font-semibold')}>
                         {comment.user?.full_name || 'Anonym'}
                       </span>
-                      <span className={cn(typography.small, 'text-text-tertiary')}>
+                      <span className={cn(typography.bodySmall, 'text-text-tertiary')}>
                         {format(new Date(comment.created_at), 'dd.MM.yyyy HH:mm', {
                           locale: de,
                         })}
@@ -681,7 +680,7 @@ export default function PlanDetailPage() {
                       <Button
                         onClick={() => handleDeleteComment(comment.id)}
                         variant="ghost"
-                        size="sm"
+                       
                         leftIcon={<Trash2 size={14} />}
                       >
                         Löschen
@@ -696,7 +695,7 @@ export default function PlanDetailPage() {
             )}
           </div>
         </div>
-      </Card>
+      </Card></div>
 
       {/* Clone Modal */}
       {showCloneModal && plan && (

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trainingPlanService, SavedTrainingPlan } from '../services/trainingPlanService';
-import { Plus, Edit, Trash2, Calendar, MapPin, Loader2, Globe, Lock, EyeOff, Share2, Eye, Heart } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, MapPin, Loader2, Globe, Lock, EyeOff, Share2, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { de, enUS } from 'date-fns/locale';
-import { Button, Card, Badge } from '../components/ui';
+import { Button, Card } from '../components/ui';
 import { typography, cn, flex } from '../lib/designSystem';
 import { useToast } from '../contexts/ToastContext';
 import PublishPlanModal from '../components/PublishPlanModal';

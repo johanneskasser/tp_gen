@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Modal } from './ui/Modal';
-import { Button, Input, Badge } from './ui';
+import { Button, Badge } from './ui';
 import { marketplaceService } from '../services/marketplaceService';
 import { PREDEFINED_TAGS } from '../types/marketplace';
 import { PlanVisibility } from '../types/database';
@@ -98,7 +98,7 @@ export default function PublishPlanModal({
         {/* Info Banner */}
         {!isPublished && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className={cn(typography.small, 'text-blue-800')}>
+            <p className={cn(typography.bodySmall, 'text-blue-800')}>
               Veröffentliche deinen Trainingsplan im Marktplatz, damit andere Läufer ihn nutzen
               können. Du kannst wählen, ob dein Name angezeigt wird oder ob der Plan anonym
               veröffentlicht wird.
@@ -108,7 +108,7 @@ export default function PublishPlanModal({
 
         {/* Visibility Options */}
         <div>
-          <label className={cn(typography.small, 'font-semibold mb-3 block')}>
+          <label className={cn(typography.bodySmall, 'font-semibold mb-3 block')}>
             Sichtbarkeit
           </label>
           <div className="space-y-3">
@@ -126,7 +126,7 @@ export default function PublishPlanModal({
                 <Lock size={20} className="text-gray-600" />
                 <div>
                   <div className={cn(typography.body, 'font-semibold')}>Privat</div>
-                  <div className={cn(typography.small, 'text-text-tertiary')}>
+                  <div className={cn(typography.bodySmall, 'text-text-tertiary')}>
                     Nur du kannst diesen Plan sehen
                   </div>
                 </div>
@@ -149,7 +149,7 @@ export default function PublishPlanModal({
                   <div className={cn(typography.body, 'font-semibold')}>
                     Öffentlich mit Profil
                   </div>
-                  <div className={cn(typography.small, 'text-text-tertiary')}>
+                  <div className={cn(typography.bodySmall, 'text-text-tertiary')}>
                     Dein Name und Profil werden angezeigt
                   </div>
                 </div>
@@ -172,7 +172,7 @@ export default function PublishPlanModal({
                   <div className={cn(typography.body, 'font-semibold')}>
                     Öffentlich (Anonym)
                   </div>
-                  <div className={cn(typography.small, 'text-text-tertiary')}>
+                  <div className={cn(typography.bodySmall, 'text-text-tertiary')}>
                     Plan ist öffentlich, aber dein Name wird nicht angezeigt
                   </div>
                 </div>
@@ -184,7 +184,7 @@ export default function PublishPlanModal({
         {/* Description - only show if public */}
         {visibility !== 'private' && (
           <div>
-            <label className={cn(typography.small, 'font-semibold mb-2 block')}>
+            <label className={cn(typography.bodySmall, 'font-semibold mb-2 block')}>
               Beschreibung *
             </label>
             <textarea
@@ -199,10 +199,10 @@ export default function PublishPlanModal({
               maxLength={500}
             />
             <div className="flex justify-between mt-1">
-              <span className={cn(typography.small, 'text-text-tertiary')}>
+              <span className={cn(typography.bodySmall, 'text-text-tertiary')}>
                 Mindestens 20 Zeichen
               </span>
-              <span className={cn(typography.small, 'text-text-tertiary')}>
+              <span className={cn(typography.bodySmall, 'text-text-tertiary')}>
                 {description.length}/500
               </span>
             </div>
@@ -212,10 +212,10 @@ export default function PublishPlanModal({
         {/* Tags - only show if public */}
         {visibility !== 'private' && (
           <div>
-            <label className={cn(typography.small, 'font-semibold mb-2 block')}>
+            <label className={cn(typography.bodySmall, 'font-semibold mb-2 block')}>
               Tags auswählen (optional)
             </label>
-            <p className={cn(typography.small, 'text-text-tertiary mb-3')}>
+            <p className={cn(typography.bodySmall, 'text-text-tertiary mb-3')}>
               Automatische Tags (Distanz, Dauer, Terrain) werden hinzugefügt. Wähle
               zusätzliche Tags aus:
             </p>
@@ -236,7 +236,7 @@ export default function PublishPlanModal({
               ))}
             </div>
             {selectedTags.length > 0 && (
-              <p className={cn(typography.small, 'text-text-tertiary mt-2')}>
+              <p className={cn(typography.bodySmall, 'text-text-tertiary mt-2')}>
                 {selectedTags.length} {selectedTags.length === 1 ? 'Tag' : 'Tags'}{' '}
                 ausgewählt
               </p>
@@ -248,7 +248,7 @@ export default function PublishPlanModal({
         {isPublished && (
           <div className="border-t border-gray-200 pt-4">
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className={cn(typography.small, 'text-green-800')}>
+              <p className={cn(typography.bodySmall, 'text-green-800')}>
                 <strong>Status:</strong> Dieser Plan ist bereits veröffentlicht.{' '}
                 {currentVisibility === 'public'
                   ? 'Dein Name wird angezeigt.'

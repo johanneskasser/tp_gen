@@ -284,7 +284,7 @@ export default function PlanEditor() {
               Zurück
             </Button>
             {!isNewPlan && lastSaved && (
-              <p className={cn(typography.small, 'text-text-tertiary')}>
+              <p className={cn(typography.bodySmall, 'text-text-tertiary')}>
                 {saving ? (
                   <span className="flex items-center gap-1">
                     <Save size={14} className="animate-pulse" />

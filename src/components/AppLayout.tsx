@@ -54,7 +54,6 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="hidden lg:block">
         <Sidebar
           isCollapsed={isCollapsed}
-          onToggle={handleToggle}
           isMobile={false}
         />
       </div>
@@ -72,7 +71,6 @@ export function AppLayout({ children }: AppLayoutProps) {
           <div className="fixed inset-y-0 right-0 z-50 lg:hidden">
             <Sidebar
               isCollapsed={false}
-              onToggle={() => setIsSidebarOpen(false)}
               isMobile={true}
             />
           </div>

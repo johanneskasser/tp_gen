@@ -2,13 +2,9 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
-  Calendar,
   Settings,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   User,
-  Camera,
   Store,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -17,11 +13,10 @@ import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
   isCollapsed: boolean;
-  onToggle: () => void;
   isMobile?: boolean;
 }
 
-export function Sidebar({ isCollapsed, onToggle, isMobile = false }: SidebarProps) {
+export function Sidebar({ isCollapsed, isMobile = false }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();

@@ -104,7 +104,7 @@ export function PageHeader({ onMenuClick, isMobileMenuOpen }: PageHeaderProps) {
         {/* Page Title & Description */}
         <div className="flex-1 min-w-0">
           <h1 className={cn(typography.h2, 'mb-0.5 truncate')}>{pageInfo.title}</h1>
-          <p className={cn(typography.small, 'text-text-tertiary truncate')}>
+          <p className={cn(typography.bodySmall, 'text-text-tertiary truncate')}>
             {pageInfo.description}
           </p>
         </div>

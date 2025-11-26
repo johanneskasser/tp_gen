@@ -7,7 +7,7 @@ import {
 } from '../../lib/designSystem';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
+  label?: React.ReactNode;
   helperText?: string;
   errorText?: string;
   state?: InputState;
