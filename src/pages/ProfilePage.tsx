@@ -143,10 +143,10 @@ export default function ProfilePage() {
             <Button
               onClick={() => fileInputRef.current?.click()}
               variant="secondary"
-              leftIcon={<Camera size={18} />}
               disabled={uploading}
               fullWidth
             >
+              <Camera size={18} />
               Bild ändern
             </Button>
 
@@ -195,10 +195,10 @@ export default function ProfilePage() {
 
             <Button
               type="submit"
-              leftIcon={<Save size={18} />}
               loading={loading}
               fullWidth
             >
+              <Save size={18} />
               Änderungen speichern
             </Button>
           </form>

@@ -115,10 +115,10 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
           </Button>
           <Button
             onClick={handleClone}
-            variant="primary"
+            variant="default"
             disabled={loading || !startDate || !eventDate || !eventName}
-            leftIcon={loading ? <Loader2 size={18} className="animate-spin" /> : undefined}
           >
+            {loading && <Loader2 size={18} className="animate-spin" />}
             {loading ? 'Kopiere...' : 'Plan kopieren'}
           </Button>
         </>

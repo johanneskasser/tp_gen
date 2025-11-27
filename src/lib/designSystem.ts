@@ -20,12 +20,6 @@ export function cn(...inputs: ClassValue[]) {
 export type { SessionType };
 
 /**
- * Button Varianten
- */
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-export type ButtonSize = 'sm' | 'md' | 'lg';
-
-/**
  * Input States
  */
 export type InputState = 'default' | 'error' | 'success';
@@ -98,37 +92,6 @@ const sessionTypeConfigs: Record<SessionType, SessionTypeConfig> = {
 
 export function getSessionTypeConfig(type: SessionType): SessionTypeConfig {
   return sessionTypeConfigs[type];
-}
-
-/**
- * Button-Klassen
- */
-export function getButtonClasses(
-  variant: ButtonVariant = 'primary',
-  size: ButtonSize = 'md',
-  fullWidth = false
-): string {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-fast focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
-
-  const variantClasses: Record<ButtonVariant, string> = {
-    primary: 'bg-primary-700 text-white hover:bg-primary-800 active:bg-primary-900 focus:ring-primary-400',
-    secondary: 'bg-primary-100 text-primary-800 border border-primary-300 hover:bg-primary-200 active:bg-primary-300 focus:ring-primary-400',
-    ghost: 'bg-transparent text-primary-700 hover:bg-primary-50 active:bg-primary-100 focus:ring-primary-400',
-    danger: 'bg-error-bg text-error-text border border-error-border hover:bg-red-100 active:bg-red-200 focus:ring-error-text',
-  };
-
-  const sizeClasses: Record<ButtonSize, string> = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
-  };
-
-  return cn(
-    baseClasses,
-    variantClasses[variant],
-    sizeClasses[size],
-    fullWidth && 'w-full'
-  );
 }
 
 /**

@@ -279,8 +279,8 @@ export default function PlanEditor() {
               onClick={() => navigate('/dashboard')}
               variant="ghost"
               size="sm"
-              leftIcon={<ArrowLeft size={18} />}
             >
+              <ArrowLeft size={18} />
               Zurück
             </Button>
             {!isNewPlan && lastSaved && (
@@ -300,8 +300,8 @@ export default function PlanEditor() {
             <Button
               onClick={handleImportJSON}
               variant="secondary"
-              leftIcon={<Upload size={18} />}
             >
+              <Upload size={18} />
               Plan laden
             </Button>
           )}
@@ -366,10 +366,10 @@ export default function PlanEditor() {
                       {!isNewPlan && (
                         <Button
                           onClick={() => setShowPublishModal(true)}
-                          variant={savedPlan?.visibility !== 'private' ? 'primary' : 'secondary'}
-                          leftIcon={<Share2 size={18} />}
+                          variant={savedPlan?.visibility !== 'private' ? 'default' : 'secondary'}
                           size="sm"
                         >
+                          <Share2 size={18} />
                           <span className="whitespace-nowrap">
                             {savedPlan?.visibility !== 'private' ? 'Veröffentlicht' : 'Veröffentlichen'}
                           </span>
@@ -385,16 +385,16 @@ export default function PlanEditor() {
                       <Button
                         onClick={handleExportJSON}
                         variant="secondary"
-                        leftIcon={<Download size={18} />}
                         size="sm"
                       >
+                        <Download size={18} />
                         <span className="whitespace-nowrap">JSON Export</span>
                       </Button>
                       <Button
                         onClick={handleExportPDF}
-                        leftIcon={<FileDown size={18} />}
                         size="sm"
                       >
+                        <FileDown size={18} />
                         <span className="whitespace-nowrap">PDF exportieren</span>
                       </Button>
                     </div>

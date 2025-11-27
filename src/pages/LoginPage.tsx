@@ -155,10 +155,10 @@ export default function LoginPage() {
               type="submit"
               fullWidth
               loading={loading}
-              leftIcon={isSignUp ? <UserPlus size={20} /> : <LogIn size={20} />}
               size="lg"
               className="mt-6"
             >
+              {isSignUp ? <UserPlus size={20} /> : <LogIn size={20} />}
               {isSignUp ? t('auth.signUp') : t('auth.signIn')}
             </Button>
           </form>

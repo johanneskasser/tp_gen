@@ -99,9 +99,9 @@ export default function Dashboard() {
       <div className="mb-6 sm:mb-8 flex justify-end">
         <Button
           onClick={() => navigate('/plan/new')}
-          leftIcon={<Plus size={20} />}
           size="lg"
         >
+          <Plus size={20} />
           {t('dashboard.createNewPlan')}
         </Button>
       </div>
@@ -129,9 +129,9 @@ export default function Dashboard() {
               </p>
               <Button
                 onClick={() => navigate('/plan/new')}
-                leftIcon={<Plus size={20} />}
                 size="lg"
               >
+                <Plus size={20} />
                 {t('dashboard.createFirstPlan')}
               </Button>
             </div>
@@ -218,16 +218,16 @@ export default function Dashboard() {
                     <div className="flex gap-2">
                       <Button
                         onClick={() => navigate(`/plan/${plan.id}`)}
-                        leftIcon={<Edit size={16} />}
                         size="sm"
                         className="flex-1"
                       >
+                        <Edit size={16} />
                         {t('common.edit')}
                       </Button>
                       <Button
                         onClick={() => handleDelete(plan.id, plan.name)}
                         disabled={deletingId === plan.id}
-                        variant="danger"
+                        variant="destructive"
                         size="sm"
                         loading={deletingId === plan.id}
                       >
@@ -236,11 +236,11 @@ export default function Dashboard() {
                     </div>
                     <Button
                       onClick={() => setPublishingPlanId(plan.id)}
-                      variant={plan.visibility !== 'private' ? 'primary' : 'secondary'}
-                      leftIcon={<Share2 size={16} />}
+                      variant={plan.visibility !== 'private' ? 'default' : 'secondary'}
                       size="sm"
                       fullWidth
                     >
+                      <Share2 size={16} />
                       {plan.visibility !== 'private' ? t('dashboard.managePublication') : t('dashboard.publish')}
                     </Button>
                   </div>

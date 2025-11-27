@@ -7,8 +7,15 @@ export default {
     theme: {
         extend: {
             colors: {
-                // Primary Palette - Kühle Blau-Grau-Töne
+                // Shadcn Base Colors
+                border: 'hsl(214 32% 91%)',
+                input: 'hsl(214 32% 91%)',
+                ring: 'hsl(215 20.2% 65.1%)',
+                background: 'hsl(0 0% 100%)',
+                foreground: 'hsl(222.2 84% 4.9%)',
                 primary: {
+                    DEFAULT: 'hsl(215 20.2% 65.1%)',
+                    foreground: 'hsl(210 40% 98%)',
                     50: '#f0f5f7',
                     100: '#bcd4de',
                     200: '#a5ccd1',
@@ -20,22 +27,42 @@ export default {
                     800: '#2d3235',
                     900: '#1a1d1f',
                 },
-
-                // Background Colors
-                background: {
-                    primary: '#fafbfc',
-                    secondary: '#f0f5f7',
-                    tertiary: '#e5edef',
+                secondary: {
+                    DEFAULT: 'hsl(210 40% 96.1%)',
+                    foreground: 'hsl(222.2 47.4% 11.2%)',
+                },
+                destructive: {
+                    DEFAULT: 'hsl(0 84.2% 60.2%)',
+                    foreground: 'hsl(210 40% 98%)',
+                },
+                muted: {
+                    DEFAULT: 'hsl(210 40% 96.1%)',
+                    foreground: 'hsl(215.4 16.3% 46.9%)',
+                },
+                accent: {
+                    DEFAULT: 'hsl(210 40% 96.1%)',
+                    foreground: 'hsl(222.2 47.4% 11.2%)',
+                },
+                popover: {
+                    DEFAULT: 'hsl(0 0% 100%)',
+                    foreground: 'hsl(222.2 84% 4.9%)',
+                },
+                card: {
+                    DEFAULT: 'hsl(0 0% 100%)',
+                    foreground: 'hsl(222.2 84% 4.9%)',
                 },
 
-                // Border Colors
-                border: {
-                    light: '#e5edef',
-                    medium: '#a0b9bf',
-                    strong: '#6b7378',
-                },
+                // Background Colors (legacy support)
+                'background-primary': '#fafbfc',
+                'background-secondary': '#f0f5f7',
+                'background-tertiary': '#e5edef',
 
-                // Text Colors
+                // Border Colors (legacy support)
+                'border-light': '#e5edef',
+                'border-medium': '#a0b9bf',
+                'border-strong': '#6b7378',
+
+                // Text Colors (legacy support)
                 text: {
                     primary: '#1a1d1f',
                     secondary: '#4a5155',

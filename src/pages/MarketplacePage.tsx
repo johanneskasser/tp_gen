@@ -141,7 +141,7 @@ export default function MarketplacePage() {
               </div>
               <Button
                 onClick={() => setShowFilters(!showFilters)}
-                variant={showFilters || selectedTags.length > 0 ? 'primary' : 'secondary'}
+                variant={showFilters || selectedTags.length > 0 ? 'default' : 'secondary'}
                 className="relative"
               >
                 <Filter size={18} />
@@ -228,7 +228,7 @@ export default function MarketplacePage() {
                 ))}
               </div>
               <div className="flex gap-2">
-                <Button onClick={handleSearch} variant="primary">
+                <Button onClick={handleSearch} variant="default">
                   {t('marketplace.filters.apply')}
                 </Button>
                 <Button onClick={clearFilters} variant="secondary">

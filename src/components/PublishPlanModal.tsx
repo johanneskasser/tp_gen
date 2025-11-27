@@ -79,10 +79,10 @@ export default function PublishPlanModal({
           </Button>
           <Button
             onClick={handlePublish}
-            variant={visibility === 'private' ? 'danger' : 'primary'}
+            variant={visibility === 'private' ? 'destructive' : 'default'}
             disabled={loading || (visibility !== 'private' && !description.trim())}
-            leftIcon={loading ? <Loader2 size={18} className="animate-spin" /> : undefined}
           >
+            {loading && <Loader2 size={18} className="animate-spin" />}
             {loading
               ? 'Verarbeite...'
               : visibility === 'private'

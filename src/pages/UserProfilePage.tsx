@@ -174,9 +174,9 @@ export default function UserProfilePage() {
         <Button
           onClick={() => navigate(-1)}
           variant="ghost"
-          leftIcon={<ArrowLeft size={18} />}
           size="sm"
         >
+          <ArrowLeft size={18} />
           Zurück
         </Button>
       </div>
@@ -219,10 +219,9 @@ export default function UserProfilePage() {
                   <Button
                     onClick={handleFollow}
                     disabled={followLoading}
-                    variant={isFollowing ? 'secondary' : 'primary'}
-                    size="md"
-                    leftIcon={isFollowing ? <UserMinus size={18} /> : <UserPlus size={18} />}
+                    variant={isFollowing ? 'secondary' : 'default'}
                   >
+                    {isFollowing ? <UserMinus size={18} /> : <UserPlus size={18} />}
                     {isFollowing ? 'Entfolgen' : 'Folgen'}
                   </Button>
                 )}

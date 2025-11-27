@@ -279,9 +279,8 @@ export default function PlanDetailPage() {
         <Button
           onClick={() => navigate('/marketplace')}
           variant="ghost"
-          leftIcon={<ArrowLeft size={18} />}
-         
         >
+          <ArrowLeft size={18} />
           Zurück
         </Button>
       </div>
@@ -294,10 +293,10 @@ export default function PlanDetailPage() {
             <h1 className={cn(typography.h1, 'flex-1')}>{plan.name}</h1>
             <Button
               onClick={() => setShowCloneModal(true)}
-              variant="primary"
-              leftIcon={<Copy size={18} />}
+              variant="default"
               size="lg"
             >
+              <Copy size={18} />
               Plan kopieren & anpassen
             </Button>
           </div>
@@ -398,10 +397,9 @@ export default function PlanDetailPage() {
                       <Button
                         onClick={handleFollow}
                         disabled={followLoading}
-                        variant={isFollowing ? 'secondary' : 'primary'}
-                       
-                        leftIcon={isFollowing ? <UserMinus size={14} /> : <UserPlus size={14} />}
+                        variant={isFollowing ? 'secondary' : 'default'}
                       >
+                        {isFollowing ? <UserMinus size={14} /> : <UserPlus size={14} />}
                         {isFollowing ? 'Entfolgen' : 'Folgen'}
                       </Button>
                     )}
@@ -437,8 +435,7 @@ export default function PlanDetailPage() {
           <div className="flex justify-end gap-2">
             <Button
               onClick={handleLike}
-              variant={plan.user_interaction?.has_liked ? 'primary' : 'ghost'}
-             
+              variant={plan.user_interaction?.has_liked ? 'default' : 'ghost'}
               title={plan.user_interaction?.has_liked ? 'Like entfernen' : 'Liken'}
             >
               <Heart
@@ -452,7 +449,6 @@ export default function PlanDetailPage() {
                 commentsSection?.scrollIntoView({ behavior: 'smooth' });
               }}
               variant="ghost"
-             
               title="Zu den Kommentaren"
             >
               <MessageCircle size={20} />
@@ -633,8 +629,7 @@ export default function PlanDetailPage() {
               <Button
                 onClick={handleSubmitComment}
                 disabled={!commentText.trim() || submittingComment}
-                variant="primary"
-                size="md"
+                variant="default"
                 title="Senden (Enter)"
                 className="flex-shrink-0"
               >
@@ -680,9 +675,8 @@ export default function PlanDetailPage() {
                       <Button
                         onClick={() => handleDeleteComment(comment.id)}
                         variant="ghost"
-                       
-                        leftIcon={<Trash2 size={14} />}
                       >
+                        <Trash2 size={14} />
                         Löschen
                       </Button>
                     )}
