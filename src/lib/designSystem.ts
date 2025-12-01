@@ -88,6 +88,48 @@ const sessionTypeConfigs: Record<SessionType, SessionTypeConfig> = {
     borderColor: 'border-session-race-border',
     chartColor: '#fb7185',
   },
+  strides: {
+    label: 'Steigerungen',
+    bgColor: 'bg-session-strides-bg',
+    textColor: 'text-session-strides-text',
+    borderColor: 'border-session-strides-border',
+    chartColor: '#eab308',
+  },
+  hill_repeats: {
+    label: 'Bergwiederholungen',
+    bgColor: 'bg-session-hill-repeats-bg',
+    textColor: 'text-session-hill-repeats-text',
+    borderColor: 'border-session-hill-repeats-border',
+    chartColor: '#f59e0b',
+  },
+  progression: {
+    label: 'Progression Run',
+    bgColor: 'bg-session-progression-bg',
+    textColor: 'text-session-progression-text',
+    borderColor: 'border-session-progression-border',
+    chartColor: '#06b6d4',
+  },
+  fartlek: {
+    label: 'Fartlek',
+    bgColor: 'bg-session-fartlek-bg',
+    textColor: 'text-session-fartlek-text',
+    borderColor: 'border-session-fartlek-border',
+    chartColor: '#ec4899',
+  },
+  strength: {
+    label: 'Krafttraining',
+    bgColor: 'bg-session-strength-bg',
+    textColor: 'text-session-strength-text',
+    borderColor: 'border-session-strength-border',
+    chartColor: '#6b7280',
+  },
+  plyometrics: {
+    label: 'Plyometrie',
+    bgColor: 'bg-session-plyometrics-bg',
+    textColor: 'text-session-plyometrics-text',
+    borderColor: 'border-session-plyometrics-border',
+    chartColor: '#6366f1',
+  },
 };
 
 export function getSessionTypeConfig(type: SessionType): SessionTypeConfig {
@@ -213,6 +255,12 @@ export const chartColors = {
   tempo: '#fbbf24',
   recovery: '#4ade80',
   race: '#fb7185',
+  strides: '#eab308',
+  hill_repeats: '#f59e0b',
+  progression: '#06b6d4',
+  fartlek: '#ec4899',
+  strength: '#6b7280',
+  plyometrics: '#6366f1',
 };
 
 /**

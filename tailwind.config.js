@@ -109,6 +109,42 @@ export default {
                         border: '#fecdd3',
                         chart: '#fb7185',
                     },
+                    strides: {
+                        bg: '#fef9c3',
+                        text: '#854d0e',
+                        border: '#fde047',
+                        chart: '#eab308',
+                    },
+                    'hill-repeats': {
+                        bg: '#ffedd5',
+                        text: '#9a3412',
+                        border: '#fdba74',
+                        chart: '#f59e0b',
+                    },
+                    progression: {
+                        bg: '#cffafe',
+                        text: '#155e75',
+                        border: '#67e8f9',
+                        chart: '#06b6d4',
+                    },
+                    fartlek: {
+                        bg: '#fce7f3',
+                        text: '#9f1239',
+                        border: '#fbcfe8',
+                        chart: '#ec4899',
+                    },
+                    strength: {
+                        bg: '#f3f4f6',
+                        text: '#374151',
+                        border: '#d1d5db',
+                        chart: '#6b7280',
+                    },
+                    plyometrics: {
+                        bg: '#e0e7ff',
+                        text: '#3730a3',
+                        border: '#c7d2fe',
+                        chart: '#6366f1',
+                    },
                 },
 
                 // Semantic Colors

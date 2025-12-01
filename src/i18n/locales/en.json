@@ -93,7 +93,13 @@
     "intervals": "Intervals",
     "tempo": "Tempo",
     "recovery": "Recovery",
-    "race": "Race"
+    "race": "Race",
+    "strides": "Strides",
+    "hill_repeats": "Hill Repeats",
+    "progression": "Progression Run",
+    "fartlek": "Fartlek",
+    "strength": "Strength Training",
+    "plyometrics": "Plyometrics"
   },
   "plan": {
     "trainingPlan": "Training Plan",

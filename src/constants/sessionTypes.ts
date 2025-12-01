@@ -35,6 +35,36 @@ export const SESSION_TYPE_CONFIG: Record<
     color: 'bg-purple-100 text-purple-800',
     chartColor: '#a855f7', // purple-500
   },
+  strides: {
+    labelKey: 'sessionTypes.strides',
+    color: 'bg-yellow-100 text-yellow-800',
+    chartColor: '#eab308', // yellow-500
+  },
+  hill_repeats: {
+    labelKey: 'sessionTypes.hill_repeats',
+    color: 'bg-amber-100 text-amber-800',
+    chartColor: '#f59e0b', // amber-500
+  },
+  progression: {
+    labelKey: 'sessionTypes.progression',
+    color: 'bg-cyan-100 text-cyan-800',
+    chartColor: '#06b6d4', // cyan-500
+  },
+  fartlek: {
+    labelKey: 'sessionTypes.fartlek',
+    color: 'bg-pink-100 text-pink-800',
+    chartColor: '#ec4899', // pink-500
+  },
+  strength: {
+    labelKey: 'sessionTypes.strength',
+    color: 'bg-gray-100 text-gray-800',
+    chartColor: '#6b7280', // gray-500
+  },
+  plyometrics: {
+    labelKey: 'sessionTypes.plyometrics',
+    color: 'bg-indigo-100 text-indigo-800',
+    chartColor: '#6366f1', // indigo-500
+  },
 };
 
 export function getSessionTypeLabel(type: SessionType): string {
