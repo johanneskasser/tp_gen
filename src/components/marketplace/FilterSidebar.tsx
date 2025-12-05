@@ -110,21 +110,6 @@ export function FilterSidebar({
 
   return (
     <div className="h-full flex flex-col bg-white">
-      {/* Header */}
-      <div className="p-6 border-b border-border-light">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className={typography.h3}>Filter</h2>
-          {totalFilters > 0 && (
-            <Badge className="bg-primary-700 text-white">
-              {totalFilters}
-            </Badge>
-          )}
-        </div>
-        <p className="text-sm text-text-tertiary">
-          Finde den perfekten Trainingsplan
-        </p>
-      </div>
-
       {/* Filters */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Distance Filter */}
