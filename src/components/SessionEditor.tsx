@@ -7,13 +7,14 @@ import {
   FartlekSegment,
   Exercise,
 } from '../types';
-import { Save, X, Trash2, Plus } from 'lucide-react';
+import { Save, X, Trash2, Plus, Activity } from 'lucide-react';
 import { generateSessionTitle } from '../utils/titleGenerator';
 import { SESSION_TYPE_CONFIG, getSessionTypeLabel } from '../constants/sessionTypes';
 import { formatPace } from '../utils/paceCalculator';
 import { IntervalVisualization } from './visualizations/IntervalVisualization';
 import { ProgressionVisualization } from './visualizations/ProgressionVisualization';
 import { FartlekVisualization } from './visualizations/FartlekVisualization';
+import { SESSION_CHARACTERISTICS } from '../config/sessionCharacteristics';
 
 interface SessionEditorProps {
   session: TrainingSession;
@@ -85,6 +86,48 @@ export default function SessionEditor({
     }
     return '';
   }, [distance, duration]);
+
+  // Get intensity information for current session type
+  const intensityInfo = useMemo(() => {
+    const characteristics = SESSION_CHARACTERISTICS[type];
+    const level = characteristics.intensityLevel;
+    const score = characteristics.intensityScore;
+    const recoveryDays = characteristics.recoveryDaysNeeded;
+
+    const levelConfig = {
+      easy: {
+        label: 'Locker',
+        color: 'bg-green-100 border-green-300 text-green-800',
+        barColor: 'bg-green-500',
+        icon: '😌'
+      },
+      moderate: {
+        label: 'Moderat',
+        color: 'bg-yellow-100 border-yellow-300 text-yellow-800',
+        barColor: 'bg-yellow-500',
+        icon: '💪'
+      },
+      hard: {
+        label: 'Hart',
+        color: 'bg-orange-100 border-orange-300 text-orange-800',
+        barColor: 'bg-orange-500',
+        icon: '🔥'
+      },
+      very_hard: {
+        label: 'Sehr Hart',
+        color: 'bg-red-100 border-red-300 text-red-800',
+        barColor: 'bg-red-500',
+        icon: '⚡'
+      },
+    };
+
+    return {
+      level,
+      score,
+      recoveryDays,
+      ...levelConfig[level],
+    };
+  }, [type]);
 
   // Interval handlers
   const handleAddInterval = () => {
@@ -1153,6 +1196,44 @@ export default function SessionEditor({
                   {st.label}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Intensity Level Display */}
+          <div className={`border rounded-lg p-4 ${intensityInfo.color}`}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Activity size={20} />
+                <span className="font-semibold">Intensitätslevel:</span>
+                <span className="text-2xl">{intensityInfo.icon}</span>
+                <span className="font-bold">{intensityInfo.label}</span>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-medium">Score: {intensityInfo.score}/10</div>
+                {intensityInfo.recoveryDays > 0 && (
+                  <div className="text-xs">
+                    {intensityInfo.recoveryDays} Tag{intensityInfo.recoveryDays > 1 ? 'e' : ''} Erholung
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Intensity Bar */}
+            <div className="relative">
+              <div className="flex gap-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                {[...Array(10)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`flex-1 ${
+                      i < intensityInfo.score ? intensityInfo.barColor : 'bg-gray-200'
+                    }`}
+                  />
+                ))}
+              </div>
+              <div className="flex justify-between text-xs text-gray-600 mt-1">
+                <span>Locker</span>
+                <span>Sehr Hart</span>
+              </div>
             </div>
           </div>
 

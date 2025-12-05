@@ -37,6 +37,9 @@ export interface UserProfile {
     date: string;
     targetTime?: string;
   }[];
+
+  // Onboarding status
+  onboarding_completed?: boolean;
 }
 
 /**

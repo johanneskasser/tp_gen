@@ -258,6 +258,7 @@ export type Database = {
           full_name: string | null
           gender: string | null
           id: string
+          onboarding_completed: boolean | null
           preferred_training_days: number[] | null
           updated_at: string
           vdot: number | null
@@ -276,6 +277,7 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id: string
+          onboarding_completed?: boolean | null
           preferred_training_days?: number[] | null
           updated_at?: string
           vdot?: number | null
@@ -294,6 +296,7 @@ export type Database = {
           full_name?: string | null
           gender?: string | null
           id?: string
+          onboarding_completed?: boolean | null
           preferred_training_days?: number[] | null
           updated_at?: string
           vdot?: number | null

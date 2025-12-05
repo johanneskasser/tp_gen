@@ -33,3 +33,7 @@ CLAUDE.md
 *.njsproj
 *.sln
 *.sw?
+
+*.md
+!README.md
+

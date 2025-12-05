@@ -238,9 +238,6 @@ export default function MarketplacePage() {
       <div className="sticky top-0 z-20 bg-white border-b border-border-light shadow-sm">
         <div className="container mx-auto px-4 max-w-7xl">
           <div className="flex items-center justify-between py-4">
-            {/* Title */}
-            <h1 className={cn(typography.h2, 'hidden sm:block')}>Marketplace</h1>
-
             {/* Search (smaller, right-aligned) */}
             <div className="flex-1 sm:flex-none sm:w-80 ml-auto">
               <Input

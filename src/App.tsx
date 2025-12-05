@@ -11,7 +11,9 @@ import SettingsPage from './pages/SettingsPage';
 import MarketplacePage from './pages/MarketplacePage';
 import PlanDetailPage from './pages/PlanDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
+import OnboardingPage from './pages/OnboardingPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import { OnboardingGuard } from './components/OnboardingGuard';
 import { AppLayout } from './components/AppLayout';
 import { Analytics } from '@vercel/analytics/react';
 import './i18n/config'; // Initialize i18n
@@ -37,14 +39,26 @@ function AppRoutes() {
         element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
       />
 
-      {/* Protected routes with AppLayout */}
+      {/* Onboarding route - protected but without layout */}
+      <Route
+        path="/onboarding"
+        element={
+          <ProtectedRoute>
+            <OnboardingPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected routes with AppLayout and OnboardingGuard */}
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <Dashboard />
-            </AppLayout>
+            <OnboardingGuard>
+              <AppLayout>
+                <Dashboard />
+              </AppLayout>
+            </OnboardingGuard>
           </ProtectedRoute>
         }
       />
@@ -52,9 +66,11 @@ function AppRoutes() {
         path="/plan/:id"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <PlanEditor />
-            </AppLayout>
+            <OnboardingGuard>
+              <AppLayout>
+                <PlanEditor />
+              </AppLayout>
+            </OnboardingGuard>
           </ProtectedRoute>
         }
       />
@@ -62,9 +78,11 @@ function AppRoutes() {
         path="/profile"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <ProfilePage />
-            </AppLayout>
+            <OnboardingGuard>
+              <AppLayout>
+                <ProfilePage />
+              </AppLayout>
+            </OnboardingGuard>
           </ProtectedRoute>
         }
       />
@@ -72,9 +90,11 @@ function AppRoutes() {
         path="/settings"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <SettingsPage />
-            </AppLayout>
+            <OnboardingGuard>
+              <AppLayout>
+                <SettingsPage />
+              </AppLayout>
+            </OnboardingGuard>
           </ProtectedRoute>
         }
       />
@@ -82,9 +102,11 @@ function AppRoutes() {
         path="/marketplace"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <MarketplacePage />
-            </AppLayout>
+            <OnboardingGuard>
+              <AppLayout>
+                <MarketplacePage />
+              </AppLayout>
+            </OnboardingGuard>
           </ProtectedRoute>
         }
       />
@@ -92,9 +114,11 @@ function AppRoutes() {
         path="/marketplace/:planId"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <PlanDetailPage />
-            </AppLayout>
+            <OnboardingGuard>
+              <AppLayout>
+                <PlanDetailPage />
+              </AppLayout>
+            </OnboardingGuard>
           </ProtectedRoute>
         }
       />
@@ -102,9 +126,11 @@ function AppRoutes() {
         path="/profile/:userId"
         element={
           <ProtectedRoute>
-            <AppLayout>
-              <UserProfilePage />
-            </AppLayout>
+            <OnboardingGuard>
+              <AppLayout>
+                <UserProfilePage />
+              </AppLayout>
+            </OnboardingGuard>
           </ProtectedRoute>
         }
       />

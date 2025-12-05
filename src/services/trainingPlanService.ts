@@ -31,7 +31,7 @@ export const trainingPlanService = {
       .order('updated_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as unknown as SavedTrainingPlan[];
   },
 
   // Get single plan by ID
@@ -46,7 +46,7 @@ export const trainingPlanService = {
       if (error.code === 'PGRST116') return null; // Not found
       throw error;
     }
-    return data;
+    return data as unknown as SavedTrainingPlan;
   },
 
   // Create new plan
@@ -62,13 +62,13 @@ export const trainingPlanService = {
       .insert({
         user_id: user.id,
         name: plan.event.name,
-        plan_data: plan,
+        plan_data: plan as any,
       })
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return data as unknown as SavedTrainingPlan;
   },
 
   // Update existing plan
@@ -77,14 +77,14 @@ export const trainingPlanService = {
       .from('training_plans')
       .update({
         name: plan.event.name,
-        plan_data: plan,
+        plan_data: plan as any,
       })
       .eq('id', id)
       .select()
       .single();
 
     if (error) throw error;
-    return data;
+    return data as unknown as SavedTrainingPlan;
   },
 
   // Delete plan

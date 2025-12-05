@@ -5,4 +5,5 @@ export interface UserProfile {
   bio: string | null;
   created_at: string;
   updated_at: string;
+  onboarding_completed?: boolean | null;
 }

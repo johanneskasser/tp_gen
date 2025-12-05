@@ -157,7 +157,7 @@ export const marketplaceService = {
     );
 
     return {
-      plans: plansWithStats,
+      plans: plansWithStats as unknown as MarketplacePlan[],
       total: count || 0,
     };
   },
@@ -209,10 +209,12 @@ export const marketplaceService = {
 
     return {
       ...data,
+      plan_data: data.plan_data as any,
+      tags: data.tags || [],
       creator,
       stats,
       user_interaction,
-    };
+    } as MarketplacePlan;
   },
 
   /**
@@ -374,7 +376,7 @@ export const marketplaceService = {
       .insert({
         user_id: user.id,
         name: newPlan.event.name,
-        plan_data: newPlan,
+        plan_data: newPlan as any,
         visibility: 'private',
       })
       .select('id')

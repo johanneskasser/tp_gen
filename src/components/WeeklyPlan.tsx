@@ -7,6 +7,7 @@ import { Plus, ChevronDown, ChevronUp, Lightbulb, Sparkles } from 'lucide-react'
 import { calculateSessionDistance } from '../utils/calculationUtils';
 import { generateSessionTitle } from '../utils/titleGenerator';
 import { TrainingSuggestionPanel } from './TrainingSuggestionPanel';
+import { analyzeWeekIntensity } from '../utils/intensityAnalyzer';
 
 interface WeeklyPlanProps {
   week: TrainingWeek;
@@ -130,50 +131,96 @@ export default function WeeklyPlan({
   const startDayOfWeek = week.startDayOfWeek ?? 0; // Default to Monday if not set
   const daysToShow = Array.from({ length: 7 }, (_, i) => (startDayOfWeek + i) % 7);
 
+  // Calculate intensity distribution for the week
+  const intensityDist = analyzeWeekIntensity(week.sessions);
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between bg-gradient-to-r from-blue-50 to-slate-50 hover:from-blue-100 hover:to-slate-100 transition-colors"
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 items-start">
-          <span className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600">
-            Woche {week.weekNumber}
-          </span>
-          <span className="text-xs sm:text-sm md:text-base text-slate-600">
-            {formatDate(week.startDate)} - {formatDate(week.endDate)}
-          </span>
-          <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-600 text-white rounded-full text-xs sm:text-sm font-medium">
-            {week.totalKm.toFixed(1)} km
-          </span>
+      <div className="w-full px-3 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-50 to-slate-50">
+        <div className="flex items-center justify-between gap-4">
+          {/* Left side: Week info and expand button */}
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 items-start hover:opacity-80 transition-opacity"
+          >
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600">
+                Woche {week.weekNumber}
+              </span>
+              <span className="text-xs sm:text-sm md:text-base text-slate-600">
+                {formatDate(week.startDate)} - {formatDate(week.endDate)}
+              </span>
+              <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-600 text-white rounded-full text-xs sm:text-sm font-medium">
+                {week.totalKm.toFixed(1)} km
+              </span>
+              <div className="flex-shrink-0 text-slate-600">
+                {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              </div>
+            </div>
+          </button>
+
+          {/* Center: Intensity zones */}
+          <div className="hidden lg:flex items-center gap-3 flex-1 max-w-md">
+            <div className="flex items-center gap-2 flex-1">
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-16 text-xs text-slate-600">Locker:</div>
+                  <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                    <div
+                      className="bg-green-500 h-1.5 rounded-full transition-all"
+                      style={{ width: `${intensityDist.current.easy * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-slate-500 w-10 text-right">
+                    {Math.round(intensityDist.current.easy * 100)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-16 text-xs text-slate-600">Moderat:</div>
+                  <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                    <div
+                      className="bg-yellow-500 h-1.5 rounded-full transition-all"
+                      style={{ width: `${intensityDist.current.moderate * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-slate-500 w-10 text-right">
+                    {Math.round(intensityDist.current.moderate * 100)}%
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-16 text-xs text-slate-600">Hart:</div>
+                  <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                    <div
+                      className="bg-red-500 h-1.5 rounded-full transition-all"
+                      style={{ width: `${intensityDist.current.hard * 100}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-slate-500 w-10 text-right">
+                    {Math.round(intensityDist.current.hard * 100)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right side: AI Suggestion Button */}
+          {plan && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleShowSuggestions(undefined);
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg text-sm font-medium"
+            >
+              <Sparkles size={16} />
+              <span className="hidden sm:inline">KI-Vorschläge</span>
+            </button>
+          )}
         </div>
-        <div className="flex-shrink-0">
-          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-        </div>
-      </button>
+      </div>
 
       {isExpanded && (
         <div className="p-3 sm:p-6 space-y-4">
-          {/* Smart Suggestions Button - Show at top of week */}
-          {plan && (
-            <div className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-3 border border-purple-200">
-              <div className="flex items-center gap-2">
-                <Sparkles className="text-purple-600" size={20} />
-                <div>
-                  <p className="font-semibold text-slate-800 text-sm">Smart Trainings-Vorschläge</p>
-                  <p className="text-xs text-slate-600">KI-gestützte Empfehlungen für optimales Training</p>
-                </div>
-              </div>
-              <button
-                onClick={() => handleShowSuggestions(undefined)}
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 text-sm font-medium"
-              >
-                <Lightbulb size={16} />
-                Vorschläge anzeigen
-              </button>
-            </div>
-          )}
-
           {/* Days Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4">
             {daysToShow.map((dayOfWeek) => {

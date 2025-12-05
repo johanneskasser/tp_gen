@@ -151,7 +151,7 @@ export function FilterSidebar({
         {runnerProfile && (
           <FilterSection title="Intensität (für dich)" section="intensity">
             <div className="space-y-2">
-              {intensities.map(({ label, value, emoji, color }) => (
+              {intensities.map(({ label, value, emoji }) => (
                 <label
                   key={value}
                   className="flex items-center gap-3 cursor-pointer hover:bg-slate-50 p-2 rounded transition-colors"
