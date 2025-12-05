@@ -11,6 +11,9 @@ import { Save, X, Trash2, Plus } from 'lucide-react';
 import { generateSessionTitle } from '../utils/titleGenerator';
 import { SESSION_TYPE_CONFIG, getSessionTypeLabel } from '../constants/sessionTypes';
 import { formatPace } from '../utils/paceCalculator';
+import { IntervalVisualization } from './visualizations/IntervalVisualization';
+import { ProgressionVisualization } from './visualizations/ProgressionVisualization';
+import { FartlekVisualization } from './visualizations/FartlekVisualization';
 
 interface SessionEditorProps {
   session: TrainingSession;
@@ -193,6 +196,15 @@ export default function SessionEditor({
         updatedSession.duration = duration ? parseFloat(duration) : undefined;
         break;
 
+      case 'tempo':
+        updatedSession.distance = distance ? parseFloat(distance) : undefined;
+        updatedSession.duration = duration ? parseFloat(duration) : undefined;
+        updatedSession.warmUp = warmUp ? parseFloat(warmUp) : undefined;
+        updatedSession.warmUpUnit = warmUp ? warmUpUnit : undefined;
+        updatedSession.coolDown = coolDown ? parseFloat(coolDown) : undefined;
+        updatedSession.coolDownUnit = coolDown ? coolDownUnit : undefined;
+        break;
+
       case 'intervals':
         updatedSession.intervals = intervals.length > 0 ? intervals : undefined;
         updatedSession.warmUp = warmUp ? parseFloat(warmUp) : undefined;
@@ -202,7 +214,7 @@ export default function SessionEditor({
         break;
 
       default:
-        // easy, long, tempo, recovery, race
+        // easy, long, recovery, race
         updatedSession.distance = distance ? parseFloat(distance) : undefined;
         updatedSession.duration = duration ? parseFloat(duration) : undefined;
         break;
@@ -485,6 +497,15 @@ export default function SessionEditor({
                 />
               </div>
             </div>
+
+            {/* Live Visualisierung */}
+            {progressionDistance && progressionStartPace && progressionEndPace && (
+              <ProgressionVisualization
+                distance={parseFloat(progressionDistance)}
+                startPace={progressionStartPace}
+                endPace={progressionEndPace}
+              />
+            )}
           </div>
         );
 
@@ -621,6 +642,17 @@ export default function SessionEditor({
                 </div>
               )}
             </div>
+
+            {/* Live Visualisierung */}
+            {fartlekSegments.length > 0 && (
+              <FartlekVisualization
+                segments={fartlekSegments}
+                warmUp={warmUp ? parseFloat(warmUp) : undefined}
+                warmUpUnit={warmUpUnit}
+                coolDown={coolDown ? parseFloat(coolDown) : undefined}
+                coolDownUnit={coolDownUnit}
+              />
+            )}
           </div>
         );
 
@@ -747,6 +779,96 @@ export default function SessionEditor({
                 </div>
               )}
             </div>
+          </div>
+        );
+
+      case 'tempo':
+        return (
+          <div className="space-y-4">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-800">
+              <strong>Tempo-Lauf:</strong> Zügiges, aber kontrolliertes Tempo für Ausdauer und Laktattoleranz
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Warm Up (optional)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={warmUp}
+                    onChange={(e) => setWarmUp(e.target.value)}
+                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="2.0"
+                  />
+                  <select
+                    value={warmUpUnit}
+                    onChange={(e) => setWarmUpUnit(e.target.value as DistanceUnit)}
+                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="km">km</option>
+                    <option value="min">min</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Cool Down (optional)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={coolDown}
+                    onChange={(e) => setCoolDown(e.target.value)}
+                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    placeholder="2.0"
+                  />
+                  <select
+                    value={coolDownUnit}
+                    onChange={(e) => setCoolDownUnit(e.target.value as DistanceUnit)}
+                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="km">km</option>
+                    <option value="min">min</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Distanz (km)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={distance}
+                  onChange={(e) => setDistance(e.target.value)}
+                  className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                  placeholder="10.0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Dauer (min) - optional
+                </label>
+                <input
+                  type="number"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                  placeholder="60"
+                />
+              </div>
+            </div>
+            {calculatedPace && (
+              <div className="mt-2 text-sm text-slate-600 bg-blue-50 px-3 py-2 rounded-lg">
+                <strong>Pace:</strong> {formatPace(calculatedPace)}
+              </div>
+            )}
           </div>
         );
 
@@ -929,11 +1051,22 @@ export default function SessionEditor({
                 </div>
               )}
             </div>
+
+            {/* Live Visualisierung */}
+            {intervals.length > 0 && (
+              <IntervalVisualization
+                intervals={intervals}
+                warmUp={warmUp ? parseFloat(warmUp) : undefined}
+                warmUpUnit={warmUpUnit}
+                coolDown={coolDown ? parseFloat(coolDown) : undefined}
+                coolDownUnit={coolDownUnit}
+              />
+            )}
           </div>
         );
 
       default:
-        // easy, long, tempo, recovery, race
+        // easy, long, recovery, race
         return (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">

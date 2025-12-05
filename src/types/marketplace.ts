@@ -73,8 +73,11 @@ export interface PlanComment {
 export interface MarketplaceFilters {
   search?: string;
   tags?: string[];
-  distance?: number[];
-  duration_weeks?: [number, number];
+  distance?: number[]; // e.g., [5, 10, 21.0975, 42.195]
+  duration_weeks?: [number, number]; // min and max weeks
+  target_time_min?: number; // target time in minutes (min)
+  target_time_max?: number; // target time in minutes (max)
+  intensity?: string[]; // difficulty levels: 'very_easy' | 'easy' | 'moderate' | 'challenging' | 'very_challenging' | 'extreme'
   sort_by?: 'recent' | 'popular' | 'rating' | 'clones';
   from_following?: boolean; // Filter to show only plans from followed users
   creator_id?: string; // Filter by specific creator

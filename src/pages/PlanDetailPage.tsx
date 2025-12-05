@@ -27,14 +27,17 @@ import { typography, cn, flex } from '../lib/designSystem';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useAuth } from '../contexts/AuthContext';
+import { useRunnerProfile } from '../contexts/RunnerProfileContext';
 import { useToast } from '../contexts/ToastContext';
 import ClonePlanModal from '../components/ClonePlanModal';
 import WeeklyChart from '../components/WeeklyChart';
+import { PlanDifficultyBadge } from '../components/PlanDifficultyBadge';
 
 export default function PlanDetailPage() {
   const { planId } = useParams<{ planId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { runnerProfile } = useRunnerProfile();
   const toast = useToast();
 
   const [plan, setPlan] = useState<MarketplacePlan | null>(null);
@@ -474,8 +477,17 @@ export default function PlanDetailPage() {
             )}
           </button>
           {showChart && (
-            <div className="pb-6 px-2 animate-fade-in">
-              <WeeklyChart weeks={plan.plan_data.weeks} />
+            <div className="pb-6 px-2 animate-fade-in space-y-4">
+              {/* Plan Difficulty Badge */}
+              {runnerProfile && (
+                <PlanDifficultyBadge
+                  plan={plan.plan_data}
+                  userProfile={runnerProfile}
+                  showDetails={true}
+                />
+              )}
+
+              <WeeklyChart weeks={plan.plan_data.weeks} userProfile={runnerProfile || undefined} />
             </div>
           )}
         </div>
@@ -566,6 +578,20 @@ export default function PlanDetailPage() {
                                         • {interval.repetitions}x {interval.distance}km @ {interval.pace} (Pause: {interval.recovery} {interval.recoveryUnit || 'min'})
                                       </p>
                                     ))}
+                                    {session.coolDown && (
+                                      <p className={cn(typography.bodySmall, 'text-text-secondary')}>
+                                        Auslaufen: {session.coolDown} {session.coolDownUnit || 'min'}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+                                {!session.intervals && (session.warmUp || session.coolDown) && (
+                                  <div className="mt-2 space-y-1">
+                                    {session.warmUp && (
+                                      <p className={cn(typography.bodySmall, 'text-text-secondary')}>
+                                        Aufwärmen: {session.warmUp} {session.warmUpUnit || 'min'}
+                                      </p>
+                                    )}
                                     {session.coolDown && (
                                       <p className={cn(typography.bodySmall, 'text-text-secondary')}>
                                         Auslaufen: {session.coolDown} {session.coolDownUnit || 'min'}

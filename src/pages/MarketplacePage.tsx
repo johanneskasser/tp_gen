@@ -24,10 +24,16 @@ import {
 import { Button, Card, Input, Badge } from '../components/ui';
 import { typography, cn, flex } from '../lib/designSystem';
 import { useAuth } from '../contexts/AuthContext';
+import { useRunnerProfile } from '../contexts/RunnerProfileContext';
+import { PlanDifficultyBadge } from '../components/PlanDifficultyBadge';
+import { FilterSidebar } from '../components/marketplace/FilterSidebar';
+import { FilterChips } from '../components/marketplace/FilterChips';
+import { calculatePlanDifficulty } from '../utils/personalizedIntensity';
 import { useTranslation } from 'react-i18next';
 
 export default function MarketplacePage() {
   const [plans, setPlans] = useState<MarketplacePlan[]>([]);
+  const [filteredPlans, setFilteredPlans] = useState<MarketplacePlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState<MarketplaceFilters>({
@@ -37,16 +43,42 @@ export default function MarketplacePage() {
   });
   const [searchInput, setSearchInput] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
+  const [selectedDistances, setSelectedDistances] = useState<number[]>([]);
+  const [selectedIntensities, setSelectedIntensities] = useState<string[]>([]);
+  const [targetTimeRange, setTargetTimeRange] = useState<{ min?: number; max?: number }>({});
+  const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [showFollowingOnly, setShowFollowingOnly] = useState(false);
 
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { runnerProfile } = useRunnerProfile();
   const { t } = useTranslation();
 
   useEffect(() => {
     loadPlans();
   }, [filters]);
+
+  // Client-side intensity filtering (since it depends on user's VDOT)
+  useEffect(() => {
+    if (selectedIntensities.length === 0 || !runnerProfile) {
+      setFilteredPlans(plans);
+      return;
+    }
+
+    const filtered = plans.filter((plan) => {
+      if (!plan.plan_data) return false;
+
+      try {
+        const difficulty = calculatePlanDifficulty(plan.plan_data, runnerProfile);
+        return selectedIntensities.includes(difficulty.overall);
+      } catch (error) {
+        console.error('Error calculating difficulty:', error);
+        return false;
+      }
+    });
+
+    setFilteredPlans(filtered);
+  }, [plans, selectedIntensities, runnerProfile]);
 
   const loadPlans = async () => {
     try {
@@ -66,6 +98,10 @@ export default function MarketplacePage() {
       ...filters,
       search: searchInput || undefined,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
+      distance: selectedDistances.length > 0 ? selectedDistances : undefined,
+      intensity: selectedIntensities.length > 0 ? selectedIntensities : undefined,
+      target_time_min: targetTimeRange.min,
+      target_time_max: targetTimeRange.max,
       from_following: showFollowingOnly || undefined,
       page: 1,
     });
@@ -96,12 +132,31 @@ export default function MarketplacePage() {
   const clearFilters = () => {
     setSearchInput('');
     setSelectedTags([]);
+    setSelectedDistances([]);
+    setSelectedIntensities([]);
+    setTargetTimeRange({});
     setShowFollowingOnly(false);
     setFilters({
       page: 1,
       page_size: 12,
       sort_by: 'recent',
     });
+  };
+
+  const toggleDistance = (distance: number) => {
+    if (selectedDistances.includes(distance)) {
+      setSelectedDistances(selectedDistances.filter((d) => d !== distance));
+    } else {
+      setSelectedDistances([...selectedDistances, distance]);
+    }
+  };
+
+  const toggleIntensity = (intensity: string) => {
+    if (selectedIntensities.includes(intensity)) {
+      setSelectedIntensities(selectedIntensities.filter((i) => i !== intensity));
+    } else {
+      setSelectedIntensities([...selectedIntensities, intensity]);
+    }
   };
 
   const getDistanceLabel = (plan: MarketplacePlan) => {
@@ -120,38 +175,99 @@ export default function MarketplacePage() {
     return plan.plan_data?.weeks?.length || 0;
   };
 
+  // Generate filter chips
+  const getFilterChips = () => {
+    const chips = [];
+
+    // Distance chips
+    selectedDistances.forEach((dist) => {
+      const label = dist === 5 ? '5K' : dist === 10 ? '10K' : dist === 21.0975 ? 'Halbmarathon' : 'Marathon';
+      chips.push({
+        id: `dist-${dist}`,
+        label,
+        onRemove: () => toggleDistance(dist),
+      });
+    });
+
+    // Intensity chips
+    selectedIntensities.forEach((intensity) => {
+      const labels: Record<string, string> = {
+        very_easy: '😌 Sehr Leicht',
+        easy: '🙂 Leicht',
+        moderate: '💪 Moderat',
+        challenging: '🔥 Herausfordernd',
+        very_challenging: '💥 Sehr Anspruchsvoll',
+        extreme: '⚠️ Extrem',
+      };
+      chips.push({
+        id: `intensity-${intensity}`,
+        label: labels[intensity],
+        onRemove: () => toggleIntensity(intensity),
+      });
+    });
+
+    // Tags chips
+    selectedTags.forEach((tag) => {
+      chips.push({
+        id: `tag-${tag}`,
+        label: tag,
+        onRemove: () => toggleTag(tag),
+      });
+    });
+
+    // Time range chip
+    if (targetTimeRange.min || targetTimeRange.max) {
+      const min = targetTimeRange.min ? `${targetTimeRange.min}min` : '';
+      const max = targetTimeRange.max ? `${targetTimeRange.max}min` : '';
+      const label = min && max ? `${min} - ${max}` : min || max;
+      chips.push({
+        id: 'time-range',
+        label: `Zielzeit: ${label}`,
+        onRemove: () => setTargetTimeRange({}),
+      });
+    }
+
+    return chips;
+  };
+
+  const filterChips = getFilterChips();
+
   return (
     <div className="min-h-screen bg-background-primary">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-20 bg-background-primary border-b border-border-light backdrop-blur-sm bg-opacity-95">
-        <div className="container mx-auto px-3 sm:px-4 max-w-7xl">
-          {/* Search Bar */}
-          <div className="py-4">
-            <div className="flex gap-2">
-              <div className="flex-1 relative">
-                <Input
-                  type="text"
-                  placeholder={t('marketplace.searchPlaceholder')}
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  leftIcon={<Search size={18} />}
-                  className="w-full"
-                />
-              </div>
-              <Button
-                onClick={() => setShowFilters(!showFilters)}
-                variant={showFilters || selectedTags.length > 0 ? 'default' : 'secondary'}
-                className="relative"
-              >
-                <Filter size={18} />
-                {selectedTags.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {selectedTags.length}
-                  </span>
-                )}
-              </Button>
+      {/* Modern Header */}
+      <div className="sticky top-0 z-20 bg-white border-b border-border-light shadow-sm">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="flex items-center justify-between py-4">
+            {/* Title */}
+            <h1 className={cn(typography.h2, 'hidden sm:block')}>Marketplace</h1>
+
+            {/* Search (smaller, right-aligned) */}
+            <div className="flex-1 sm:flex-none sm:w-80 ml-auto">
+              <Input
+                type="text"
+                placeholder="Suchen..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                leftIcon={<Search size={16} />}
+                className="w-full text-sm"
+              />
             </div>
+
+            {/* Filter Button (Mobile) */}
+            <Button
+              onClick={() => setShowFilterSheet(!showFilterSheet)}
+              variant="secondary"
+              className="ml-2 sm:hidden relative"
+              size="sm"
+            >
+              <Filter size={18} />
+              {filterChips.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {filterChips.length}
+                </span>
+              )}
+            </Button>
           </div>
 
           {/* Tabs for Sorting and Filtering */}
@@ -206,26 +322,181 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      {/* Filter Panel */}
-      {showFilters && (
+      {/* Filter Chips */}
+      {filterChips.length > 0 && (
+        <div className="container mx-auto px-4 max-w-7xl py-3">
+          <FilterChips chips={filterChips} onClearAll={clearFilters} />
+        </div>
+      )}
+
+      {/* Layout: Sidebar + Content */}
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="flex gap-6 py-6">
+          {/* Filter Sidebar (Desktop) */}
+          <aside className="hidden lg:block w-80 flex-shrink-0">
+            <div className="sticky top-24 max-h-[calc(100vh-120px)] overflow-hidden rounded-lg border border-border-light shadow-sm">
+              <FilterSidebar
+                selectedDistances={selectedDistances}
+                onDistanceToggle={toggleDistance}
+                selectedIntensities={selectedIntensities}
+                onIntensityToggle={toggleIntensity}
+                runnerProfile={runnerProfile || undefined}
+                targetTimeRange={targetTimeRange}
+                onTargetTimeChange={setTargetTimeRange}
+                selectedTags={selectedTags}
+                onTagToggle={toggleTag}
+                availableTags={PREDEFINED_TAGS}
+                onApply={handleSearch}
+                onClear={clearFilters}
+              />
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 min-w-0">
+      {/* Old Filter Panel - Remove */}
+      {false && (
         <div className="border-b border-border-light bg-background-secondary">
           <div className="container mx-auto px-3 sm:px-4 py-4 max-w-7xl">
             <div className="space-y-4">
-              <div className="flex flex-wrap gap-2">
-                {PREDEFINED_TAGS.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => toggleTag(tag)}
-                    className={cn(
-                      'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
-                      selectedTags.includes(tag)
-                        ? 'bg-primary-700 text-white shadow-sm'
-                        : 'bg-white text-text-secondary hover:bg-primary-50 border border-border-light'
-                    )}
-                  >
-                    {tag}
-                  </button>
-                ))}
+              {/* Distance Filter */}
+              <div>
+                <h3 className={cn(typography.h4, 'mb-2')}>Distanz</h3>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: '5K', value: 5 },
+                    { label: '10K', value: 10 },
+                    { label: 'Halbmarathon', value: 21.0975 },
+                    { label: 'Marathon', value: 42.195 },
+                  ].map(({ label, value }) => (
+                    <button
+                      key={value}
+                      onClick={() => toggleDistance(value)}
+                      className={cn(
+                        'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                        selectedDistances.includes(value)
+                          ? 'bg-blue-600 text-white shadow-sm'
+                          : 'bg-white text-text-secondary hover:bg-blue-50 border border-border-light'
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Intensity Filter */}
+              {runnerProfile && (
+                <div>
+                  <h3 className={cn(typography.h4, 'mb-2')}>
+                    Intensität (für dich)
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { label: '😌 Sehr Leicht', value: 'very_easy', selectedClass: 'bg-green-600', hoverClass: 'hover:bg-green-50' },
+                      { label: '🙂 Leicht', value: 'easy', selectedClass: 'bg-green-500', hoverClass: 'hover:bg-green-50' },
+                      { label: '💪 Moderat', value: 'moderate', selectedClass: 'bg-blue-600', hoverClass: 'hover:bg-blue-50' },
+                      { label: '🔥 Herausfordernd', value: 'challenging', selectedClass: 'bg-orange-600', hoverClass: 'hover:bg-orange-50' },
+                      { label: '💥 Sehr Anspruchsvoll', value: 'very_challenging', selectedClass: 'bg-red-600', hoverClass: 'hover:bg-red-50' },
+                      { label: '⚠️ Extrem', value: 'extreme', selectedClass: 'bg-red-800', hoverClass: 'hover:bg-red-50' },
+                    ].map(({ label, value, selectedClass, hoverClass }) => (
+                      <button
+                        key={value}
+                        onClick={() => toggleIntensity(value)}
+                        className={cn(
+                          'px-3 py-1.5 rounded-full text-sm font-medium transition-all border',
+                          selectedIntensities.includes(value)
+                            ? `${selectedClass} text-white shadow-sm border-transparent`
+                            : `bg-white text-text-secondary ${hoverClass} border-border-light`
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-text-tertiary mt-1">
+                    💡 Basierend auf deinem Fitnesslevel (VDOT: {runnerProfile?.vdot?.toFixed(1) || 'N/A'})
+                  </p>
+                </div>
+              )}
+
+              {/* Target Time Filter */}
+              <div>
+                <h3 className={cn(typography.h4, 'mb-2')}>Zielzeit</h3>
+                <div className="flex gap-4 items-center">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-text-secondary">Von:</label>
+                    <select
+                      value={targetTimeRange.min || ''}
+                      onChange={(e) =>
+                        setTargetTimeRange({
+                          ...targetTimeRange,
+                          min: e.target.value ? Number(e.target.value) : undefined,
+                        })
+                      }
+                      className="px-3 py-1.5 rounded border border-border-light text-sm"
+                    >
+                      <option value="">Beliebig</option>
+                      <option value="20">20 min</option>
+                      <option value="30">30 min</option>
+                      <option value="45">45 min</option>
+                      <option value="60">1 Std</option>
+                      <option value="90">1:30 Std</option>
+                      <option value="120">2 Std</option>
+                      <option value="150">2:30 Std</option>
+                      <option value="180">3 Std</option>
+                      <option value="210">3:30 Std</option>
+                      <option value="240">4 Std</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-text-secondary">Bis:</label>
+                    <select
+                      value={targetTimeRange.max || ''}
+                      onChange={(e) =>
+                        setTargetTimeRange({
+                          ...targetTimeRange,
+                          max: e.target.value ? Number(e.target.value) : undefined,
+                        })
+                      }
+                      className="px-3 py-1.5 rounded border border-border-light text-sm"
+                    >
+                      <option value="">Beliebig</option>
+                      <option value="20">20 min</option>
+                      <option value="30">30 min</option>
+                      <option value="45">45 min</option>
+                      <option value="60">1 Std</option>
+                      <option value="90">1:30 Std</option>
+                      <option value="120">2 Std</option>
+                      <option value="150">2:30 Std</option>
+                      <option value="180">3 Std</option>
+                      <option value="210">3:30 Std</option>
+                      <option value="240">4 Std</option>
+                      <option value="300">5 Std</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div>
+                <h3 className={cn(typography.h4, 'mb-2')}>Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {PREDEFINED_TAGS.map((tag) => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      className={cn(
+                        'px-3 py-1.5 rounded-full text-sm font-medium transition-all',
+                        selectedTags.includes(tag)
+                          ? 'bg-primary-700 text-white shadow-sm'
+                          : 'bg-white text-text-secondary hover:bg-primary-50 border border-border-light'
+                      )}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button onClick={handleSearch} variant="default">
@@ -240,44 +511,43 @@ export default function MarketplacePage() {
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="container mx-auto px-3 sm:px-4 py-6 max-w-7xl">
+            {/* Results */}
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className={flex.row}>
+                  <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
+                  <span className={cn(typography.body, 'text-text-tertiary')}>
+                    {t('marketplace.loadingPlans')}
+                  </span>
+                </div>
+              </div>
+            ) : filteredPlans.length === 0 ? (
+              <Card variant="default" className="p-8 text-center max-w-md mx-auto">
+                <Search size={48} className="mx-auto text-text-tertiary mb-4" />
+                <h3 className={cn(typography.h3, 'mb-2')}>
+                  {t('marketplace.noResults')}
+                </h3>
+                <p className={cn(typography.body, 'text-text-tertiary mb-4')}>
+                  {t('marketplace.noResultsDescription')}
+                </p>
+                <Button onClick={clearFilters} variant="secondary">
+                  {t('marketplace.filters.resetFilters')}
+                </Button>
+              </Card>
+            ) : (
+              <>
+                {/* Results Count */}
+                <div className="mb-4">
+                  <p className={cn(typography.bodySmall, 'text-text-tertiary')}>
+                    {selectedIntensities.length > 0 && runnerProfile
+                      ? `${filteredPlans.length} von ${total} Plänen (gefiltert nach Intensität)`
+                      : t('marketplace.resultsCount', { count: total })}
+                  </p>
+                </div>
 
-      {/* Results */}
-      {loading ? (
-        <div className="flex justify-center items-center py-12">
-          <div className={flex.row}>
-            <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
-            <span className={cn(typography.body, 'text-text-tertiary')}>
-              {t('marketplace.loadingPlans')}
-            </span>
-          </div>
-        </div>
-      ) : plans.length === 0 ? (
-        <Card variant="default" className="p-8 text-center max-w-md mx-auto">
-          <Search size={48} className="mx-auto text-text-tertiary mb-4" />
-          <h3 className={cn(typography.h3, 'mb-2')}>
-            {t('marketplace.noResults')}
-          </h3>
-          <p className={cn(typography.body, 'text-text-tertiary mb-4')}>
-            {t('marketplace.noResultsDescription')}
-          </p>
-          <Button onClick={clearFilters} variant="secondary">
-            {t('marketplace.filters.resetFilters')}
-          </Button>
-        </Card>
-      ) : (
-        <>
-          {/* Results Count */}
-          <div className="mb-4">
-            <p className={cn(typography.bodySmall, 'text-text-tertiary')}>
-              {t('marketplace.resultsCount', { count: total })}
-            </p>
-          </div>
-
-          {/* Plans Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {plans.map((plan) => (
+                {/* Plans Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            {filteredPlans.map((plan) => (
               <Card
                 key={plan.id}
                 variant="default"
@@ -291,6 +561,17 @@ export default function MarketplacePage() {
                     <p className={cn(typography.bodySmall, 'text-text-tertiary line-clamp-2')}>
                       {plan.description}
                     </p>
+                  )}
+
+                  {/* Difficulty Badge */}
+                  {runnerProfile && plan.plan_data && (
+                    <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+                      <PlanDifficultyBadge
+                        plan={plan.plan_data}
+                        userProfile={runnerProfile}
+                        compact={true}
+                      />
+                    </div>
                   )}
                 </div>
 
@@ -365,32 +646,34 @@ export default function MarketplacePage() {
             ))}
           </div>
 
-          {/* Pagination */}
-          {total > (filters.page_size || 12) && (
-            <div className="mt-8 flex justify-center gap-2">
-              <Button
-                onClick={() => setFilters({ ...filters, page: (filters.page || 1) - 1 })}
-                disabled={filters.page === 1}
-                variant="secondary"
-              >
-                {t('marketplace.pagination.previous')}
-              </Button>
-              <span className={cn(typography.body, 'px-4 py-2')}>
-                {t('marketplace.page', { current: filters.page, total: Math.ceil(total / (filters.page_size || 12)) })}
-              </span>
-              <Button
-                onClick={() => setFilters({ ...filters, page: (filters.page || 1) + 1 })}
-                disabled={
-                  filters.page === Math.ceil(total / (filters.page_size || 12))
-                }
-                variant="secondary"
-              >
-                {t('marketplace.pagination.next')}
-              </Button>
-            </div>
-          )}
-        </>
-      )}
+                {/* Pagination */}
+                {total > (filters.page_size || 12) && (
+                  <div className="mt-8 flex justify-center gap-2">
+                    <Button
+                      onClick={() => setFilters({ ...filters, page: (filters.page || 1) - 1 })}
+                      disabled={filters.page === 1}
+                      variant="secondary"
+                    >
+                      {t('marketplace.pagination.previous')}
+                    </Button>
+                    <span className={cn(typography.body, 'px-4 py-2')}>
+                      {t('marketplace.page', { current: filters.page, total: Math.ceil(total / (filters.page_size || 12)) })}
+                    </span>
+                    <Button
+                      onClick={() => setFilters({ ...filters, page: (filters.page || 1) + 1 })}
+                      disabled={
+                        filters.page === Math.ceil(total / (filters.page_size || 12))
+                      }
+                      variant="secondary"
+                    >
+                      {t('marketplace.pagination.next')}
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import EventConfig from '../components/EventConfig';
 import WeeklyPlan from '../components/WeeklyPlan';
 import WeeklyChart from '../components/WeeklyChart';
 import PublishPlanModal from '../components/PublishPlanModal';
+import { PlanDifficultyBadge } from '../components/PlanDifficultyBadge';
 import { FileDown, Download, Upload, ArrowLeft, Save, Loader2, Share2 } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
 import { calculatePace, formatPace } from '../utils/paceCalculator';
@@ -18,11 +19,13 @@ import { de } from 'date-fns/locale';
 import { Button, Card } from '../components/ui';
 import { typography, cn, flex } from '../lib/designSystem';
 import { useToast } from '../contexts/ToastContext';
+import { useRunnerProfile } from '../contexts/RunnerProfileContext';
 
 export default function PlanEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
+  const { runnerProfile } = useRunnerProfile();
   const isNewPlan = id === 'new';
 
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
@@ -401,8 +404,17 @@ export default function PlanEditor() {
                   </div>
                 </Card>
 
+                {/* Plan Difficulty Badge */}
+                {runnerProfile && (
+                  <PlanDifficultyBadge
+                    plan={plan}
+                    userProfile={runnerProfile}
+                    showDetails={false}
+                  />
+                )}
+
                 {/* Weekly Chart */}
-                <WeeklyChart weeks={plan.weeks} />
+                <WeeklyChart weeks={plan.weeks} userProfile={runnerProfile || undefined} />
 
                 {/* Weekly Plans */}
                 <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6">
@@ -414,6 +426,7 @@ export default function PlanEditor() {
                       onUpdate={(updatedWeek) =>
                         handleUpdateWeek(index, updatedWeek)
                       }
+                      plan={plan}
                     />
                   ))}
                 </div>

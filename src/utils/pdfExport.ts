@@ -198,6 +198,12 @@ export async function exportToPDF(plan: TrainingPlan) {
           tempo: 'Tempodauerlauf',
           recovery: 'Regeneration',
           race: 'Wettkampf',
+          strides: 'Steigerungen',
+          hill_repeats: 'Bergwiederholungen',
+          progression: 'Progression Run',
+          fartlek: 'Fartlek',
+          strength: 'Krafttraining',
+          plyometrics: 'Plyometrie',
         };
         doc.text(`Typ: ${typeLabels[session.type] || session.type}`, 25, yPosition);
 
@@ -225,6 +231,45 @@ export async function exportToPDF(plan: TrainingPlan) {
             const recoveryUnit = interval.recoveryUnit || 'km';
             const intervalText = `  ${interval.repetitions}x ${interval.distance}km${interval.pace ? ` @ ${interval.pace}` : ''}${interval.recovery ? ` (${interval.recovery}${recoveryUnit} Pause)` : ''}`;
             doc.text(intervalText, 25, yPosition);
+            yPosition += 4;
+          }
+
+          // Cool Down
+          if (session.coolDown) {
+            if (yPosition > pageHeight - 20) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            const coolDownUnit = session.coolDownUnit || 'km';
+            doc.text(`  Cool Down: ${session.coolDown}${coolDownUnit}`, 25, yPosition);
+            yPosition += 4;
+          }
+
+          yPosition += 1;
+        }
+        // Warm Up and Cool Down for other session types (tempo, etc.)
+        else if (session.warmUp || session.coolDown) {
+          // Warm Up
+          if (session.warmUp) {
+            if (yPosition > pageHeight - 20) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            const warmUpUnit = session.warmUpUnit || 'km';
+            doc.text(`  Warm Up: ${session.warmUp}${warmUpUnit}`, 25, yPosition);
+            yPosition += 4;
+          }
+
+          // Main workout
+          if (session.distance) {
+            if (yPosition > pageHeight - 20) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            doc.text(`  Hauptteil: ${session.distance}km`, 25, yPosition);
+            if (session.duration) {
+              doc.text(` (${session.duration} min)`, 55, yPosition);
+            }
             yPosition += 4;
           }
 

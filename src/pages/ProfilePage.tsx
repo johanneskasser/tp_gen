@@ -1,13 +1,16 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useRunnerProfile } from '../contexts/RunnerProfileContext';
 import { useToast } from '../contexts/ToastContext';
 import { profileService } from '../services/profileService';
 import { Camera, Save, Loader2 } from 'lucide-react';
 import { Button, Input, Card } from '../components/ui';
 import { typography, cn } from '../lib/designSystem';
+import { UserProfileManager } from '../components/UserProfileManager';
 
 export default function ProfilePage() {
   const { user, profile, refreshProfile } = useAuth();
+  const { runnerProfile, updateRunnerProfile } = useRunnerProfile();
   const toast = useToast();
   const [fullName, setFullName] = useState(profile?.full_name || '');
   const [bio, setBio] = useState(profile?.bio || '');
@@ -204,6 +207,16 @@ export default function ProfilePage() {
           </form>
         </Card>
       </div>
+
+      {/* Runner Profile Section */}
+      {runnerProfile && (
+        <div className="mt-6">
+          <UserProfileManager
+            profile={runnerProfile}
+            onUpdateProfile={updateRunnerProfile}
+          />
+        </div>
+      )}
     </div>
   );
 }

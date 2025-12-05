@@ -1,7 +1,9 @@
 import { TrainingWeek, SessionType } from '../types';
+import { UserProfile } from '../types/userProfile';
 import {
-  BarChart,
+  ComposedChart,
   Bar,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -11,21 +13,26 @@ import {
 } from 'recharts';
 import { calculateSessionDistance } from '../utils/calculationUtils';
 import { SESSION_TYPE_CONFIG, getSessionTypeLabel } from '../constants/sessionTypes';
+import { IntensityAnalyzer } from '../utils/intensityAnalyzer';
+import { calculateWeeklyRelativeIntensity } from '../utils/personalizedIntensity';
 
 interface WeeklyChartProps {
   weeks: TrainingWeek[];
+  userProfile?: UserProfile; // Optional: for personalized intensity
 }
 
 interface ChartDataPoint {
   name: string;
+  intensity: number; // Intensity score 0-100
   [key: string]: number | string;
 }
 
-export default function WeeklyChart({ weeks }: WeeklyChartProps) {
-  // Calculate distance by session type for each week
+export default function WeeklyChart({ weeks, userProfile }: WeeklyChartProps) {
+  // Calculate distance by session type and intensity for each week
   const data: ChartDataPoint[] = weeks.map((week) => {
     const dataPoint: ChartDataPoint = {
       name: `W${week.weekNumber}`,
+      intensity: 0,
     };
 
     // Group sessions by type and sum their distances
@@ -40,23 +47,52 @@ export default function WeeklyChart({ weeks }: WeeklyChartProps) {
       dataPoint[type] = parseFloat(distance.toFixed(1));
     });
 
+    // Calculate intensity score for the week (0-100)
+    // Use personalized intensity if user profile available, otherwise generic
+    if (week.sessions.length > 0) {
+      let intensityScore: number;
+
+      if (userProfile && (userProfile.vdot || userProfile.personalBests.length > 0)) {
+        // Personalized intensity based on user's fitness level
+        intensityScore = calculateWeeklyRelativeIntensity(week.sessions, userProfile);
+      } else {
+        // Generic intensity based on session types
+        const intensityAnalyzer = new IntensityAnalyzer(week.sessions);
+        intensityScore = intensityAnalyzer.calculateWeeklyIntensityScore(week.sessions);
+      }
+
+      dataPoint.intensity = parseFloat(intensityScore.toFixed(1));
+    }
+
     return dataPoint;
   });
 
   const totalKm = weeks.reduce((sum, week) => sum + week.totalKm, 0);
   const avgKm = totalKm / weeks.length;
 
-  // Custom tooltip to show percentages
+  // Calculate average intensity
+  const avgIntensity = data.reduce((sum, d) => sum + d.intensity, 0) / data.length;
+
+  // Custom tooltip to show percentages and intensity
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
-      const total = payload.reduce((sum: number, entry: any) => sum + (entry.value || 0), 0);
+      // Filter out the intensity line from the km calculations
+      const kmPayload = payload.filter((entry: any) => entry.dataKey !== 'intensity');
+      const intensityEntry = payload.find((entry: any) => entry.dataKey === 'intensity');
+
+      const total = kmPayload.reduce((sum: number, entry: any) => sum + (entry.value || 0), 0);
 
       return (
         <div className="bg-white border border-slate-200 rounded-lg p-2 sm:p-3 shadow-lg max-w-xs">
           <p className="font-bold text-slate-800 mb-1 sm:mb-2 text-xs sm:text-sm">{payload[0].payload.name}</p>
-          <p className="text-xs sm:text-sm text-slate-600 mb-1 sm:mb-2">Gesamt: {total.toFixed(1)} km</p>
+          <p className="text-xs sm:text-sm text-slate-600 mb-1">Gesamt: {total.toFixed(1)} km</p>
+          {intensityEntry && (
+            <p className="text-xs sm:text-sm font-medium text-purple-600 mb-1 sm:mb-2">
+              Intensität: {intensityEntry.value.toFixed(0)}%
+            </p>
+          )}
           <div className="space-y-0.5 sm:space-y-1">
-            {payload.map((entry: any, index: number) => {
+            {kmPayload.map((entry: any, index: number) => {
               const percentage = total > 0 ? ((entry.value / total) * 100).toFixed(1) : 0;
               return (
                 <div key={index} className="flex items-center justify-between gap-2 sm:gap-4 text-xs sm:text-sm">
@@ -106,26 +142,63 @@ export default function WeeklyChart({ weeks }: WeeklyChartProps) {
             <span className="text-slate-600">Durchschnitt: </span>
             <span className="font-bold text-slate-800">{avgKm.toFixed(1)} km/Woche</span>
           </div>
+          <div>
+            <span className="text-slate-600">Ø Intensität: </span>
+            <span className="font-bold text-purple-600">{avgIntensity.toFixed(0)}%</span>
+          </div>
+        </div>
+        <div className="mt-2 text-xs text-slate-500">
+          <p>
+            💡 Die Intensitätslinie zeigt die wöchentliche Trainingsbelastung (0-100%)
+            {userProfile && (userProfile.vdot || userProfile.personalBests.length > 0) && (
+              <span className="font-medium text-blue-600"> (personalisiert basierend auf deinem Fitnesslevel)</span>
+            )}
+          </p>
         </div>
       </div>
 
       <ResponsiveContainer width="100%" height={250} className="sm:!h-[300px]">
-        <BarChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }} className="sm:!mr-[30px] sm:!ml-[20px]">
+        <ComposedChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }} className="sm:!mr-[40px] sm:!ml-[20px]">
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
-          <YAxis label={{ value: 'Kilometer', angle: -90, position: 'insideLeft' }} />
+          <YAxis
+            yAxisId="left"
+            label={{ value: 'Kilometer', angle: -90, position: 'insideLeft' }}
+          />
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            domain={[0, 100]}
+            label={{ value: 'Intensität %', angle: 90, position: 'insideRight' }}
+            tick={{ fontSize: 12 }}
+          />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
+
+          {/* Stacked Bars for session types */}
           {Array.from(sessionTypes).map((type) => (
             <Bar
               key={type}
+              yAxisId="left"
               dataKey={type}
               stackId="a"
               fill={SESSION_TYPE_CONFIG[type].chartColor}
               name={getSessionTypeLabel(type)}
             />
           ))}
-        </BarChart>
+
+          {/* Intensity Line */}
+          <Line
+            yAxisId="right"
+            type="monotone"
+            dataKey="intensity"
+            stroke="#9333ea"
+            strokeWidth={3}
+            dot={{ fill: '#9333ea', r: 4 }}
+            activeDot={{ r: 6 }}
+            name="Intensität"
+          />
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );

@@ -1,36 +1,51 @@
 import { TrainingSession, IntervalSet } from '../types';
 import { minutesToKm, estimateRecoveryPace, estimateEasyPace } from './paceConverter';
 
-export function calculateSessionDistance(session: TrainingSession): number {
-  if (session.distance) {
-    return session.distance;
+// Helper function to calculate warm-up and cool-down distances
+function calculateWarmUpCoolDownKm(
+  warmUp: number | undefined,
+  warmUpUnit: 'km' | 'min' | undefined,
+  coolDown: number | undefined,
+  coolDownUnit: 'km' | 'min' | undefined,
+  estimatedPace: number = 6.0 // Default easy pace for estimation (6 min/km)
+): { warmUpKm: number; coolDownKm: number } {
+  let warmUpKm = 0;
+  if (warmUp) {
+    if (warmUpUnit === 'km') {
+      warmUpKm = warmUp;
+    } else if (warmUpUnit === 'min' && estimatedPace > 0) {
+      warmUpKm = minutesToKm(warmUp, estimatedPace);
+    }
   }
 
+  let coolDownKm = 0;
+  if (coolDown) {
+    if (coolDownUnit === 'km') {
+      coolDownKm = coolDown;
+    } else if (coolDownUnit === 'min' && estimatedPace > 0) {
+      coolDownKm = minutesToKm(coolDown, estimatedPace);
+    }
+  }
+
+  return { warmUpKm, coolDownKm };
+}
+
+export function calculateSessionDistance(session: TrainingSession): number {
+  // For interval sessions, calculate the full workout including intervals
   if (session.intervals && session.intervals.length > 0) {
     // Get the work pace from the first interval to estimate conversion
     const firstInterval = session.intervals[0];
     const workPace = firstInterval?.pace || '';
     const easyPace = estimateEasyPace(workPace);
 
-    // Calculate warm-up distance
-    let warmUpKm = 0;
-    if (session.warmUp) {
-      if (session.warmUpUnit === 'km') {
-        warmUpKm = session.warmUp;
-      } else if (session.warmUpUnit === 'min' && easyPace > 0) {
-        warmUpKm = minutesToKm(session.warmUp, easyPace);
-      }
-    }
-
-    // Calculate cool-down distance
-    let coolDownKm = 0;
-    if (session.coolDown) {
-      if (session.coolDownUnit === 'km') {
-        coolDownKm = session.coolDown;
-      } else if (session.coolDownUnit === 'min' && easyPace > 0) {
-        coolDownKm = minutesToKm(session.coolDown, easyPace);
-      }
-    }
+    // Calculate warm-up and cool-down
+    const { warmUpKm, coolDownKm } = calculateWarmUpCoolDownKm(
+      session.warmUp,
+      session.warmUpUnit,
+      session.coolDown,
+      session.coolDownUnit,
+      easyPace
+    );
 
     // Calculate interval distances
     const intervalKm = session.intervals.reduce((total, interval) => {
@@ -56,6 +71,24 @@ export function calculateSessionDistance(session: TrainingSession): number {
     }, 0);
 
     return warmUpKm + intervalKm + coolDownKm;
+  }
+
+  // For sessions with distance field (tempo, easy, long, etc.)
+  if (session.distance) {
+    let totalDistance = session.distance;
+
+    // Add warm-up and cool-down if present
+    if (session.warmUp || session.coolDown) {
+      const { warmUpKm, coolDownKm } = calculateWarmUpCoolDownKm(
+        session.warmUp,
+        session.warmUpUnit,
+        session.coolDown,
+        session.coolDownUnit
+      );
+      totalDistance += warmUpKm + coolDownKm;
+    }
+
+    return totalDistance;
   }
 
   return 0;
