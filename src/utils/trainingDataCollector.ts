@@ -1,5 +1,6 @@
 import { TrainingSuggestion, TrainingDataPoint, TrainingPattern, TrainingContext } from '../types/suggestions';
 import { TrainingSession, SessionType } from '../types';
+import { SuggestionService } from '../services/suggestionService';
 
 /**
  * Training Data Collector for ML
@@ -9,21 +10,23 @@ import { TrainingSession, SessionType } from '../types';
  * 2. ML model training
  * 3. Personalized recommendations
  *
- * Currently stores data locally. In production, this would send to backend/analytics.
+ * Data is stored both locally (for offline support) and synced to Supabase (for ML training).
  */
 export class TrainingDataCollector {
   private static STORAGE_KEY = 'training_data_points';
   private static PATTERN_KEY = 'training_patterns';
+  private static SYNC_QUEUE_KEY = 'training_data_sync_queue';
+  private static AUTO_SYNC = true; // Set to false to disable auto-sync
 
   /**
    * Log a suggestion that was shown to the user
    */
-  static logSuggestion(
+  static async logSuggestion(
     context: Partial<TrainingContext>,
     suggestion: TrainingSuggestion,
     userAction: 'accepted' | 'modified' | 'rejected' | 'ignored',
     modifications?: Partial<TrainingSession>
-  ): void {
+  ): Promise<string | null> {
     const dataPoint: TrainingDataPoint = {
       timestamp: new Date().toISOString(),
       context,
@@ -32,25 +35,48 @@ export class TrainingDataCollector {
       modifications,
     };
 
+    // Save locally first
     this.saveDataPoint(dataPoint);
 
     // If accepted, also log as a successful pattern
     if (userAction === 'accepted') {
       this.logSuccessfulPattern(context, suggestion);
     }
+
+    // Sync to Supabase if auto-sync is enabled
+    let dataPointId: string | null = null;
+    if (this.AUTO_SYNC) {
+      const result = await SuggestionService.logSuggestion(
+        context,
+        suggestion,
+        userAction,
+        modifications
+      );
+
+      if (result.success && result.dataPointId) {
+        dataPointId = result.dataPointId;
+      } else {
+        // If sync fails, add to queue for later
+        this.addToSyncQueue({ dataPoint, type: 'data_point' });
+        console.warn('Failed to sync suggestion to Supabase, added to queue:', result.error);
+      }
+    }
+
+    return dataPointId;
   }
 
   /**
    * Log session completion and user feedback
    */
-  static logSessionOutcome(
+  static async logSessionOutcome(
     dataPointId: string,
     outcome: {
       sessionCompleted: boolean;
       userRating?: number;
       notes?: string;
     }
-  ): void {
+  ): Promise<void> {
+    // Update local storage
     const dataPoints = this.getDataPoints();
     const dataPoint = dataPoints.find((dp) => this.generateId(dp) === dataPointId);
 
@@ -58,15 +84,26 @@ export class TrainingDataCollector {
       dataPoint.outcome = outcome;
       this.saveAllDataPoints(dataPoints);
     }
+
+    // Sync to Supabase if auto-sync is enabled
+    if (this.AUTO_SYNC) {
+      const result = await SuggestionService.logSessionOutcome(dataPointId, outcome);
+
+      if (!result.success) {
+        console.warn('Failed to sync outcome to Supabase:', result.error);
+        // Add to sync queue for later
+        this.addToSyncQueue({ dataPointId, outcome, type: 'outcome' });
+      }
+    }
   }
 
   /**
    * Record a successful training pattern
    */
-  private static logSuccessfulPattern(
+  private static async logSuccessfulPattern(
     context: Partial<TrainingContext>,
     suggestion: TrainingSuggestion
-  ): void {
+  ): Promise<void> {
     if (!context.recentSessionTypes || !context.currentPhase) return;
 
     // Create pattern from recent sessions + suggested session
@@ -78,6 +115,8 @@ export class TrainingDataCollector {
       (p) => p.contextHash === contextHash && this.arraysEqual(p.sequence, sequence)
     );
 
+    let pattern: TrainingPattern;
+
     if (existingPattern) {
       // Increment frequency
       existingPattern.frequency++;
@@ -86,6 +125,7 @@ export class TrainingDataCollector {
           (existingPattern.successMetrics.completionRate * (existingPattern.frequency - 1) + 1) /
           existingPattern.frequency;
       }
+      pattern = existingPattern;
     } else {
       // Create new pattern
       const newPattern: TrainingPattern = {
@@ -104,9 +144,21 @@ export class TrainingDataCollector {
         },
       };
       patterns.push(newPattern);
+      pattern = newPattern;
     }
 
+    // Save locally
     this.savePatterns(patterns);
+
+    // Sync to Supabase if auto-sync is enabled
+    if (this.AUTO_SYNC) {
+      const result = await SuggestionService.syncPattern(pattern);
+
+      if (!result.success) {
+        console.warn('Failed to sync pattern to Supabase:', result.error);
+        this.addToSyncQueue({ pattern, type: 'pattern' });
+      }
+    }
   }
 
   /**
@@ -187,6 +239,175 @@ export class TrainingDataCollector {
   static clearAllData(): void {
     localStorage.removeItem(this.STORAGE_KEY);
     localStorage.removeItem(this.PATTERN_KEY);
+    localStorage.removeItem(this.SYNC_QUEUE_KEY);
+  }
+
+  /**
+   * Manually sync all local data to Supabase
+   * Useful for syncing data that was collected offline
+   */
+  static async syncToSupabase(): Promise<{
+    success: boolean;
+    dataPointsSynced: number;
+    patternsSynced: number;
+    errors: string[];
+  }> {
+    const errors: string[] = [];
+    let dataPointsSynced = 0;
+    let patternsSynced = 0;
+
+    try {
+      // Sync data points
+      const dataPoints = this.getDataPoints();
+      if (dataPoints.length > 0) {
+        const result = await SuggestionService.batchSyncDataPoints(dataPoints);
+        dataPointsSynced = result.synced;
+        if (!result.success) {
+          errors.push(result.error || 'Failed to sync data points');
+        }
+      }
+
+      // Sync patterns
+      const patterns = this.getPatterns();
+      if (patterns.length > 0) {
+        const result = await SuggestionService.batchSyncPatterns(patterns);
+        patternsSynced = result.synced;
+        if (!result.success) {
+          errors.push(result.error || 'Failed to sync patterns');
+        }
+      }
+
+      // Process sync queue
+      const queueResult = await this.processSyncQueue();
+      if (!queueResult.success) {
+        errors.push(...queueResult.errors);
+      }
+
+      return {
+        success: errors.length === 0,
+        dataPointsSynced,
+        patternsSynced,
+        errors,
+      };
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : 'Unknown error during sync');
+      return {
+        success: false,
+        dataPointsSynced,
+        patternsSynced,
+        errors,
+      };
+    }
+  }
+
+  /**
+   * Get sync queue items
+   */
+  private static getSyncQueue(): any[] {
+    try {
+      const data = localStorage.getItem(this.SYNC_QUEUE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (error) {
+      console.error('Error loading sync queue:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Add item to sync queue
+   */
+  private static addToSyncQueue(item: any): void {
+    try {
+      const queue = this.getSyncQueue();
+      queue.push({ ...item, addedAt: new Date().toISOString() });
+
+      // Keep only last 100 items
+      if (queue.length > 100) {
+        queue.shift();
+      }
+
+      localStorage.setItem(this.SYNC_QUEUE_KEY, JSON.stringify(queue));
+    } catch (error) {
+      console.error('Error adding to sync queue:', error);
+    }
+  }
+
+  /**
+   * Process sync queue (retry failed syncs)
+   */
+  static async processSyncQueue(): Promise<{ success: boolean; processed: number; errors: string[] }> {
+    const queue = this.getSyncQueue();
+    const errors: string[] = [];
+    let processed = 0;
+
+    if (queue.length === 0) {
+      return { success: true, processed: 0, errors: [] };
+    }
+
+    const newQueue: any[] = [];
+
+    for (const item of queue) {
+      try {
+        if (item.type === 'data_point') {
+          const result = await SuggestionService.logSuggestion(
+            item.dataPoint.context,
+            item.dataPoint.suggestion,
+            item.dataPoint.userAction,
+            item.dataPoint.modifications
+          );
+          if (result.success) {
+            processed++;
+          } else {
+            newQueue.push(item); // Keep in queue
+            errors.push(result.error || 'Unknown error');
+          }
+        } else if (item.type === 'pattern') {
+          const result = await SuggestionService.syncPattern(item.pattern);
+          if (result.success) {
+            processed++;
+          } else {
+            newQueue.push(item); // Keep in queue
+            errors.push(result.error || 'Unknown error');
+          }
+        } else if (item.type === 'outcome') {
+          const result = await SuggestionService.logSessionOutcome(item.dataPointId, item.outcome);
+          if (result.success) {
+            processed++;
+          } else {
+            newQueue.push(item); // Keep in queue
+            errors.push(result.error || 'Unknown error');
+          }
+        }
+      } catch (error) {
+        newQueue.push(item); // Keep in queue on error
+        errors.push(error instanceof Error ? error.message : 'Unknown error');
+      }
+    }
+
+    // Update queue with items that still need to be synced
+    localStorage.setItem(this.SYNC_QUEUE_KEY, JSON.stringify(newQueue));
+
+    return {
+      success: newQueue.length === 0,
+      processed,
+      errors,
+    };
+  }
+
+  /**
+   * Get sync status
+   */
+  static getSyncStatus(): {
+    queueLength: number;
+    autoSyncEnabled: boolean;
+    lastSyncAttempt: string | null;
+  } {
+    const queue = this.getSyncQueue();
+    return {
+      queueLength: queue.length,
+      autoSyncEnabled: this.AUTO_SYNC,
+      lastSyncAttempt: queue.length > 0 ? queue[queue.length - 1].addedAt : null,
+    };
   }
 
   /**
@@ -331,5 +552,8 @@ export function useTrainingDataCollector() {
     logSessionOutcome: TrainingDataCollector.logSessionOutcome.bind(TrainingDataCollector),
     getInsights: TrainingDataCollector.getInsights.bind(TrainingDataCollector),
     exportData: TrainingDataCollector.exportDataForML.bind(TrainingDataCollector),
+    syncToSupabase: TrainingDataCollector.syncToSupabase.bind(TrainingDataCollector),
+    processSyncQueue: TrainingDataCollector.processSyncQueue.bind(TrainingDataCollector),
+    getSyncStatus: TrainingDataCollector.getSyncStatus.bind(TrainingDataCollector),
   };
 }

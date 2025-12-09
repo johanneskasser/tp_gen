@@ -57,15 +57,23 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "welcome": "Willkommen zurück, {{name}}!",
+    "subtitle": "Verwalte und erstelle deine Trainingspläne",
+    "runner": "Läufer",
+    "yourPlans": "Deine Trainingspläne",
     "createNewPlan": "Neuen Plan erstellen",
     "createFirstPlan": "Ersten Plan erstellen",
     "noPlanYet": "Noch keine Trainingspläne",
     "noPlanDescription": "Erstelle deinen ersten Trainingsplan und starte dein Training!",
+    "noPlanFound": "Keine Trainingspläne gefunden",
+    "searchPlans": "Trainingspläne durchsuchen...",
     "loadingPlans": "Lade Trainingspläne...",
     "confirmDelete": "Trainingsplan \"{{name}}\" wirklich löschen?",
     "deleteSuccess": "Trainingsplan \"{{name}}\" erfolgreich gelöscht",
     "deleteError": "Fehler beim Löschen des Plans",
     "loadError": "Fehler beim Laden der Trainingspläne",
+    "showingResults": "{{count}} von {{total}} Plänen",
+    "openMenu": "Menü öffnen",
     "weeks": "{{count}} Wochen Training",
     "weeks_one": "{{count}} Woche Training",
     "weeks_other": "{{count}} Wochen Training",
@@ -75,6 +83,9 @@
     "publish": "Veröffentlichen",
     "managePublication": "Veröffentlichung verwalten",
     "planUpdated": "Plan-Status aktualisiert!",
+    "planSetAsActive": "Plan als aktiv markiert",
+    "planRemovedAsActive": "Plan-Aktivierung entfernt",
+    "setActiveError": "Fehler beim Setzen des aktiven Plans",
     "visibility": {
       "private": "Privat",
       "public": "Öffentlich",
@@ -83,8 +94,41 @@
       "publicAnonymousDesc": "Öffentlich (Anonym)"
     },
     "stats": {
+      "vdot": "VDOT",
+      "vdotDescription": "Deine aktuelle Laufleistung",
+      "activePlan": "Aktiver Plan",
+      "noActivePlan": "Kein aktiver Plan",
+      "planProgress": "Plan-Fortschritt",
+      "daysUntilStart": "Tage bis Start: {{days}}",
+      "daysAfterEnd": "Plan beendet vor {{days}} Tagen",
+      "weeklyKm": "Wöchentliche Kilometer",
+      "thisWeek": "Diese Woche",
+      "nextSession": "Nächste Einheit",
+      "upcoming": "Anstehend",
+      "noUpcomingSession": "Keine anstehende Einheit",
       "views": "Ansichten",
-      "clones": "Kopiert"
+      "clones": "Kopiert",
+      "setAsActive": "Als aktiv markieren",
+      "removeActive": "Aktivierung entfernen"
+    },
+    "table": {
+      "name": "Name",
+      "distance": "Distanz",
+      "eventDate": "Wettkampfdatum",
+      "weeks": "Wochen",
+      "visibility": "Sichtbarkeit",
+      "stats": "Statistiken",
+      "updated": "Aktualisiert",
+      "actions": "Aktionen"
+    },
+    "filter": {
+      "distance": "Distanz",
+      "visibility": "Sichtbarkeit",
+      "allDistances": "Alle Distanzen",
+      "halfMarathon": "Halbmarathon",
+      "marathon": "Marathon",
+      "custom": "Individuell",
+      "allVisibility": "Alle"
     }
   },
   "sessionTypes": {
@@ -163,6 +207,16 @@
     "anonymous": "Anonym",
     "cloneSuccess": "Plan erfolgreich kopiert!",
     "cloneError": "Fehler beim Kopieren des Plans",
+    "table": {
+      "name": "Name",
+      "creator": "Ersteller",
+      "distance": "Distanz",
+      "duration": "Dauer",
+      "targetTime": "Zielzeit",
+      "difficulty": "Schwierigkeit",
+      "tags": "Tags",
+      "stats": "Statistiken"
+    },
     "sortBy": {
       "recent": "Neueste",
       "popular": "Beliebt",

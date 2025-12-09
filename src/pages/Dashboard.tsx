@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { trainingPlanService, SavedTrainingPlan } from '../services/trainingPlanService';
-import { Plus, Edit, Trash2, Calendar, MapPin, Loader2, Globe, Lock, EyeOff, Share2, Eye } from 'lucide-react';
-import { format } from 'date-fns';
-import { de, enUS } from 'date-fns/locale';
+import { Plus, Calendar, Loader2 } from 'lucide-react';
 import { Button, Card } from '../components/ui';
 import { typography, cn, flex } from '../lib/designSystem';
 import { useToast } from '../contexts/ToastContext';
 import PublishPlanModal from '../components/PublishPlanModal';
 import { useTranslation } from 'react-i18next';
+import { DashboardStats } from '../components/DashboardStats';
+import { TrainingPlansTable } from '../components/TrainingPlansTable';
+import { useAuth } from '../contexts/AuthContext';
+import { useRunnerProfile } from '../contexts/RunnerProfileContext';
 
 export default function Dashboard() {
   const [plans, setPlans] = useState<SavedTrainingPlan[]>([]);
@@ -18,9 +20,9 @@ export default function Dashboard() {
 
   const navigate = useNavigate();
   const toast = useToast();
-  const { t, i18n } = useTranslation();
-
-  const dateLocale = i18n.language === 'de' ? de : enUS;
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const { runnerProfile } = useRunnerProfile();
 
   useEffect(() => {
     loadPlans();
@@ -55,70 +57,169 @@ export default function Dashboard() {
     }
   };
 
-  const getDistanceLabel = (plan: SavedTrainingPlan) => {
-    const { distance, customDistance } = plan.plan_data.event;
-    if (distance === 'CUSTOM' && customDistance) {
-      return `${customDistance} km`;
-    }
-    return distance;
-  };
-
-  const getVisibilityIcon = (visibility: SavedTrainingPlan['visibility']) => {
-    switch (visibility) {
-      case 'public':
-        return <Globe size={14} className="text-green-600" />;
-      case 'public_anonymous':
-        return <EyeOff size={14} className="text-orange-600" />;
-      case 'private':
-      default:
-        return <Lock size={14} className="text-gray-400" />;
-    }
-  };
-
-  const getVisibilityLabel = (visibility: SavedTrainingPlan['visibility']) => {
-    switch (visibility) {
-      case 'public':
-        return t('dashboard.visibility.publicWithProfile');
-      case 'public_anonymous':
-        return t('dashboard.visibility.publicAnonymousDesc');
-      case 'private':
-      default:
-        return t('dashboard.visibility.private');
-    }
-  };
-
   const handlePublishSuccess = async () => {
     setPublishingPlanId(null);
     toast.success(t('dashboard.planUpdated'));
     await loadPlans();
   };
 
-  return (
-    <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-7xl">
-      {/* Action Bar */}
-      <div className="mb-6 sm:mb-8 flex justify-end">
-        <Button
-          onClick={() => navigate('/plan/new')}
-          size="lg"
-        >
-          <Plus size={20} />
-          {t('dashboard.createNewPlan')}
-        </Button>
-      </div>
+  const handleSetActive = async (id: string) => {
+    try {
+      // Toggle active status in DB
+      const newStatus = await trainingPlanService.toggleActivePlan(id);
 
+      // Update local state
+      setPlans(plans.map(p => ({
+        ...p,
+        is_active: p.id === id ? newStatus : false,
+      })));
+
+      toast.success(
+        newStatus
+          ? t('dashboard.planSetAsActive')
+          : t('dashboard.planRemovedAsActive')
+      );
+    } catch (err) {
+      toast.error(t('dashboard.setActiveError'));
+      console.error(err);
+    }
+  };
+
+  // Calculate plan progress based on start date and weeks
+  const calculatePlanProgress = (plan: SavedTrainingPlan): number => {
+    if (!plan.plan_data?.startDate || !plan.plan_data?.weeks) return 0;
+
+    const startDate = new Date(plan.plan_data.startDate);
+    const today = new Date();
+    const totalWeeks = plan.plan_data.weeks.length;
+
+    // Calculate weeks passed since start
+    const daysPassed = Math.max(0, Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+    const weeksPassed = Math.floor(daysPassed / 7);
+
+    // Calculate progress percentage
+    const progress = Math.min(100, Math.round((weeksPassed / totalWeeks) * 100));
+
+    return progress;
+  };
+
+  // Get next session from active plan (today or any day in the future)
+  const getNextSession = (plan: SavedTrainingPlan): string | undefined => {
+    if (!plan.plan_data?.weeks || !plan.plan_data?.startDate) return undefined;
+
+    const startDate = new Date(plan.plan_data.startDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const daysPassed = Math.max(0, Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+    const weeksPassed = Math.floor(daysPassed / 7);
+    const dayInWeek = daysPassed % 7;
+
+    // Check current week first
+    if (weeksPassed < plan.plan_data.weeks.length) {
+      const currentWeek = plan.plan_data.weeks[weeksPassed];
+      if (currentWeek?.sessions) {
+        const nextSession = currentWeek.sessions
+          .filter(s => s.dayOfWeek >= dayInWeek)
+          .sort((a, b) => a.dayOfWeek - b.dayOfWeek)[0];
+
+        if (nextSession) {
+          return nextSession.title || nextSession.type;
+        }
+      }
+    }
+
+    // If no session this week, check next weeks
+    for (let i = weeksPassed + 1; i < plan.plan_data.weeks.length; i++) {
+      const week = plan.plan_data.weeks[i];
+      if (week?.sessions && week.sessions.length > 0) {
+        const firstSession = week.sessions.sort((a, b) => a.dayOfWeek - b.dayOfWeek)[0];
+        return firstSession.title || firstSession.type;
+      }
+    }
+
+    return undefined;
+  };
+
+  // Get status message (days until start or after end)
+  const getPlanStatus = (plan: SavedTrainingPlan): { type: 'active' | 'upcoming' | 'ended'; message?: string; days?: number } => {
+    if (!plan.plan_data?.startDate || !plan.plan_data?.weeks) {
+      return { type: 'active' };
+    }
+
+    const startDate = new Date(plan.plan_data.startDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    startDate.setHours(0, 0, 0, 0);
+
+    const totalWeeks = plan.plan_data.weeks.length;
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + (totalWeeks * 7));
+
+    const daysToStart = Math.ceil((startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const daysAfterEnd = Math.ceil((today.getTime() - endDate.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (daysToStart > 0) {
+      return { type: 'upcoming', days: daysToStart };
+    } else if (daysAfterEnd > 0) {
+      return { type: 'ended', days: daysAfterEnd };
+    } else {
+      return { type: 'active' };
+    }
+  };
+
+  // Calculate real stats from user data
+  const activePlan = plans.find(p => p.is_active);
+  const planStatus = activePlan ? getPlanStatus(activePlan) : null;
+
+  // Auto-set first plan as active if no plan is active yet
+  useEffect(() => {
+    const autoSetActivePlan = async () => {
+      if (plans.length > 0 && !plans.some(p => p.is_active)) {
+        try {
+          await trainingPlanService.setActivePlan(plans[0].id);
+          // Reload plans to get updated is_active status
+          await loadPlans();
+        } catch (err) {
+          console.error('Failed to auto-set active plan:', err);
+        }
+      }
+    };
+
+    autoSetActivePlan();
+  }, [plans.length]);
+
+  const dashboardStats = {
+    userName: runnerProfile?.name || user?.email?.split('@')[0] || 'Läufer',
+    vdot: runnerProfile?.vdot,
+    weeklyKm: runnerProfile?.weeklyKmBase,
+    activePlan: activePlan ? {
+      name: activePlan.name,
+      progress: calculatePlanProgress(activePlan),
+      nextSession: getNextSession(activePlan),
+      status: planStatus,
+    } : undefined,
+  };
+
+  return (
+    <div className="min-h-screen bg-white flex flex-col">
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-7xl flex-1 flex flex-col">
       {/* Loading State */}
-        {loading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className={flex.row}>
-              <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
-              <span className={cn(typography.body, 'text-text-tertiary')}>
-                {t('dashboard.loadingPlans')}
-              </span>
-            </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-12 flex-1">
+          <div className={flex.row}>
+            <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
+            <span className={cn(typography.body, 'text-text-tertiary')}>
+              {t('dashboard.loadingPlans')}
+            </span>
           </div>
-        ) : plans.length === 0 ? (
-          /* Empty State */
-          <Card variant="default" className="p-8 text-center max-w-md mx-auto">
+        </div>
+      ) : plans.length === 0 ? (
+        /* Empty State */
+        <div className="space-y-6 flex-1 flex flex-col justify-center">
+          <DashboardStats {...dashboardStats} activePlan={undefined} />
+
+          <Card className="p-8 text-center max-w-md mx-auto">
             <div>
               <Calendar size={48} className="mx-auto text-text-tertiary mb-4" />
               <h2 className={cn(typography.h2, 'mb-2')}>
@@ -136,131 +237,50 @@ export default function Dashboard() {
               </Button>
             </div>
           </Card>
-        ) : (
-          /* Plans Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {plans.map((plan) => (
-              <Card
-                key={plan.id}
-                variant="default"
-                className="overflow-hidden hover:shadow-lg transition-all duration-base"
-              >
-                <div className="p-4 sm:p-6">
-                  {/* Plan Title with Visibility Badge */}
-                  <div className="flex items-start justify-between mb-3 gap-2">
-                    <h3 className={cn(typography.h3, 'truncate flex-1')}>
-                      {plan.name}
-                    </h3>
-                    <div
-                      className={cn(
-                        'flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-help',
-                        plan.visibility === 'public'
-                          ? 'bg-green-50 border border-green-200'
-                          : plan.visibility === 'public_anonymous'
-                          ? 'bg-orange-50 border border-orange-200'
-                          : 'bg-gray-50 border border-gray-200'
-                      )}
-                      title={getVisibilityLabel(plan.visibility)}
-                    >
-                      {getVisibilityIcon(plan.visibility)}
-                      <span className={cn(typography.caption, 'font-medium')}>
-                        {plan.visibility === 'public'
-                          ? t('dashboard.visibility.public')
-                          : plan.visibility === 'public_anonymous'
-                          ? t('dashboard.visibility.publicAnonymous')
-                          : t('dashboard.visibility.private')}
-                      </span>
-                    </div>
-                  </div>
+        </div>
+      ) : (
+        /* Dashboard with Stats and Table */
+        <div className="space-y-8 flex-1 flex flex-col">
+          {/* Stats Section */}
+          <DashboardStats {...dashboardStats} />
 
-                  {/* Plan Details */}
-                  <div className="space-y-2 mb-4">
-                    <div className={cn(flex.rowTight, typography.bodySmall, 'text-text-secondary')}>
-                      <MapPin size={16} className="flex-shrink-0 text-text-tertiary" />
-                      <span className="truncate">
-                        {getDistanceLabel(plan)} - {plan.plan_data.event.terrain === 'road' ? t('dashboard.road') : t('dashboard.trail')}
-                      </span>
-                    </div>
-                    <div className={cn(flex.rowTight, typography.bodySmall, 'text-text-secondary')}>
-                      <Calendar size={16} className="flex-shrink-0 text-text-tertiary" />
-                      <span>
-                        {format(new Date(plan.plan_data.event.date), 'dd. MMM yyyy', { locale: dateLocale })}
-                      </span>
-                    </div>
-                    <div className={cn(typography.bodySmall, 'text-text-tertiary')}>
-                      {t('dashboard.weeks', { count: plan.plan_data.weeks.length })}
-                    </div>
-                  </div>
-
-                  {/* Stats for published plans */}
-                  {plan.visibility !== 'private' && (
-                    <div className="mb-4 pb-4 border-b border-border-light">
-                      <div className="flex gap-4 text-text-tertiary">
-                        <div className={cn(flex.rowTight, typography.caption)} title={t('dashboard.stats.views')}>
-                          <Eye size={14} />
-                          <span>{plan.view_count}</span>
-                        </div>
-                        <div className={cn(flex.rowTight, typography.caption)} title={t('dashboard.stats.clones')}>
-                          <Share2 size={14} />
-                          <span>{plan.clone_count}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Last Updated */}
-                  <div className={cn(typography.caption, 'text-text-tertiary mb-4 pb-4 border-b border-border-light')}>
-                    {t('dashboard.updatedAt', { date: format(new Date(plan.updated_at), 'dd.MM.yyyy HH:mm', { locale: dateLocale }) })}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => navigate(`/plan/${plan.id}`)}
-                        size="sm"
-                        className="flex-1"
-                      >
-                        <Edit size={16} />
-                        {t('common.edit')}
-                      </Button>
-                      <Button
-                        onClick={() => handleDelete(plan.id, plan.name)}
-                        disabled={deletingId === plan.id}
-                        variant="destructive"
-                        size="sm"
-                        loading={deletingId === plan.id}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                    <Button
-                      onClick={() => setPublishingPlanId(plan.id)}
-                      variant={plan.visibility !== 'private' ? 'default' : 'secondary'}
-                      size="sm"
-                      fullWidth
-                    >
-                      <Share2 size={16} />
-                      {plan.visibility !== 'private' ? t('dashboard.managePublication') : t('dashboard.publish')}
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
+          {/* Action Bar */}
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-semibold tracking-tight">
+              {t('dashboard.yourPlans')}
+            </h2>
+            <Button
+              onClick={() => navigate('/plan/new')}
+              size="lg"
+            >
+              <Plus size={20} />
+              {t('dashboard.createNewPlan')}
+            </Button>
           </div>
-        )}
 
-        {/* Publish Modal */}
-        {publishingPlanId && (
-          <PublishPlanModal
-            planId={publishingPlanId}
-            currentVisibility={plans.find((p) => p.id === publishingPlanId)?.visibility}
-            currentDescription={plans.find((p) => p.id === publishingPlanId)?.description}
-            currentTags={plans.find((p) => p.id === publishingPlanId)?.tags}
-            onClose={() => setPublishingPlanId(null)}
-            onSuccess={handlePublishSuccess}
+          {/* Training Plans Table */}
+          <TrainingPlansTable
+            plans={plans}
+            onDelete={handleDelete}
+            onPublish={setPublishingPlanId}
+            onSetActive={handleSetActive}
+            deletingId={deletingId}
           />
-        )}
+        </div>
+      )}
+
+      {/* Publish Modal */}
+      {publishingPlanId && (
+        <PublishPlanModal
+          planId={publishingPlanId}
+          currentVisibility={plans.find((p) => p.id === publishingPlanId)?.visibility}
+          currentDescription={plans.find((p) => p.id === publishingPlanId)?.description}
+          currentTags={plans.find((p) => p.id === publishingPlanId)?.tags}
+          onClose={() => setPublishingPlanId(null)}
+          onSuccess={handlePublishSuccess}
+        />
+      )}
       </div>
+    </div>
   );
 }

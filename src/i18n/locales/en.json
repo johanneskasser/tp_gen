@@ -57,15 +57,23 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "welcome": "Welcome back, {{name}}!",
+    "subtitle": "Manage and create your training plans",
+    "runner": "Runner",
+    "yourPlans": "Your Training Plans",
     "createNewPlan": "Create New Plan",
     "createFirstPlan": "Create First Plan",
     "noPlanYet": "No Training Plans Yet",
     "noPlanDescription": "Create your first training plan and start your training!",
+    "noPlanFound": "No training plans found",
+    "searchPlans": "Search training plans...",
     "loadingPlans": "Loading training plans...",
     "confirmDelete": "Really delete training plan \"{{name}}\"?",
     "deleteSuccess": "Training plan \"{{name}}\" successfully deleted",
     "deleteError": "Error deleting plan",
     "loadError": "Error loading training plans",
+    "showingResults": "{{count}} of {{total}} plans",
+    "openMenu": "Open menu",
     "weeks": "{{count}} weeks of training",
     "weeks_one": "{{count}} week of training",
     "weeks_other": "{{count}} weeks of training",
@@ -75,6 +83,9 @@
     "publish": "Publish",
     "managePublication": "Manage Publication",
     "planUpdated": "Plan status updated!",
+    "planSetAsActive": "Plan marked as active",
+    "planRemovedAsActive": "Plan activation removed",
+    "setActiveError": "Error setting active plan",
     "visibility": {
       "private": "Private",
       "public": "Public",
@@ -83,8 +94,41 @@
       "publicAnonymousDesc": "Public (Anonymous)"
     },
     "stats": {
+      "vdot": "VDOT",
+      "vdotDescription": "Your current running fitness",
+      "activePlan": "Active Plan",
+      "noActivePlan": "No active plan",
+      "planProgress": "Plan Progress",
+      "daysUntilStart": "Days until start: {{days}}",
+      "daysAfterEnd": "Plan ended {{days}} days ago",
+      "weeklyKm": "Weekly Kilometers",
+      "thisWeek": "This week",
+      "nextSession": "Next Session",
+      "upcoming": "Upcoming",
+      "noUpcomingSession": "No upcoming session",
       "views": "Views",
-      "clones": "Clones"
+      "clones": "Clones",
+      "setAsActive": "Set as active",
+      "removeActive": "Remove active"
+    },
+    "table": {
+      "name": "Name",
+      "distance": "Distance",
+      "eventDate": "Event Date",
+      "weeks": "Weeks",
+      "visibility": "Visibility",
+      "stats": "Stats",
+      "updated": "Updated",
+      "actions": "Actions"
+    },
+    "filter": {
+      "distance": "Distance",
+      "visibility": "Visibility",
+      "allDistances": "All Distances",
+      "halfMarathon": "Half Marathon",
+      "marathon": "Marathon",
+      "custom": "Custom",
+      "allVisibility": "All"
     }
   },
   "sessionTypes": {
@@ -163,6 +207,16 @@
     "anonymous": "Anonymous",
     "cloneSuccess": "Plan successfully cloned!",
     "cloneError": "Error cloning plan",
+    "table": {
+      "name": "Name",
+      "creator": "Creator",
+      "distance": "Distance",
+      "duration": "Duration",
+      "targetTime": "Target Time",
+      "difficulty": "Difficulty",
+      "tags": "Tags",
+      "stats": "Stats"
+    },
     "sortBy": {
       "recent": "Recent",
       "popular": "Popular",

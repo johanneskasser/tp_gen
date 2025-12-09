@@ -16,6 +16,7 @@ export interface SavedTrainingPlan {
   view_count: number;
   clone_count: number;
   is_template: boolean;
+  is_active: boolean;
 }
 
 export const trainingPlanService = {
@@ -95,5 +96,24 @@ export const trainingPlanService = {
       .eq('id', id);
 
     if (error) throw error;
+  },
+
+  // Set a plan as active (deactivates all other plans for the user)
+  async setActivePlan(id: string): Promise<void> {
+    const { error } = await supabase.rpc('set_active_plan', {
+      plan_uuid: id,
+    });
+
+    if (error) throw error;
+  },
+
+  // Toggle active status of a plan
+  async toggleActivePlan(id: string): Promise<boolean> {
+    const { data, error } = await supabase.rpc('toggle_active_plan', {
+      plan_uuid: id,
+    });
+
+    if (error) throw error;
+    return data as boolean;
   },
 };

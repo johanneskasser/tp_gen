@@ -176,12 +176,85 @@ export type Database = {
         }
         Relationships: []
       }
+      training_data_points: {
+        Row: {
+          context: Json
+          created_at: string
+          id: string
+          modifications: Json | null
+          outcome: Json | null
+          suggestion: Json
+          timestamp: string
+          updated_at: string
+          user_action: string
+          user_id: string
+        }
+        Insert: {
+          context: Json
+          created_at?: string
+          id?: string
+          modifications?: Json | null
+          outcome?: Json | null
+          suggestion: Json
+          timestamp?: string
+          updated_at?: string
+          user_action: string
+          user_id: string
+        }
+        Update: {
+          context?: Json
+          created_at?: string
+          id?: string
+          modifications?: Json | null
+          outcome?: Json | null
+          suggestion?: Json
+          timestamp?: string
+          updated_at?: string
+          user_action?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      training_patterns: {
+        Row: {
+          context_hash: string
+          created_at: string
+          frequency: number
+          id: string
+          metadata: Json
+          sequence: string[]
+          success_metrics: Json | null
+          updated_at: string
+        }
+        Insert: {
+          context_hash: string
+          created_at?: string
+          frequency?: number
+          id: string
+          metadata: Json
+          sequence: string[]
+          success_metrics?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          context_hash?: string
+          created_at?: string
+          frequency?: number
+          id?: string
+          metadata?: Json
+          sequence?: string[]
+          success_metrics?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       training_plans: {
         Row: {
           clone_count: number
           created_at: string
           description: string | null
           id: string
+          is_active: boolean
           is_template: boolean
           name: string
           plan_data: Json
@@ -197,6 +270,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean
           is_template?: boolean
           name: string
           plan_data: Json
@@ -212,6 +286,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_active?: boolean
           is_template?: boolean
           name?: string
           plan_data?: Json
@@ -307,7 +382,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      ml_training_stats: {
+        Row: {
+          user_id: string
+          total_data_points: number
+          accepted_count: number
+          modified_count: number
+          rejected_count: number
+          ignored_count: number
+          acceptance_rate: string
+          modification_rate: string
+        }
+        Insert: never
+        Update: never
+        Relationships: []
+      }
     }
     Functions: {
       generate_automatic_tags: { Args: { plan_data: Json }; Returns: string[] }
@@ -334,12 +423,24 @@ export type Database = {
           visibility: Database["public"]["Enums"]["plan_visibility"]
         }[]
       }
+      get_recommended_patterns_for_context: {
+        Args: { context_hash_param: string; limit_param?: number }
+        Returns: {
+          id: string
+          sequence: string[]
+          frequency: number
+          success_metrics: Json | null
+          metadata: Json
+        }[]
+      }
       increment_clone_count: { Args: { plan_uuid: string }; Returns: undefined }
       increment_view_count: { Args: { plan_uuid: string }; Returns: undefined }
       is_following: {
         Args: { follower_uuid: string; following_uuid: string }
         Returns: boolean
       }
+      set_active_plan: { Args: { plan_uuid: string }; Returns: undefined }
+      toggle_active_plan: { Args: { plan_uuid: string }; Returns: boolean }
     }
     Enums: {
       plan_visibility: "private" | "public" | "public_anonymous"
