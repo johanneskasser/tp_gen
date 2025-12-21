@@ -8,13 +8,14 @@ import { useTranslation } from 'react-i18next';
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [useMagicLink, setUseMagicLink] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithMagicLink } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -25,7 +26,16 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      if (isSignUp) {
+      if (useMagicLink) {
+        // Magic Link authentication
+        const { error } = await signInWithMagicLink(email);
+        if (error) {
+          setError(error.message);
+        } else {
+          setSuccessMessage(t('auth.magicLinkSent', 'Ein Login-Link wurde an deine E-Mail gesendet. Bitte prüfe dein Postfach.'));
+          setEmail('');
+        }
+      } else if (isSignUp) {
         const { error } = await signUp(email, password);
         if (error) {
           setError(error.message);
@@ -123,18 +133,41 @@ export default function LoginPage() {
               leftIcon={<Mail className="w-5 h-5" />}
             />
 
-            <Input
-              id="password"
-              type="password"
-              label={t('auth.password')}
-              placeholder={isSignUp ? t('auth.passwordPlaceholderSignUp') : t('auth.passwordPlaceholder')}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              minLength={6}
-              leftIcon={<Lock className="w-5 h-5" />}
-              helperText={isSignUp ? t('auth.passwordHelperText') : undefined}
-            />
+            {!useMagicLink && (
+              <Input
+                id="password"
+                type="password"
+                label={t('auth.password')}
+                placeholder={isSignUp ? t('auth.passwordPlaceholderSignUp') : t('auth.passwordPlaceholder')}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
+                leftIcon={<Lock className="w-5 h-5" />}
+                helperText={isSignUp ? t('auth.passwordHelperText') : undefined}
+              />
+            )}
+
+            {!isSignUp && (
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setUseMagicLink(!useMagicLink);
+                    setError('');
+                    setSuccessMessage('');
+                  }}
+                  className={cn(
+                    'text-sm text-primary-600 hover:text-primary-700',
+                    'transition-colors duration-fast underline underline-offset-2'
+                  )}
+                >
+                  {useMagicLink
+                    ? t('auth.usePassword', 'Mit Passwort anmelden')
+                    : t('auth.useMagicLink', 'Ohne Passwort anmelden (Magic Link)')}
+                </button>
+              </div>
+            )}
 
             {/* Error Alert */}
             {error && (
@@ -158,8 +191,22 @@ export default function LoginPage() {
               size="lg"
               className="mt-6"
             >
-              {isSignUp ? <UserPlus size={20} /> : <LogIn size={20} />}
-              {isSignUp ? t('auth.signUp') : t('auth.signIn')}
+              {useMagicLink ? (
+                <>
+                  <Mail size={20} />
+                  {t('auth.sendMagicLink', 'Magic Link senden')}
+                </>
+              ) : isSignUp ? (
+                <>
+                  <UserPlus size={20} />
+                  {t('auth.signUp')}
+                </>
+              ) : (
+                <>
+                  <LogIn size={20} />
+                  {t('auth.signIn')}
+                </>
+              )}
             </Button>
           </form>
 
@@ -172,6 +219,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => {
                 setIsSignUp(!isSignUp);
+                setUseMagicLink(false);
                 setError('');
                 setSuccessMessage('');
               }}

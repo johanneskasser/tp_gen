@@ -4,6 +4,7 @@ import { RunnerProfileProvider } from './contexts/RunnerProfileContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ToastContainer } from './components/ui';
 import LoginPage from './pages/LoginPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 import Dashboard from './pages/Dashboard';
 import PlanEditor from './pages/PlanEditor';
 import ProfilePage from './pages/ProfilePage';
@@ -38,6 +39,9 @@ function AppRoutes() {
         path="/"
         element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
       />
+
+      {/* Auth callback route - public */}
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
       {/* Onboarding route - protected but without layout */}
       <Route
