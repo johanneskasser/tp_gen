@@ -43,7 +43,8 @@
     "startTrainingJourney": "Starte jetzt deine Trainingsreise",
     "accountCreatedSuccess": "Account erstellt! Bitte überprüfe deine E-Mail zur Bestätigung.",
     "errorOccurred": "Ein Fehler ist aufgetreten. Bitte versuche es erneut.",
-    "personalTrainingPlan": "Dein persönlicher Trainingsplan für Laufevents"
+    "personalTrainingPlan": "Dein persönlicher Trainingsplan für Laufevents",
+    "orContinueWith": "Oder fortfahren mit"
   },
   "app": {
     "title": "Trainingsplan Generator",

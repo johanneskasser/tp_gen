@@ -5,6 +5,7 @@ import { LogIn, UserPlus, Mail, Lock } from 'lucide-react';
 import { Button, Input, Alert } from '../components/ui';
 import { typography, cn } from '../lib/designSystem';
 import { useTranslation } from 'react-i18next';
+import { OAuthButtons } from '../components/OAuthButtons';
 
 export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -209,6 +210,9 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+
+          {/* OAuth Buttons */}
+          <OAuthButtons className="mt-6" />
 
           {/* Toggle Sign Up / Sign In */}
           <div className="mt-8 text-center pt-6 border-t border-border-light">

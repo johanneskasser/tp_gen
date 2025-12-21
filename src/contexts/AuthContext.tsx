@@ -12,6 +12,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUp: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signInWithMagicLink: (email: string) => Promise<{ error: AuthError | null }>;
+  signInWithOAuth: (provider: 'google' | 'github') => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -80,13 +81,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const redirectUrl = import.meta.env.VITE_REDIRECT_URL ||
       `${window.location.origin}/auth/callback`;
 
-    const { error } = await supabase.auth.signUp({
+    console.log('Sign up with redirect URL:', redirectUrl);
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
       },
     });
+
+    console.log('Sign up response:', { data, error });
+
     return { error };
   };
 
@@ -98,6 +104,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       options: {
         emailRedirectTo: redirectUrl,
+      },
+    });
+    return { error };
+  };
+
+  const signInWithOAuth = async (provider: 'google' | 'github') => {
+    const redirectUrl = import.meta.env.VITE_REDIRECT_URL ||
+      `${window.location.origin}/auth/callback`;
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: redirectUrl,
       },
     });
     return { error };
@@ -116,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signUp,
     signInWithMagicLink,
+    signInWithOAuth,
     signOut,
     refreshProfile,
   };

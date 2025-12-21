@@ -43,7 +43,8 @@
     "startTrainingJourney": "Start your training journey now",
     "accountCreatedSuccess": "Account created! Please check your email for confirmation.",
     "errorOccurred": "An error occurred. Please try again.",
-    "personalTrainingPlan": "Your personal training plan for running events"
+    "personalTrainingPlan": "Your personal training plan for running events",
+    "orContinueWith": "Or continue with"
   },
   "app": {
     "title": "Training Plan Generator",
