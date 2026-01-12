@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="{{ .Locale }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ if eq .Locale "de" }}E-Mail-Änderung bestätigen{{ else }}Confirm Email Change{{ end }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1e293b;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            color: white;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .content h2 {
+            color: #1e293b;
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        .content p {
+            color: #475569;
+            margin-bottom: 24px;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 16px 0;
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            padding: 30px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            background-color: #f1f5f9;
+        }
+        .footer p {
+            margin: 8px 0;
+        }
+        .divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 24px 0;
+        }
+        .highlight {
+            background-color: #fef3c7;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+            margin: 24px 0;
+        }
+        .security-notice {
+            background-color: #fee2e2;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #ef4444;
+            margin: 24px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <h1>🏃 Trainingsplan Generator</h1>
+            </div>
+            <div class="content">
+                {{ if eq .Locale "de" }}
+                <h2>E-Mail-Änderung bestätigen</h2>
+                <p>Du hast eine Änderung deiner E-Mail-Adresse angefordert. Um die neue E-Mail-Adresse zu bestätigen, klicke bitte auf den folgenden Button:</p>
+
+                <div style="text-align: center;">
+                    <a href="{{ .ConfirmationURL }}" class="button">E-Mail-Änderung bestätigen</a>
+                </div>
+
+                <div class="highlight">
+                    <p style="margin: 0;"><strong>⚠️ Wichtig:</strong> Dieser Link ist 24 Stunden gültig.</p>
+                </div>
+
+                <div class="security-notice">
+                    <p style="margin: 0; font-size: 14px;">
+                        <strong>🔒 Sicherheitshinweis:</strong> Wenn du diese Änderung nicht angefordert hast, ignoriere diese E-Mail und kontaktiere uns umgehend. Deine E-Mail-Adresse bleibt unverändert, solange du den Link nicht bestätigst.
+                    </p>
+                </div>
+
+                <div class="divider"></div>
+
+                <p style="font-size: 14px; color: #64748b;">
+                    Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br>
+                    <a href="{{ .ConfirmationURL }}" style="color: #f59e0b; word-break: break-all;">{{ .ConfirmationURL }}</a>
+                </p>
+                {{ else }}
+                <h2>Confirm Email Change</h2>
+                <p>You requested to change your email address. To confirm your new email address, please click the button below:</p>
+
+                <div style="text-align: center;">
+                    <a href="{{ .ConfirmationURL }}" class="button">Confirm Email Change</a>
+                </div>
+
+                <div class="highlight">
+                    <p style="margin: 0;"><strong>⚠️ Important:</strong> This link is valid for 24 hours.</p>
+                </div>
+
+                <div class="security-notice">
+                    <p style="margin: 0; font-size: 14px;">
+                        <strong>🔒 Security Notice:</strong> If you didn't request this change, please ignore this email and contact us immediately. Your email address will remain unchanged unless you confirm this link.
+                    </p>
+                </div>
+
+                <div class="divider"></div>
+
+                <p style="font-size: 14px; color: #64748b;">
+                    If the button doesn't work, copy this link into your browser:<br>
+                    <a href="{{ .ConfirmationURL }}" style="color: #f59e0b; word-break: break-all;">{{ .ConfirmationURL }}</a>
+                </p>
+                {{ end }}
+            </div>
+            <div class="footer">
+                {{ if eq .Locale "de" }}
+                <p>Diese E-Mail wurde automatisch generiert. Bitte antworte nicht auf diese E-Mail.</p>
+                {{ else }}
+                <p>This email was automatically generated. Please do not reply to this email.</p>
+                {{ end }}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

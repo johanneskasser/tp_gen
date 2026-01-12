@@ -2,7 +2,6 @@ import { useLocation } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { cn, typography } from '../lib/designSystem';
 import { useTranslation } from 'react-i18next';
-import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface PageHeaderProps {
   onMenuClick: () => void;
@@ -107,11 +106,6 @@ export function PageHeader({ onMenuClick, isMobileMenuOpen }: PageHeaderProps) {
           <p className={cn(typography.bodySmall, 'text-text-tertiary truncate')}>
             {pageInfo.description}
           </p>
-        </div>
-
-        {/* Language Switcher - visible on all screen sizes */}
-        <div className="hidden sm:block">
-          <LanguageSwitcher variant="inline" showLabel={false} />
         </div>
       </div>
     </header>

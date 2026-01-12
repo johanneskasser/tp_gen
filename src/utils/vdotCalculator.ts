@@ -91,36 +91,69 @@ export function getBestVDOT(personalBests: PersonalBest[]): number {
 }
 
 /**
- * Calculate training zones from VDOT
- * Based on Jack Daniels' training pace tables
+ * Calculate training zones from VDOT using Daniels-Gilbert formula
+ * Based on Jack Daniels' Running Formula tables
+ *
+ * This uses the reverse calculation: from %VO2max to velocity to pace
+ * Reference: Jack Daniels' Running Formula (3rd Edition)
+ * Source: https://vdoto2.com/calculator and https://sport-calculator.com/calculators/running/jack-daniels-running-calculator
  */
 export function calculateTrainingZones(vdot: number): TrainingZones {
-  // These formulas approximate Jack Daniels' VDOT tables
-  // Paces are in min/km
+  /**
+   * Calculate pace for a given %VO2max
+   * We need to solve for velocity where the effort can be sustained
+   */
+  function paceForPercentVO2(percentVO2: number): number {
+    // For steady-state running, we use the velocity that produces this %VO2
+    const vo2 = vdot * percentVO2;
 
-  // Easy pace (E): 59-74% of VO2max, conversational pace
-  const easyPaceMiddle = 60 / (0.29 * vdot + 3.5);
-  const easyPaceMin = easyPaceMiddle * 0.95; // 5% slower
-  const easyPaceMax = easyPaceMiddle * 1.05; // 5% faster
+    // Solve quadratic: 0.000104 * V² + 0.182258 * V + (-4.60 - VO2) = 0
+    const a = 0.000104;
+    const b = 0.182258;
+    const c = -4.60 - vo2;
 
-  // Marathon pace (M): 80-85% of VO2max
-  const marathonPace = 60 / (0.26 * vdot + 2.8);
+    const discriminant = b * b - 4 * a * c;
+    const velocityMpm = (-b + Math.sqrt(discriminant)) / (2 * a); // meters per minute
 
-  // Threshold pace (T): 88-92% of VO2max, comfortably hard
-  const thresholdPace = 60 / (0.29 * vdot + 1.5);
+    // Convert to min/km
+    const paceMinPerKm = 1000 / velocityMpm;
+    return paceMinPerKm;
+  }
+
+  // Easy pace (E): 59-74% of VO2max
+  // Jack Daniels specifies this as conversational pace
+  // Note: Higher %VO2 = faster pace (lower min/km), so we swap min/max
+  const easyPaceMin = paceForPercentVO2(0.70); // Faster end (~70%) = lower min/km
+  const easyPaceMax = paceForPercentVO2(0.59); // Slower end (59%) = higher min/km
+
+  // Marathon pace (M): ~80-85% of VO2max
+  // For marathon distance, we need to account for duration
+  // Use the race prediction for marathon pace
+  const marathonTimeStr = projectRaceTime(vdot, 42.195);
+  const marathonTimeMinutes = parseTimeToMinutes(marathonTimeStr);
+  const marathonPace = marathonTimeMinutes / 42.195;
+
+  // Threshold pace (T): 83-88% of VO2max
+  // Comfortably hard, sustainable for ~1 hour
+  // Calibrated to match Jack Daniels tables
+  const thresholdPace = paceForPercentVO2(0.91);
 
   // Interval pace (I): 95-100% of VO2max
-  const intervalPace = 60 / (0.36 * vdot);
+  // Hard effort, sustainable for 10-12 minutes
+  // Calibrated to match Jack Daniels tables
+  const intervalPace = paceForPercentVO2(1.05);
 
-  // Repetition pace (R): 105-110% of VO2max, fast but controlled
-  const repetitionPace = 60 / (0.39 * vdot);
+  // Repetition pace (R): 105-110% of VO2max
+  // Fast but controlled, with full recovery
+  // Calibrated to match Jack Daniels tables
+  const repetitionPace = paceForPercentVO2(1.15);
 
-  // Recovery pace: even slower than easy
+  // Recovery pace: slightly slower than easy
   const recoveryPaceMin = easyPaceMax;
   const recoveryPaceMax = easyPaceMax * 1.15;
 
-  // Long run pace: similar to easy, but toward slower end
-  const longPaceMin = easyPaceMiddle;
+  // Long run pace: similar to easy, toward slower end
+  const longPaceMin = easyPaceMin * 0.95;
   const longPaceMax = easyPaceMax;
 
   return {
@@ -133,6 +166,18 @@ export function calculateTrainingZones(vdot: number): TrainingZones {
     recovery: { min: recoveryPaceMin, max: recoveryPaceMax },
     long: { min: longPaceMin, max: longPaceMax },
   };
+}
+
+/**
+ * Helper: Parse time string to minutes
+ */
+function parseTimeToMinutes(timeStr: string): number {
+  const parts = timeStr.split(':').map(Number);
+  if (parts.length === 3) {
+    return parts[0] * 60 + parts[1] + parts[2] / 60;
+  } else {
+    return parts[0] + parts[1] / 60;
+  }
 }
 
 /**
@@ -193,32 +238,83 @@ export function getFitnessCategory(vdot: number): {
 }
 
 /**
- * Project race time based on VDOT
- * Useful for goal setting
+ * Calculate velocity from VDOT and %VO2max
+ * Uses the reverse of the Daniels-Gilbert formula
+ *
+ * Based on: VO2 = -4.60 + 0.182258 * V + 0.000104 * V²
+ * Where V is velocity in meters per minute
+ */
+function velocityFromVDOT(vdot: number, percentVO2Max: number): number {
+  // VO2 at this percentage
+  const vo2 = vdot * percentVO2Max;
+
+  // Solve quadratic equation: 0.000104 * V² + 0.182258 * V + (-4.60 - VO2) = 0
+  const a = 0.000104;
+  const b = 0.182258;
+  const c = -4.60 - vo2;
+
+  // Quadratic formula
+  const discriminant = b * b - 4 * a * c;
+  const velocity = (-b + Math.sqrt(discriminant)) / (2 * a);
+
+  return velocity; // meters per minute
+}
+
+/**
+ * Calculate %VO2max from race duration (in minutes)
+ * Based on Jack Daniels' formula:
+ * %VO2max = 0.8 + 0.1894393 * e^(-0.012778*T) + 0.2989558 * e^(-0.1932605*T)
+ */
+function percentVO2MaxFromTime(timeMinutes: number): number {
+  return 0.8 +
+    0.1894393 * Math.exp(-0.012778 * timeMinutes) +
+    0.2989558 * Math.exp(-0.1932605 * timeMinutes);
+}
+
+/**
+ * Project race time based on VDOT using Daniels-Gilbert formula
+ * This uses an iterative approach to find the time where the formula balances
+ *
+ * Reference: Jack Daniels' Running Formula (3rd Edition)
+ * Formula source: https://sport-calculator.com/blog/how-to-predict-race-times-vdot-critical-speed
  */
 export function projectRaceTime(vdot: number, distanceKm: number): string {
-  // Use reverse VDOT calculation
-  // This is a simplified projection
+  const distanceMeters = distanceKm * 1000;
 
+  // Initial guess based on distance
+  // These are rough estimates to start the iteration
   let timeMinutes: number;
-
   if (distanceKm <= 5) {
-    // 5K projection
-    timeMinutes = distanceKm * 1000 / (0.36 * vdot * 60);
+    timeMinutes = distanceKm * 5; // ~5:00/km initial guess
   } else if (distanceKm <= 10) {
-    // 10K projection
-    timeMinutes = distanceKm * 1000 / (0.33 * vdot * 60);
+    timeMinutes = distanceKm * 5.5; // ~5:30/km initial guess
   } else if (distanceKm <= 21.1) {
-    // Half marathon projection
-    timeMinutes = distanceKm * 1000 / (0.30 * vdot * 60);
+    timeMinutes = distanceKm * 6; // ~6:00/km initial guess
   } else {
-    // Marathon projection
-    timeMinutes = distanceKm * 1000 / (0.26 * vdot * 60);
+    timeMinutes = distanceKm * 6.5; // ~6:30/km initial guess
   }
 
-  const hours = Math.floor(timeMinutes / 60);
-  const minutes = Math.floor(timeMinutes % 60);
-  const seconds = Math.floor((timeMinutes % 1) * 60);
+  // Newton-Raphson iteration to find correct time
+  for (let i = 0; i < 20; i++) {
+    const percentVO2 = percentVO2MaxFromTime(timeMinutes);
+    const velocity = velocityFromVDOT(vdot, percentVO2);
+    const predictedTime = distanceMeters / velocity;
+
+    // Check convergence
+    if (Math.abs(predictedTime - timeMinutes) < 0.01) {
+      timeMinutes = predictedTime;
+      break;
+    }
+
+    // Adjust estimate
+    timeMinutes = predictedTime;
+  }
+
+  // Format time
+  const totalSeconds = Math.round(timeMinutes * 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
 
   if (hours > 0) {
     return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;

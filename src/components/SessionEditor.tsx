@@ -7,7 +7,7 @@ import {
   FartlekSegment,
   Exercise,
 } from '../types';
-import { Save, X, Trash2, Plus, Activity } from 'lucide-react';
+import { Save, X, Trash2, Plus, Activity, HelpCircle } from 'lucide-react';
 import { generateSessionTitle } from '../utils/titleGenerator';
 import { SESSION_TYPE_CONFIG, getSessionTypeLabel } from '../constants/sessionTypes';
 import { formatPace } from '../utils/paceCalculator';
@@ -15,6 +15,9 @@ import { IntervalVisualization } from './visualizations/IntervalVisualization';
 import { ProgressionVisualization } from './visualizations/ProgressionVisualization';
 import { FartlekVisualization } from './visualizations/FartlekVisualization';
 import { SESSION_CHARACTERISTICS } from '../config/sessionCharacteristics';
+import { useRunnerProfile } from '../contexts/RunnerProfileContext';
+import { calculateTrainingZones, getBestVDOT } from '../utils/vdotCalculator';
+import { calculateSessionRPE, getRPELabel } from '../utils/sessionRPECalculator';
 
 interface SessionEditorProps {
   session: TrainingSession;
@@ -29,9 +32,12 @@ export default function SessionEditor({
   onCancel,
   onDelete,
 }: SessionEditorProps) {
+  const { runnerProfile } = useRunnerProfile();
+
   const [title, setTitle] = useState(session.title);
   const [type, setType] = useState<SessionType>(session.type);
   const [notes, setNotes] = useState(session.notes || '');
+  const [showRPEInfo, setShowRPEInfo] = useState(false);
 
   // Standard fields
   const [distance, setDistance] = useState(session.distance?.toString() || '');
@@ -87,47 +93,97 @@ export default function SessionEditor({
     return '';
   }, [distance, duration]);
 
-  // Get intensity information for current session type
+  // Calculate dynamic RPE based on user's VDOT and session details
   const intensityInfo = useMemo(() => {
-    const characteristics = SESSION_CHARACTERISTICS[type];
-    const level = characteristics.intensityLevel;
-    const score = characteristics.intensityScore;
-    const recoveryDays = characteristics.recoveryDaysNeeded;
+    // Get user's training zones from VDOT
+    let zones = null;
+    if (runnerProfile) {
+      const vdot = runnerProfile.vdot || getBestVDOT(runnerProfile.personalBests || []);
+      if (vdot > 0) {
+        zones = calculateTrainingZones(vdot);
+      }
+    }
 
-    const levelConfig = {
-      easy: {
-        label: 'Locker',
-        color: 'bg-green-100 border-green-300 text-green-800',
-        barColor: 'bg-green-500',
-        icon: '😌'
-      },
-      moderate: {
-        label: 'Moderat',
-        color: 'bg-yellow-100 border-yellow-300 text-yellow-800',
-        barColor: 'bg-yellow-500',
-        icon: '💪'
-      },
-      hard: {
-        label: 'Hart',
-        color: 'bg-orange-100 border-orange-300 text-orange-800',
-        barColor: 'bg-orange-500',
-        icon: '🔥'
-      },
-      very_hard: {
-        label: 'Sehr Hart',
-        color: 'bg-red-100 border-red-300 text-red-800',
-        barColor: 'bg-red-500',
-        icon: '⚡'
-      },
+    // Build current session state for RPE calculation
+    const currentSession: TrainingSession = {
+      ...session,
+      type,
+      distance: distance ? parseFloat(distance) : undefined,
+      duration: duration ? parseFloat(duration) : undefined,
+      intervals: intervals.length > 0 ? intervals : undefined,
+      warmUp: warmUp ? parseFloat(warmUp) : undefined,
+      warmUpUnit: warmUp ? warmUpUnit : undefined,
+      coolDown: coolDown ? parseFloat(coolDown) : undefined,
+      coolDownUnit: coolDown ? coolDownUnit : undefined,
+      progression: progressionDistance || progressionStartPace || progressionEndPace ? {
+        totalDistance: progressionDistance ? parseFloat(progressionDistance) : undefined,
+        startPace: progressionStartPace,
+        endPace: progressionEndPace,
+      } : undefined,
+      hillRepeats: hillReps || hillDistance || hillDuration ? {
+        repetitions: hillReps ? parseInt(hillReps) : 6,
+        distance: hillDistance ? parseFloat(hillDistance) : undefined,
+        duration: hillDuration ? parseFloat(hillDuration) : undefined,
+        recovery: hillRecovery ? parseFloat(hillRecovery) : 2,
+        grade: hillGrade ? parseFloat(hillGrade) : undefined,
+      } : undefined,
+      fartlek: fartlekSegments.length > 0 ? fartlekSegments : undefined,
+      strides: stridesCount || stridesDuration ? {
+        count: stridesCount ? parseInt(stridesCount) : 6,
+        duration: stridesDuration ? parseInt(stridesDuration) : 15,
+        recovery: stridesRecovery ? parseInt(stridesRecovery) : 60,
+      } : undefined,
+      exercises: exercises.length > 0 ? exercises : undefined,
     };
+
+    // Calculate RPE dynamically if zones available, otherwise use base characteristics
+    let rpe: number;
+    let rpeLabel;
+
+    if (zones) {
+      rpe = calculateSessionRPE(currentSession, zones);
+      rpeLabel = getRPELabel(rpe);
+    } else {
+      // Fallback to base characteristics if no VDOT available
+      const characteristics = SESSION_CHARACTERISTICS[type];
+      rpe = characteristics.intensityScore;
+      rpeLabel = getRPELabel(rpe);
+    }
+
+    const recoveryDays = SESSION_CHARACTERISTICS[type].recoveryDaysNeeded;
+
+    // Color scheme based on RPE
+    let color, barColor;
+    if (rpe < 4) {
+      color = 'bg-green-100 border-green-300 text-green-800';
+      barColor = 'bg-green-500';
+    } else if (rpe < 6) {
+      color = 'bg-yellow-100 border-yellow-300 text-yellow-800';
+      barColor = 'bg-yellow-500';
+    } else if (rpe < 8) {
+      color = 'bg-orange-100 border-orange-300 text-orange-800';
+      barColor = 'bg-orange-500';
+    } else {
+      color = 'bg-red-100 border-red-300 text-red-800';
+      barColor = 'bg-red-500';
+    }
 
     return {
-      level,
-      score,
+      rpe: Math.round(rpe * 10) / 10, // Round to 1 decimal
+      label: rpeLabel.label,
+      emoji: rpeLabel.emoji,
+      description: rpeLabel.description,
       recoveryDays,
-      ...levelConfig[level],
+      color,
+      barColor,
     };
-  }, [type]);
+  }, [
+    type, distance, duration, intervals, warmUp, warmUpUnit, coolDown, coolDownUnit,
+    progressionDistance, progressionStartPace, progressionEndPace,
+    hillReps, hillDistance, hillDuration, hillRecovery, hillGrade,
+    fartlekSegments, stridesCount, stridesDuration, stridesRecovery,
+    exercises, runnerProfile, session
+  ]);
 
   // Interval handlers
   const handleAddInterval = () => {
@@ -1199,22 +1255,128 @@ export default function SessionEditor({
             </div>
           </div>
 
-          {/* Intensity Level Display */}
+          {/* Intensity Level Display - Dynamic RPE */}
           <div className={`border rounded-lg p-4 ${intensityInfo.color}`}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Activity size={20} />
                 <span className="font-semibold">Intensitätslevel:</span>
-                <span className="text-2xl">{intensityInfo.icon}</span>
+                <span className="text-2xl">{intensityInfo.emoji}</span>
                 <span className="font-bold">{intensityInfo.label}</span>
               </div>
-              <div className="text-right">
-                <div className="text-sm font-medium">Score: {intensityInfo.score}/10</div>
-                {intensityInfo.recoveryDays > 0 && (
-                  <div className="text-xs">
-                    {intensityInfo.recoveryDays} Tag{intensityInfo.recoveryDays > 1 ? 'e' : ''} Erholung
-                  </div>
-                )}
+              <div className="flex items-center gap-2">
+                <div className="text-right">
+                  <div className="text-sm font-medium">Score: {intensityInfo.rpe}/10</div>
+                  {intensityInfo.recoveryDays > 0 && (
+                    <div className="text-xs">
+                      {intensityInfo.recoveryDays} Tag{intensityInfo.recoveryDays > 1 ? 'e' : ''} Erholung
+                    </div>
+                  )}
+                </div>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowRPEInfo(!showRPEInfo)}
+                    className="p-1 hover:bg-white/50 rounded-full transition-colors"
+                  >
+                    <HelpCircle size={18} />
+                  </button>
+                  {showRPEInfo && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowRPEInfo(false)}
+                      />
+                      <div className="absolute right-0 top-8 z-50 w-80 bg-white border-2 border-slate-300 rounded-lg shadow-xl p-4 text-slate-800">
+                        <div className="space-y-3 text-xs">
+                          <div>
+                            <h4 className="font-bold text-sm mb-2">Wie wird die RPE berechnet?</h4>
+                            <p className="mb-2">
+                              Der RPE-Score (Rate of Perceived Exertion) wird dynamisch basierend auf mehreren Faktoren berechnet:
+                            </p>
+                          </div>
+
+                          <div>
+                            <h5 className="font-semibold mb-1">📊 VDOT-basierte Personalisierung</h5>
+                            <p>
+                              Deine Pace wird mit deinen persönlichen Trainingszonen verglichen (aus deinem VDOT-Wert).
+                              Die gleiche Pace hat unterschiedliche RPE-Werte je nach Fitnesslevel.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h5 className="font-semibold mb-1">🏃 Intervall-Faktoren</h5>
+                            <p>
+                              • <strong>Pace:</strong> Vergleich mit deinen persönlichen Zonen (Easy, Marathon, Threshold, Interval)<br/>
+                              • <strong>Wiederholungen:</strong> Mehr Reps = höhere kumulative Ermüdung<br/>
+                              • <strong>Recovery:</strong> Kürzere Pausen = höhere RPE<br/>
+                              • <strong>Gesamtvolumen:</strong> Mehr Intervall-km = härter
+                            </p>
+                          </div>
+
+                          <div>
+                            <h5 className="font-semibold mb-1">📏 Distanz & Dauer</h5>
+                            <p>
+                              Längere Läufe erhöhen die RPE exponentiell durch Glykogenverbrauch und kumulative Ermüdung.
+                            </p>
+                          </div>
+
+                          <div>
+                            <h5 className="font-semibold mb-1">📚 Wissenschaftliche Grundlagen</h5>
+                            <ul className="list-disc list-inside space-y-1 ml-2">
+                              <li>
+                                <a
+                                  href="https://marathonhandbook.com/rate-of-perceived-exertion/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline"
+                                >
+                                  Borg RPE Scale (1-10)
+                                </a>
+                              </li>
+                              <li>
+                                <a
+                                  href="https://vdoto2.com/calculator"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline"
+                                >
+                                  Jack Daniels' VDOT System
+                                </a>
+                              </li>
+                              <li>
+                                <a
+                                  href="https://www.veohtu.com/trimp.html"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline"
+                                >
+                                  Bannister's TRIMP
+                                </a>
+                              </li>
+                              <li>
+                                <a
+                                  href="https://www.veohtu.com/runningspeed.html"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-600 hover:underline"
+                                >
+                                  VDOT Training Zones
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+
+                          <div className="pt-2 border-t border-slate-200">
+                            <p className="text-[10px] text-slate-600">
+                              💡 Tipp: Trage deine Bestzeiten im Profil ein für präzisere RPE-Berechnungen!
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1225,7 +1387,7 @@ export default function SessionEditor({
                   <div
                     key={i}
                     className={`flex-1 ${
-                      i < intensityInfo.score ? intensityInfo.barColor : 'bg-gray-200'
+                      i < Math.round(intensityInfo.rpe) ? intensityInfo.barColor : 'bg-gray-200'
                     }`}
                   />
                 ))}
@@ -1234,6 +1396,11 @@ export default function SessionEditor({
                 <span>Locker</span>
                 <span>Sehr Hart</span>
               </div>
+            </div>
+
+            {/* Description */}
+            <div className="mt-2 text-xs opacity-80">
+              {intensityInfo.description}
             </div>
           </div>
 
