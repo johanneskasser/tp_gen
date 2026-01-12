@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { trainingPlanService, SavedTrainingPlan } from '../services/trainingPlanService';
 import { Plus, Calendar, Loader2 } from 'lucide-react';
 import { Button, Card } from '../components/ui';
@@ -19,16 +19,13 @@ export default function Dashboard() {
   const [publishingPlanId, setPublishingPlanId] = useState<string | null>(null);
 
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const { t } = useTranslation();
   const { user } = useAuth();
   const { runnerProfile } = useRunnerProfile();
 
-  useEffect(() => {
-    loadPlans();
-  }, []);
-
-  const loadPlans = async () => {
+  const loadPlans = useCallback(async () => {
     try {
       setLoading(true);
       const data = await trainingPlanService.getAllPlans();
@@ -39,7 +36,25 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, t]);
+
+  // Load plans on mount and whenever we navigate to this route
+  useEffect(() => {
+    loadPlans();
+  }, [loadPlans, location.pathname]);
+
+  // Reload plans when component comes into focus (e.g., navigating back from plan editor)
+  useEffect(() => {
+    const handleFocus = () => {
+      loadPlans();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [loadPlans]);
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(t('dashboard.confirmDelete', { name }))) return;

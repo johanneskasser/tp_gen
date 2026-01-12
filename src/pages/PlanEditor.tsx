@@ -26,7 +26,7 @@ export default function PlanEditor() {
   const navigate = useNavigate();
   const toast = useToast();
   const { runnerProfile } = useRunnerProfile();
-  const isNewPlan = id === 'new';
+  const [isNewPlan, setIsNewPlan] = useState(id === 'new');
 
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
   const [savedPlan, setSavedPlan] = useState<SavedTrainingPlan | null>(null);
@@ -41,14 +41,14 @@ export default function PlanEditor() {
 
   // Load existing plan
   useEffect(() => {
-    if (!isNewPlan && id) {
+    if (id && id !== 'new') {
       loadPlan(id);
     }
-  }, [id, isNewPlan]);
+  }, [id]);
 
-  // Auto-save effect (debounced)
+  // Auto-save effect (debounced) - now also works for new plans
   useEffect(() => {
-    if (!plan || isNewPlan) return;
+    if (!plan) return;
 
     // Clear existing timeout
     if (saveTimeoutRef.current) {
@@ -121,7 +121,8 @@ export default function PlanEditor() {
         // Create new plan
         const saved = await trainingPlanService.createPlan(plan);
         setSavedPlan(saved);
-        // Navigate to edit mode with the new ID
+        setIsNewPlan(false); // Mark as no longer new
+        // Navigate to edit mode with the new ID (without replacing history)
         navigate(`/plan/${saved.id}`, { replace: true });
       } else if (id) {
         // Update existing plan
@@ -286,7 +287,7 @@ export default function PlanEditor() {
               <ArrowLeft size={18} />
               Zurück
             </Button>
-            {!isNewPlan && lastSaved && (
+            {lastSaved && (
               <p className={cn(typography.bodySmall, 'text-text-tertiary')}>
                 {saving ? (
                   <span className="flex items-center gap-1">
@@ -366,7 +367,7 @@ export default function PlanEditor() {
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
-                      {!isNewPlan && (
+                      {savedPlan && (
                         <Button
                           onClick={() => setShowPublishModal(true)}
                           variant={savedPlan?.visibility !== 'private' ? 'default' : 'secondary'}
