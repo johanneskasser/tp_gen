@@ -21,6 +21,8 @@ import {
   MessageCircle,
   UserPlus,
   UserMinus,
+  Share2,
+  Check,
 } from 'lucide-react';
 import { Button, Card, Input, Badge } from '../components/ui';
 import { typography, cn, flex } from '../lib/designSystem';
@@ -52,6 +54,7 @@ export default function PlanDetailPage() {
   const [showPlanDetails, setShowPlanDetails] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const toggleWeek = (weekNumber: number) => {
     const newExpanded = new Set(expandedWeeks);
@@ -243,6 +246,26 @@ export default function PlanDetailPage() {
     }
   };
 
+  const handleShareLink = async () => {
+    if (!planId) return;
+
+    const shareUrl = `${window.location.origin}/marketplace/${planId}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setLinkCopied(true);
+      toast.success('Link kopiert!');
+
+      // Reset the copied state after 2 seconds
+      setTimeout(() => {
+        setLinkCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Error copying link:', err);
+      toast.error('Fehler beim Kopieren des Links');
+    }
+  };
+
   const getDistanceLabel = () => {
     if (!plan) return '';
     const distance = plan.plan_data?.event?.distance;
@@ -291,17 +314,28 @@ export default function PlanDetailPage() {
       {/* Plan Header */}
       <Card variant="default" className="mb-6">
         <div className="p-6">
-          {/* Title and Clone Button */}
+          {/* Title and Action Buttons */}
           <div className="flex items-start justify-between mb-4 gap-4">
             <h1 className={cn(typography.h1, 'flex-1')}>{plan.name}</h1>
-            <Button
-              onClick={() => setShowCloneModal(true)}
-              variant="default"
-              size="lg"
-            >
-              <Copy size={18} />
-              Plan kopieren & anpassen
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleShareLink}
+                variant="secondary"
+                size="lg"
+                title="Link kopieren"
+              >
+                {linkCopied ? <Check size={18} /> : <Share2 size={18} />}
+                {linkCopied ? 'Kopiert!' : 'Teilen'}
+              </Button>
+              <Button
+                onClick={() => setShowCloneModal(true)}
+                variant="default"
+                size="lg"
+              >
+                <Copy size={18} />
+                Plan kopieren & anpassen
+              </Button>
+            </div>
           </div>
 
           {/* Stats and Rating Row */}

@@ -2,10 +2,14 @@ import { useNavigate } from 'react-router-dom';
 import { MarketplacePlan } from '../types/marketplace';
 import { UserProfile } from '../types/userProfile';
 import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import {
   Copy,
   Star,
+  Share2,
+  Check,
 } from 'lucide-react';
+import { useToast } from '../contexts/ToastContext';
 import {
   Table,
   TableBody,
@@ -26,6 +30,8 @@ interface MarketplacePlansTableProps {
 export function MarketplacePlansTable({ plans, runnerProfile }: MarketplacePlansTableProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const toast = useToast();
+  const [copiedPlanId, setCopiedPlanId] = useState<string | null>(null);
 
   const getDistanceLabel = (plan: MarketplacePlan) => {
     const distance = plan.plan_data?.event?.distance;
@@ -43,6 +49,26 @@ export function MarketplacePlansTable({ plans, runnerProfile }: MarketplacePlans
     return plan.plan_data?.weeks?.length || 0;
   };
 
+  const handleShareLink = async (planId: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent row click navigation
+
+    const shareUrl = `${window.location.origin}/marketplace/${planId}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopiedPlanId(planId);
+      toast.success('Link kopiert!');
+
+      // Reset the copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedPlanId(null);
+      }, 2000);
+    } catch (err) {
+      console.error('Error copying link:', err);
+      toast.error('Fehler beim Kopieren des Links');
+    }
+  };
+
   return (
     <Card className="overflow-hidden">
       <div className="overflow-x-auto">
@@ -58,12 +84,13 @@ export function MarketplacePlansTable({ plans, runnerProfile }: MarketplacePlans
               )}
               <TableHead>{t('marketplace.table.tags')}</TableHead>
               <TableHead className="text-right">{t('marketplace.table.stats')}</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {plans.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={runnerProfile ? 7 : 6} className="h-24 text-center">
+                <TableCell colSpan={runnerProfile ? 8 : 7} className="h-24 text-center">
                   {t('marketplace.noResults')}
                 </TableCell>
               </TableRow>
@@ -156,6 +183,21 @@ export function MarketplacePlansTable({ plans, runnerProfile }: MarketplacePlans
                         <span className="tabular-nums">{plan.clone_count}</span>
                       </div>
                     </div>
+                  </TableCell>
+
+                  {/* Share Button */}
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={(e) => handleShareLink(plan.id, e)}
+                      className="p-2 hover:bg-muted rounded-md transition-colors"
+                      title="Link teilen"
+                    >
+                      {copiedPlanId === plan.id ? (
+                        <Check className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Share2 className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      )}
+                    </button>
                   </TableCell>
                 </TableRow>
               ))
