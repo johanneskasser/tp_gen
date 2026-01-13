@@ -15,7 +15,7 @@ import {
 import { useToast } from '../../contexts/ToastContext';
 import { Badge } from '../ui';
 import { PlanDifficultyBadge } from '../PlanDifficultyBadge';
-import { cn, typography } from '../../lib/designSystem';
+import { cn } from '../../lib/designSystem';
 
 interface PlanCardProps {
   plan: MarketplacePlan;
@@ -212,12 +212,12 @@ export function PlanCard({ plan, runnerProfile }: PlanCardProps) {
       </div>
 
       {/* Footer - Creator Info */}
-      {plan.creator_profile && plan.visibility !== 'public_anonymous' && (
+      {plan.creator && plan.visibility !== 'public_anonymous' && (
         <div className="px-6 py-3 bg-gradient-to-br from-slate-50/50 to-transparent border-t border-gray-100">
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <User size={14} className="text-slate-400" />
             <span className="font-medium">
-              {plan.creator_profile.display_name || 'Anonymer Nutzer'}
+              {plan.creator.full_name || 'Anonymer Nutzer'}
             </span>
           </div>
         </div>

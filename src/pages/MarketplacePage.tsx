@@ -16,7 +16,7 @@ import {
   Users,
 } from 'lucide-react';
 import { Button, Card, Input } from '../components/ui';
-import { typography, cn, flex } from '../lib/designSystem';
+import { cn } from '../lib/designSystem';
 import { useAuth } from '../contexts/AuthContext';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
 import { FilterSidebar } from '../components/marketplace/FilterSidebar';

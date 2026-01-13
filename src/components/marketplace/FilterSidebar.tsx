@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { UserProfile } from '../../types/userProfile';
-import { typography, cn } from '../../lib/designSystem';
+import { cn } from '../../lib/designSystem';
 
 interface FilterSidebarProps {
   // Distance
