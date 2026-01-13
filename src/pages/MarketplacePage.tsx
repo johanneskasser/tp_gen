@@ -23,7 +23,7 @@ import { FilterSidebar } from '../components/marketplace/FilterSidebar';
 import { FilterChips } from '../components/marketplace/FilterChips';
 import { calculatePlanDifficulty } from '../utils/personalizedIntensity';
 import { useTranslation } from 'react-i18next';
-import { MarketplacePlansTable } from '../components/MarketplacePlansTable';
+import { PlanCard } from '../components/marketplace/PlanCard';
 
 export default function MarketplacePage() {
   const [plans, setPlans] = useState<MarketplacePlan[]>([]);
@@ -210,14 +210,14 @@ export default function MarketplacePage() {
   const filterChips = getFilterChips();
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex flex-col">
       {/* Modern Header */}
-      <div className="sticky top-0 z-20 bg-white border-b border-border-light shadow-sm flex-shrink-0">
-        <div className="container mx-auto px-4 max-w-7xl">
-          {/* Single Row: Sorting Tabs + Search + Filter Button */}
-          <div className="flex items-center justify-between gap-4 overflow-x-auto py-3">
-            {/* Sorting Tabs */}
-            <div className="flex gap-1 min-w-max">
+      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm flex-shrink-0">
+        <div className="w-full">
+          {/* Header Content */}
+          <div className="py-4 px-6">
+            <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
+              {/* Sorting Pills */}
               {[
                 { value: 'recent', labelKey: 'marketplace.sortBy.recent', icon: Clock },
                 { value: 'popular', labelKey: 'marketplace.sortBy.popular', icon: TrendingUp },
@@ -228,42 +228,35 @@ export default function MarketplacePage() {
                   key={option.value}
                   onClick={() => handleSortChange(option.value as any)}
                   className={cn(
-                    'flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all relative',
-                    'hover:text-text-primary',
+                    'flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 flex-shrink-0',
                     filters.sort_by === option.value
-                      ? 'text-text-primary'
-                      : 'text-text-tertiary'
+                      ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-gray-200'
                   )}
                 >
                   <option.icon size={16} />
                   <span className="whitespace-nowrap">{t(option.labelKey)}</span>
-                  {filters.sort_by === option.value && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-700 rounded-t-full" />
-                  )}
                 </button>
               ))}
-            </div>
 
-            {/* Search + Following + Filter Button */}
-            <div className="flex items-center gap-2 min-w-max">
               {/* Following Filter - Only show if authenticated */}
               {user && (
                 <button
                   onClick={toggleFollowing}
                   className={cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap',
+                    'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex-shrink-0',
                     showFollowingOnly
-                      ? 'bg-primary-700 text-white shadow-sm'
-                      : 'bg-background-secondary text-text-secondary hover:bg-primary-100 border border-border-light'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-gray-200'
                   )}
                 >
                   <Users size={16} />
-                  <span>{t('marketplace.filters.fromFollowing')}</span>
+                  <span className="whitespace-nowrap">{t('marketplace.filters.fromFollowing')}</span>
                 </button>
               )}
 
               {/* Search */}
-              <div className="w-64">
+              <div className="w-80 hidden lg:block flex-shrink-0">
                 <Input
                   type="text"
                   placeholder="Suchen..."
@@ -279,124 +272,177 @@ export default function MarketplacePage() {
               <Button
                 onClick={() => setShowFilterSheet(!showFilterSheet)}
                 variant="secondary"
-                className="lg:hidden relative"
+                className="lg:hidden relative flex-shrink-0 ml-auto"
                 size="sm"
               >
                 <Filter size={18} />
                 {filterChips.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary-700 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                     {filterChips.length}
                   </span>
                 )}
               </Button>
             </div>
           </div>
+
+          {/* Mobile Search */}
+          <div className="lg:hidden pb-4">
+            <Input
+              type="text"
+              placeholder="Suchen..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              leftIcon={<Search size={16} />}
+              className="w-full text-sm"
+            />
+          </div>
         </div>
       </div>
 
       {/* Filter Chips */}
       {filterChips.length > 0 && (
-        <div className="container mx-auto px-4 max-w-7xl py-3 flex-shrink-0">
+        <div className="container mx-auto px-6 max-w-[1600px] py-4 flex-shrink-0">
           <FilterChips chips={filterChips} onClearAll={clearFilters} />
         </div>
       )}
 
-      {/* Layout: Sidebar + Content - Takes remaining space */}
+      {/* Layout: Sidebar + Content */}
       <div className="flex-1 flex flex-col">
-        <div className="container mx-auto px-4 max-w-7xl flex-1">
-          <div className="flex gap-6 py-6 h-full">
-          {/* Filter Sidebar (Desktop) */}
-          <aside className="hidden lg:block w-80 flex-shrink-0">
-            <div className="sticky top-24 max-h-[calc(100vh-120px)] overflow-hidden rounded-lg border border-border-light shadow-sm">
-              <FilterSidebar
-                selectedDistances={selectedDistances}
-                onDistanceToggle={toggleDistance}
-                selectedIntensities={selectedIntensities}
-                onIntensityToggle={toggleIntensity}
-                runnerProfile={runnerProfile || undefined}
-                targetTimeRange={targetTimeRange}
-                onTargetTimeChange={setTargetTimeRange}
-                selectedTags={selectedTags}
-                onTagToggle={toggleTag}
-                availableTags={PREDEFINED_TAGS}
-                onApply={handleSearch}
-                onClear={clearFilters}
-              />
-            </div>
-          </aside>
-
-          {/* Main Content */}
-          <main className="flex-1 min-w-0 flex flex-col">
-            {/* Results */}
-            {loading ? (
-              <div className="flex justify-center items-center py-12">
-                <div className={flex.row}>
-                  <Loader2 className="w-5 h-5 animate-spin text-primary-600" />
-                  <span className={cn(typography.body, 'text-text-tertiary')}>
-                    {t('marketplace.loadingPlans')}
-                  </span>
-                </div>
-              </div>
-            ) : filteredPlans.length === 0 ? (
-              <Card variant="default" className="p-8 text-center max-w-md mx-auto">
-                <Search size={48} className="mx-auto text-text-tertiary mb-4" />
-                <h3 className={cn(typography.h3, 'mb-2')}>
-                  {t('marketplace.noResults')}
-                </h3>
-                <p className={cn(typography.body, 'text-text-tertiary mb-4')}>
-                  {t('marketplace.noResultsDescription')}
-                </p>
-                <Button onClick={clearFilters} variant="secondary">
-                  {t('marketplace.filters.resetFilters')}
-                </Button>
-              </Card>
-            ) : (
-              <>
-                {/* Results Count */}
-                <div className="mb-4">
-                  <p className={cn(typography.bodySmall, 'text-text-tertiary')}>
-                    {selectedIntensities.length > 0 && runnerProfile
-                      ? `${filteredPlans.length} von ${total} Plänen (gefiltert nach Intensität)`
-                      : t('marketplace.resultsCount', { count: total })}
-                  </p>
-                </div>
-
-                {/* Plans Table */}
-                <MarketplacePlansTable
-                  plans={filteredPlans}
+        <div className="container mx-auto px-6 max-w-[1600px] flex-1">
+          <div className="flex gap-8 py-8 h-full">
+            {/* Filter Sidebar (Desktop) */}
+            <aside className="hidden lg:block w-80 flex-shrink-0">
+              <div className="sticky top-32 h-[calc(100vh-180px)] shadow-xl shadow-slate-900/5">
+                <FilterSidebar
+                  selectedDistances={selectedDistances}
+                  onDistanceToggle={toggleDistance}
+                  selectedIntensities={selectedIntensities}
+                  onIntensityToggle={toggleIntensity}
                   runnerProfile={runnerProfile || undefined}
+                  targetTimeRange={targetTimeRange}
+                  onTargetTimeChange={setTargetTimeRange}
+                  selectedTags={selectedTags}
+                  onTagToggle={toggleTag}
+                  availableTags={PREDEFINED_TAGS}
+                  onApply={handleSearch}
+                  onClear={clearFilters}
                 />
+              </div>
+            </aside>
 
-                {/* Pagination */}
-                {total > (filters.page_size || 12) && (
-                  <div className="mt-8 flex justify-center gap-2">
-                    <Button
-                      onClick={() => setFilters({ ...filters, page: (filters.page || 1) - 1 })}
-                      disabled={filters.page === 1}
-                      variant="secondary"
-                    >
-                      {t('marketplace.pagination.previous')}
-                    </Button>
-                    <span className={cn(typography.body, 'px-4 py-2')}>
-                      {t('marketplace.page', { current: filters.page, total: Math.ceil(total / (filters.page_size || 12)) })}
-                    </span>
-                    <Button
-                      onClick={() => setFilters({ ...filters, page: (filters.page || 1) + 1 })}
-                      disabled={
-                        filters.page === Math.ceil(total / (filters.page_size || 12))
-                      }
-                      variant="secondary"
-                    >
-                      {t('marketplace.pagination.next')}
-                    </Button>
+            {/* Main Content */}
+            <main className="flex-1 min-w-0 flex flex-col">
+              {/* Results Header */}
+              {!loading && filteredPlans.length > 0 && (
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900">
+                      {selectedIntensities.length > 0 && runnerProfile
+                        ? `${filteredPlans.length} von ${total} Plänen`
+                        : t('marketplace.resultsCount', { count: total })}
+                    </h2>
+                    {selectedIntensities.length > 0 && runnerProfile && (
+                      <p className="text-sm text-slate-600 mt-0.5">
+                        Gefiltert nach deiner Intensität
+                      </p>
+                    )}
                   </div>
-                )}
-              </>
-            )}
-          </main>
+                </div>
+              )}
+
+              {/* Results */}
+              {loading ? (
+                <div className="flex justify-center items-center py-20">
+                  <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                    <span className="text-sm font-medium text-slate-600">
+                      {t('marketplace.loadingPlans')}
+                    </span>
+                  </div>
+                </div>
+              ) : filteredPlans.length === 0 ? (
+                <div className="flex items-center justify-center py-20">
+                  <Card variant="default" className="p-12 text-center max-w-md bg-white shadow-xl">
+                    <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
+                      <Search size={32} className="text-slate-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">
+                      {t('marketplace.noResults')}
+                    </h3>
+                    <p className="text-sm text-slate-600 mb-6">
+                      {t('marketplace.noResultsDescription')}
+                    </p>
+                    <Button onClick={clearFilters} variant="secondary" className="px-6">
+                      {t('marketplace.filters.resetFilters')}
+                    </Button>
+                  </Card>
+                </div>
+              ) : (
+                <>
+                  {/* Plans Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                    {filteredPlans.map((plan, index) => (
+                      <div
+                        key={plan.id}
+                        style={{
+                          animation: `fadeInUp 0.4s ease-out ${index * 0.05}s both`,
+                        }}
+                      >
+                        <PlanCard
+                          plan={plan}
+                          runnerProfile={runnerProfile || undefined}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {total > (filters.page_size || 12) && (
+                    <div className="mt-4 flex justify-center items-center gap-3 pb-8">
+                      <Button
+                        onClick={() => setFilters({ ...filters, page: (filters.page || 1) - 1 })}
+                        disabled={filters.page === 1}
+                        variant="secondary"
+                        className="px-6"
+                      >
+                        {t('marketplace.pagination.previous')}
+                      </Button>
+                      <div className="px-6 py-2 bg-white rounded-xl border border-gray-200 shadow-sm">
+                        <span className="text-sm font-bold text-slate-900">
+                          Seite {filters.page} von {Math.ceil(total / (filters.page_size || 12))}
+                        </span>
+                      </div>
+                      <Button
+                        onClick={() => setFilters({ ...filters, page: (filters.page || 1) + 1 })}
+                        disabled={filters.page === Math.ceil(total / (filters.page_size || 12))}
+                        variant="secondary"
+                        className="px-6"
+                      >
+                        {t('marketplace.pagination.next')}
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
+            </main>
           </div>
         </div>
       </div>
+
+      {/* CSS Animation Keyframes */}
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

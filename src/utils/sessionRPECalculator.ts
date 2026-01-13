@@ -225,13 +225,20 @@ function calculateIntervalRPE(
     avgRPE += 0.3; // High volume
   }
 
-  // Factor in warm-up and cool-down (reduces overall session intensity slightly)
+  // The RPE score should reflect the HARD WORK of the intervals
+  // Warm-up and cool-down are just preparation/recovery, not the main stress
+  // Don't dilute the interval RPE too much with warm-up/cool-down
+
+  // Only slightly reduce RPE if warm-up/cool-down are very long compared to intervals
   const totalDistance = totalIntervalVolume + (warmUp || 0) + (coolDown || 0);
   const intervalPercentage = totalIntervalVolume / totalDistance;
 
-  // If intervals are smaller portion of total, average down the RPE
-  // Assumes warm-up/cool-down at easy pace (RPE ~3)
-  avgRPE = avgRPE * intervalPercentage + 3 * (1 - intervalPercentage);
+  // If intervals are less than 40% of total session, slightly reduce RPE
+  // But never reduce by more than 1 point - the intervals are still the key stress
+  if (intervalPercentage < 0.4) {
+    const reductionFactor = Math.max(0.85, intervalPercentage / 0.4); // Max 15% reduction
+    avgRPE = avgRPE * reductionFactor;
+  }
 
   return Math.min(10, avgRPE);
 }
@@ -495,4 +502,20 @@ export function calculateWeeklyAverageRPE(
   }
 
   return totalDistance > 0 ? totalWeightedRPE / totalDistance : 0;
+}
+
+/**
+ * Convert RPE score to intensity level category
+ * Used for weekly intensity distribution analysis
+ */
+export function getIntensityLevelFromRPE(rpe: number): 'easy' | 'moderate' | 'hard' | 'very_hard' {
+  if (rpe < 4) {
+    return 'easy';
+  } else if (rpe < 6) {
+    return 'moderate';
+  } else if (rpe < 8) {
+    return 'hard';
+  } else {
+    return 'very_hard';
+  }
 }

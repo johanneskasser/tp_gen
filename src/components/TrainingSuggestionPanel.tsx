@@ -8,6 +8,8 @@ import { analyzeWeekIntensity } from '../utils/intensityAnalyzer';
 import { TrainingDataCollector } from '../utils/trainingDataCollector';
 import { Lightbulb, TrendingUp, Target, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { getSessionTypeLabel } from '../constants/sessionTypes';
+import { useRunnerProfile } from '../contexts/RunnerProfileContext';
+import { calculateTrainingZones, getBestVDOT } from '../utils/vdotCalculator';
 
 interface Props {
   plan: TrainingPlan;
@@ -26,13 +28,23 @@ export function TrainingSuggestionPanel({
   dayOfWeek,
   onAcceptSuggestion,
 }: Props) {
+  const { runnerProfile } = useRunnerProfile();
   const [suggestions, setSuggestions] = useState<TrainingSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
 
   // Generate suggestions
   const handleGetSuggestions = () => {
-    const engine = new TrainingSuggestionEngine(plan, currentWeek);
+    // Get training zones for dynamic RPE-based suggestions
+    let zones;
+    if (runnerProfile) {
+      const vdot = runnerProfile.vdot || getBestVDOT(runnerProfile.personalBests || []);
+      if (vdot > 0) {
+        zones = calculateTrainingZones(vdot);
+      }
+    }
+
+    const engine = new TrainingSuggestionEngine(plan, currentWeek, zones);
 
     if (dayOfWeek !== undefined) {
       // Suggestions for specific day

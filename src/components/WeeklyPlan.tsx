@@ -8,6 +8,8 @@ import { calculateSessionDistance } from '../utils/calculationUtils';
 import { generateSessionTitle } from '../utils/titleGenerator';
 import { TrainingSuggestionPanel } from './TrainingSuggestionPanel';
 import { analyzeWeekIntensity } from '../utils/intensityAnalyzer';
+import { useRunnerProfile } from '../contexts/RunnerProfileContext';
+import { calculateTrainingZones, getBestVDOT } from '../utils/vdotCalculator';
 
 interface WeeklyPlanProps {
   week: TrainingWeek;
@@ -22,6 +24,7 @@ export default function WeeklyPlan({
   onUpdate,
   plan,
 }: WeeklyPlanProps) {
+  const { runnerProfile } = useRunnerProfile();
   const [isExpanded, setIsExpanded] = useState(weekIndex === 0);
   const [editingSession, setEditingSession] = useState<TrainingSession | null>(null);
   const [editingExistingSession, setEditingExistingSession] = useState(false);
@@ -131,8 +134,17 @@ export default function WeeklyPlan({
   const startDayOfWeek = week.startDayOfWeek ?? 0; // Default to Monday if not set
   const daysToShow = Array.from({ length: 7 }, (_, i) => (startDayOfWeek + i) % 7);
 
-  // Calculate intensity distribution for the week
-  const intensityDist = analyzeWeekIntensity(week.sessions);
+  // Calculate training zones from runner profile for dynamic RPE-based intensity analysis
+  let zones;
+  if (runnerProfile) {
+    const vdot = runnerProfile.vdot || getBestVDOT(runnerProfile.personalBests || []);
+    if (vdot > 0) {
+      zones = calculateTrainingZones(vdot);
+    }
+  }
+
+  // Calculate intensity distribution for the week (using dynamic RPE if zones available)
+  const intensityDist = analyzeWeekIntensity(week.sessions, zones);
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">

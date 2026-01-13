@@ -1287,8 +1287,8 @@ export default function SessionEditor({
                         className="fixed inset-0 z-40"
                         onClick={() => setShowRPEInfo(false)}
                       />
-                      <div className="absolute right-0 top-8 z-50 w-80 bg-white border-2 border-slate-300 rounded-lg shadow-xl p-4 text-slate-800">
-                        <div className="space-y-3 text-xs">
+                      <div className="absolute right-0 top-8 z-50 w-80 max-h-[70vh] bg-white border-2 border-slate-300 rounded-lg shadow-xl text-slate-800 overflow-hidden flex flex-col">
+                        <div className="overflow-y-auto p-4 space-y-3 text-xs">
                           <div>
                             <h4 className="font-bold text-sm mb-2">Wie wird die RPE berechnet?</h4>
                             <p className="mb-2">

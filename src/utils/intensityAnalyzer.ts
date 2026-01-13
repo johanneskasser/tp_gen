@@ -2,6 +2,8 @@ import { TrainingSession, SessionType } from '../types';
 import { IntensityDistribution, IntensityLevel } from '../types/suggestions';
 import { SESSION_CHARACTERISTICS, getSessionIntensityScore } from '../config/sessionCharacteristics';
 import { calculateSessionDistance } from './calculationUtils';
+import { TrainingZones } from '../types/userProfile';
+import { calculateSessionRPE, getIntensityLevelFromRPE } from './sessionRPECalculator';
 
 /**
  * Intensity Distribution Analyzer
@@ -11,9 +13,11 @@ import { calculateSessionDistance } from './calculationUtils';
 export class IntensityAnalyzer {
   private sessions: TrainingSession[];
   private totalDistance: number;
+  private zones?: TrainingZones; // Optional: for dynamic RPE calculation
 
-  constructor(sessions: TrainingSession[]) {
+  constructor(sessions: TrainingSession[], zones?: TrainingZones) {
     this.sessions = sessions;
+    this.zones = zones;
     this.totalDistance = sessions.reduce(
       (sum, s) => sum + calculateSessionDistance(s),
       0
@@ -45,6 +49,7 @@ export class IntensityAnalyzer {
 
   /**
    * Calculate current intensity distribution by distance
+   * Uses dynamic RPE if zones are available, otherwise falls back to session type
    */
   private calculateDistribution(): {
     easy: number;
@@ -61,7 +66,15 @@ export class IntensityAnalyzer {
 
     for (const session of this.sessions) {
       const distance = calculateSessionDistance(session);
-      const level = this.getSessionIntensityLevel(session.type);
+
+      // Use dynamic RPE calculation if zones are available
+      let level: IntensityLevel;
+      if (this.zones) {
+        const rpe = calculateSessionRPE(session, this.zones);
+        level = getIntensityLevelFromRPE(rpe);
+      } else {
+        level = this.getSessionIntensityLevel(session.type);
+      }
 
       switch (level) {
         case 'easy':
@@ -177,16 +190,22 @@ export class IntensityAnalyzer {
     preferHard: boolean;
     reasoning: string;
   } {
-    // Analyze current week so far
-    const weekAnalyzer = new IntensityAnalyzer(existingWeekSessions);
+    // Analyze current week so far (pass zones if available)
+    const weekAnalyzer = new IntensityAnalyzer(existingWeekSessions, this.zones);
     const weekDist = weekAnalyzer.calculateDistribution();
     const target = this.getTargetDistribution();
 
-    const hardSessions = existingWeekSessions.filter(
-      (s) =>
-        this.getSessionIntensityLevel(s.type) === 'hard' ||
-        this.getSessionIntensityLevel(s.type) === 'very_hard'
-    ).length;
+    // Count hard sessions using dynamic RPE if zones available
+    const hardSessions = existingWeekSessions.filter((s) => {
+      if (this.zones) {
+        const rpe = calculateSessionRPE(s, this.zones);
+        const level = getIntensityLevelFromRPE(rpe);
+        return level === 'hard' || level === 'very_hard';
+      } else {
+        const level = this.getSessionIntensityLevel(s.type);
+        return level === 'hard' || level === 'very_hard';
+      }
+    }).length;
 
     // Never more than 2-3 hard sessions per week
     if (hardSessions >= 2) {
@@ -227,15 +246,24 @@ export class IntensityAnalyzer {
 
   /**
    * Calculate intensity score for a week (0-100)
+   * Uses dynamic RPE if zones are available, otherwise falls back to session type
    */
   calculateWeeklyIntensityScore(sessions: TrainingSession[]): number {
     if (sessions.length === 0) return 0;
 
     let totalScore = 0;
     for (const session of sessions) {
-      const baseScore = getSessionIntensityScore(session);
+      // Use dynamic RPE if zones are available
+      let sessionScore: number;
+      if (this.zones) {
+        const rpe = calculateSessionRPE(session, this.zones);
+        sessionScore = rpe; // RPE is 1-10
+      } else {
+        sessionScore = getSessionIntensityScore(session); // Fallback to static score
+      }
+
       const distance = calculateSessionDistance(session);
-      totalScore += baseScore * distance;
+      totalScore += sessionScore * distance;
     }
 
     const totalDistance = sessions.reduce(
@@ -292,24 +320,28 @@ export class IntensityAnalyzer {
 
 /**
  * Quick helper to analyze week intensity
+ * Pass zones for dynamic RPE-based analysis, or omit for session-type-based analysis
  */
 export function analyzeWeekIntensity(
-  sessions: TrainingSession[]
+  sessions: TrainingSession[],
+  zones?: TrainingZones
 ): IntensityDistribution {
-  const analyzer = new IntensityAnalyzer(sessions);
+  const analyzer = new IntensityAnalyzer(sessions, zones);
   return analyzer.analyzeDistribution();
 }
 
 /**
  * Get recommended session type based on weekly balance
+ * Pass zones for dynamic RPE-based analysis, or omit for session-type-based analysis
  */
 export function getIntensityRecommendation(
-  weekSessions: TrainingSession[]
+  weekSessions: TrainingSession[],
+  zones?: TrainingZones
 ): {
   preferEasy: boolean;
   preferHard: boolean;
   reasoning: string;
 } {
-  const analyzer = new IntensityAnalyzer(weekSessions);
+  const analyzer = new IntensityAnalyzer(weekSessions, zones);
   return analyzer.getRecommendedSessionType(weekSessions);
 }

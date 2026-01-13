@@ -1,9 +1,10 @@
-import { TrainingSession, SessionType, TrainingPlan } from '../types';
+import { TrainingSession, TrainingPlan } from '../types';
 import { UserProfile, PlanDifficulty, TrainingZones } from '../types/userProfile';
 import { calculateTrainingZones, getBestVDOT } from './vdotCalculator';
 import { SESSION_CHARACTERISTICS } from '../config/sessionCharacteristics';
 import { calculateSessionDistance } from './calculationUtils';
 import { IntensityAnalyzer } from './intensityAnalyzer';
+import { calculateSessionRPE } from './sessionRPECalculator';
 
 /**
  * Personalized Intensity Calculator
@@ -20,113 +21,32 @@ import { IntensityAnalyzer } from './intensityAnalyzer';
  * - 50-70: Moderate
  * - 70-85: Hard
  * - 85-100: Very hard/maximum
+ *
+ * NOW USES DYNAMIC RPE CALCULATION!
  */
 export function calculateRelativeIntensity(
   session: TrainingSession,
   userProfile: UserProfile
 ): number {
   // If no user profile or VDOT, fall back to generic intensity
-  if (!userProfile.vdot && userProfile.personalBests.length === 0) {
+  if (!userProfile.vdot && (!userProfile.personalBests || userProfile.personalBests.length === 0)) {
     return SESSION_CHARACTERISTICS[session.type].intensityScore * 10;
   }
 
-  // Get user's VDOT
+  // Get user's VDOT and training zones
   const vdot = userProfile.vdot || getBestVDOT(userProfile.personalBests);
   const zones = calculateTrainingZones(vdot);
 
-  // Calculate intensity based on session type and user's zones
-  const baseIntensity = getBaseIntensityForType(session.type);
+  // Use the dynamic RPE calculation (1-10 scale)
+  const rpe = calculateSessionRPE(session, zones);
 
-  // Adjust based on session specifics (pace, distance, intervals)
-  const adjustedIntensity = adjustIntensityForSessionDetails(
-    session,
-    zones,
-    baseIntensity
-  );
-
-  return Math.min(100, Math.max(0, adjustedIntensity));
+  // Convert RPE (1-10) to 0-100 scale
+  // RPE 1 = 10, RPE 5 = 50, RPE 10 = 100
+  return rpe * 10;
 }
 
-/**
- * Get base intensity for session type relative to training zones
- */
-function getBaseIntensityForType(type: SessionType): number {
-  switch (type) {
-    case 'recovery':
-      return 15; // Very easy
-    case 'easy':
-      return 35; // Easy
-    case 'long':
-      return 50; // Moderate (easy pace but longer)
-    case 'strides':
-      return 45; // Moderate
-    case 'strength':
-      return 40; // Moderate
-    case 'tempo':
-      return 75; // Hard (threshold pace)
-    case 'progression':
-      return 65; // Moderate-hard
-    case 'fartlek':
-      return 70; // Hard
-    case 'intervals':
-      return 90; // Very hard (VO2max pace)
-    case 'hill_repeats':
-      return 85; // Very hard
-    case 'plyometrics':
-      return 70; // Hard
-    case 'race':
-      return 95; // Maximum
-    default:
-      return 50;
-  }
-}
-
-/**
- * Adjust intensity based on session details
- * E.g., a long run at easy pace but 30km is harder than 10km
- */
-function adjustIntensityForSessionDetails(
-  session: TrainingSession,
-  _zones: TrainingZones,
-  baseIntensity: number
-): number {
-  let intensity = baseIntensity;
-
-  const distance = calculateSessionDistance(session);
-
-  // Distance multiplier (longer = harder, exponentially)
-  if (distance > 0) {
-    if (distance > 25) {
-      intensity += 10; // Very long runs are significantly harder
-    } else if (distance > 18) {
-      intensity += 5;
-    } else if (distance > 15) {
-      intensity += 2;
-    }
-  }
-
-  // Duration consideration for time-based sessions
-  if (session.duration && session.duration > 90) {
-    intensity += 5; // Long duration increases intensity
-  }
-
-  // Interval specifics
-  if (session.intervals && session.intervals.length > 0) {
-    const totalIntervalKm = session.intervals.reduce(
-      (sum, interval) => sum + (interval.distance || 0) * (interval.repetitions || 1),
-      0
-    );
-
-    // More interval volume = harder
-    if (totalIntervalKm > 8) {
-      intensity += 10;
-    } else if (totalIntervalKm > 5) {
-      intensity += 5;
-    }
-  }
-
-  return intensity;
-}
+// REMOVED: Old getBaseIntensityForType and adjustIntensityForSessionDetails functions
+// Now using dynamic RPE calculation instead!
 
 /**
  * Calculate weekly intensity score relative to user fitness
@@ -170,12 +90,26 @@ export function calculatePlanDifficulty(
   const peakWeekKm = Math.max(...plan.weeks.map(w => w.totalKm));
   const avgWeeklyKm = plan.weeks.reduce((sum, w) => sum + w.totalKm, 0) / totalWeeks;
 
-  // Calculate hard sessions per week
+  // Calculate training zones for dynamic RPE analysis
+  let zones: TrainingZones | undefined;
+  if (userProfile.vdot || (userProfile.personalBests && userProfile.personalBests.length > 0)) {
+    const vdot = userProfile.vdot || getBestVDOT(userProfile.personalBests);
+    zones = calculateTrainingZones(vdot);
+  }
+
+  // Calculate hard sessions per week using dynamic RPE
   let totalHardSessions = 0;
   for (const week of plan.weeks) {
     const hardSessions = week.sessions.filter(s => {
-      const char = SESSION_CHARACTERISTICS[s.type];
-      return char.intensityLevel === 'hard' || char.intensityLevel === 'very_hard';
+      if (zones) {
+        // Use dynamic RPE calculation
+        const rpe = calculateSessionRPE(s, zones);
+        return rpe >= 6; // RPE 6+ is considered "hard"
+      } else {
+        // Fallback to static characteristics
+        const char = SESSION_CHARACTERISTICS[s.type];
+        return char.intensityLevel === 'hard' || char.intensityLevel === 'very_hard';
+      }
     }).length;
     totalHardSessions += hardSessions;
   }
@@ -211,9 +145,9 @@ export function calculatePlanDifficulty(
   // Intensity rating (based on hard sessions per week and intensity distribution)
   let intensityRating = 50;
 
-  // Analyze overall intensity
+  // Analyze overall intensity using dynamic RPE
   const allSessions = plan.weeks.flatMap(w => w.sessions);
-  const intensityAnalyzer = new IntensityAnalyzer(allSessions);
+  const intensityAnalyzer = new IntensityAnalyzer(allSessions, zones); // Pass zones for dynamic RPE
   const intensityDist = intensityAnalyzer.analyzeDistribution();
 
   if (intensityDist.current.hard > 0.25) {

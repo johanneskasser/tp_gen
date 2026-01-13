@@ -6,6 +6,8 @@ import { IntensityAnalyzer, getIntensityRecommendation } from './intensityAnalyz
 import { SESSION_CHARACTERISTICS } from '../config/sessionCharacteristics';
 import { getRaceDistanceKm } from './calculationUtils';
 import { calculatePace } from './paceCalculator';
+import { TrainingZones } from '../types/userProfile';
+import { calculateSessionRPE } from './sessionRPECalculator';
 
 /**
  * Main Training Suggestion Engine
@@ -15,8 +17,10 @@ import { calculatePace } from './paceCalculator';
 export class TrainingSuggestionEngine {
   private context: TrainingContext;
   private volumeAnalyzer: VolumeProgressionAnalyzer;
+  private zones?: TrainingZones; // Optional: for dynamic RPE-based suggestions
 
-  constructor(plan: TrainingPlan, currentWeek: TrainingWeek) {
+  constructor(plan: TrainingPlan, currentWeek: TrainingWeek, zones?: TrainingZones) {
+    this.zones = zones;
     this.context = this.buildContext(plan, currentWeek);
     this.volumeAnalyzer = new VolumeProgressionAnalyzer(plan, currentWeek.weekNumber);
   }
@@ -65,12 +69,20 @@ export class TrainingSuggestionEngine {
     const weekSessions = currentWeek.sessions;
     const weeklyKm = currentWeek.totalKm;
 
-    const weekIntensityAnalyzer = new IntensityAnalyzer(weekSessions);
+    // Use dynamic RPE if zones available
+    const weekIntensityAnalyzer = new IntensityAnalyzer(weekSessions, this.zones);
     const weeklyIntensityScore = weekIntensityAnalyzer.calculateWeeklyIntensityScore(weekSessions);
 
     const hardSessionsThisWeek = weekSessions.filter((s) => {
-      const char = SESSION_CHARACTERISTICS[s.type];
-      return char.intensityLevel === 'hard' || char.intensityLevel === 'very_hard';
+      if (this.zones) {
+        // Use dynamic RPE
+        const rpe = calculateSessionRPE(s, this.zones);
+        return rpe >= 6; // RPE 6+ is hard
+      } else {
+        // Fallback to static
+        const char = SESSION_CHARACTERISTICS[s.type];
+        return char.intensityLevel === 'hard' || char.intensityLevel === 'very_hard';
+      }
     }).length;
 
     // Recent patterns
@@ -79,8 +91,13 @@ export class TrainingSuggestionEngine {
       .map((s) => s.type);
 
     const hardSessions = weekSessions.filter((s) => {
-      const char = SESSION_CHARACTERISTICS[s.type];
-      return char.intensityLevel === 'hard' || char.intensityLevel === 'very_hard';
+      if (this.zones) {
+        const rpe = calculateSessionRPE(s, this.zones);
+        return rpe >= 6;
+      } else {
+        const char = SESSION_CHARACTERISTICS[s.type];
+        return char.intensityLevel === 'hard' || char.intensityLevel === 'very_hard';
+      }
     });
     const lastHardSessionDay =
       hardSessions.length > 0

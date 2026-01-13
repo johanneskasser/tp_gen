@@ -120,7 +120,7 @@ Der **Trainingsplan Generator** ist eine moderne Web-Anwendung für Läufer, die
 
 ### 1. Repository klonen
 ```bash
-git clone https://github.com/yourusername/trainingsplan_generator.git
+git clone https://github.com/johanneskasser/trainingsplan_generator.git
 cd trainingsplan_generator
 ```
 
