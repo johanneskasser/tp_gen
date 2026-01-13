@@ -30,6 +30,16 @@ export function PlanCard({ plan, runnerProfile }: PlanCardProps) {
 
   const getDistanceLabel = () => {
     const distance = plan.plan_data?.event?.distance;
+    const customDistance = plan.plan_data?.event?.customDistance;
+
+    // Handle string distance types
+    if (distance === '5K') return '5K';
+    if (distance === '10K') return '10K';
+    if (distance === 'HM') return t('marketplace.distance.halfMarathon');
+    if (distance === 'M') return t('marketplace.distance.marathon');
+    if (distance === 'CUSTOM' && customDistance) return `${customDistance} km`;
+
+    // Fallback for legacy numeric format
     if (typeof distance === 'number') {
       if (distance === 5) return '5K';
       if (distance === 10) return '10K';
@@ -37,7 +47,8 @@ export function PlanCard({ plan, runnerProfile }: PlanCardProps) {
       if (distance === 42.195) return t('marketplace.distance.marathon');
       return `${distance} km`;
     }
-    return distance || 'N/A';
+
+    return 'N/A';
   };
 
   const getDuration = () => {

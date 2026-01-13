@@ -27,6 +27,8 @@ export const marketplaceService = {
       search,
       tags,
       distance,
+      target_time_min,
+      target_time_max,
       from_following,
       creator_id,
       sort_by = 'recent',
@@ -81,18 +83,6 @@ export const marketplaceService = {
       query = query.contains('tags', tags);
     }
 
-    // Distance filter
-    if (distance && distance.length === 2) {
-      // Filter by distance in plan_data JSON
-      // Note: This is a simplified approach. For production, consider indexing distance.
-      query = query.gte('plan_data->event->>distance', distance[0].toString());
-      query = query.lte('plan_data->event->>distance', distance[1].toString());
-    }
-
-    // Duration filter
-    // Note: This requires calculating weeks count from plan_data
-    // For now, we'll fetch and filter in memory
-
     // Sorting
     switch (sort_by) {
       case 'popular':
@@ -111,14 +101,70 @@ export const marketplaceService = {
         query = query.order('published_at', { ascending: false });
     }
 
-    // Pagination
-    const from = (page - 1) * page_size;
-    const to = from + page_size - 1;
-    query = query.range(from, to);
-
-    const { data, error, count } = await query;
+    // Execute query without pagination first (we'll filter in memory)
+    const { data: allData, error } = await query;
 
     if (error) throw error;
+
+    // Apply client-side filters for JSON fields
+    let filteredData = allData || [];
+
+    // Distance filter - filter by specific distances
+    if (distance && distance.length > 0) {
+      filteredData = filteredData.filter((plan) => {
+        const planData = plan.plan_data as any as TrainingPlan;
+        const planDistance = planData?.event?.distance;
+        const customDistance = planData?.event?.customDistance;
+
+        // Map string distance to number for comparison
+        let numericDistance: number | null = null;
+
+        if (planDistance === '5K') {
+          numericDistance = 5;
+        } else if (planDistance === '10K') {
+          numericDistance = 10;
+        } else if (planDistance === 'HM') {
+          numericDistance = 21.0975;
+        } else if (planDistance === 'M') {
+          numericDistance = 42.195;
+        } else if (planDistance === 'CUSTOM' && typeof customDistance === 'number') {
+          numericDistance = customDistance;
+        }
+
+        if (numericDistance !== null) {
+          return distance.includes(numericDistance);
+        }
+
+        return false;
+      });
+    }
+
+    // Target time filter - convert time string to minutes and filter
+    if (target_time_min !== undefined || target_time_max !== undefined) {
+      filteredData = filteredData.filter((plan) => {
+        const planData = plan.plan_data as any as TrainingPlan;
+        const targetTime = planData?.event?.targetTime;
+        if (!targetTime) return false;
+
+        // Parse time string (e.g., "3:30:00" or "45:00")
+        const timeMinutes = this.parseTimeToMinutes(targetTime);
+        if (timeMinutes === null) return false;
+
+        if (target_time_min !== undefined && timeMinutes < target_time_min) {
+          return false;
+        }
+        if (target_time_max !== undefined && timeMinutes > target_time_max) {
+          return false;
+        }
+        return true;
+      });
+    }
+
+    // Apply pagination after filtering
+    const total = filteredData.length;
+    const from = (page - 1) * page_size;
+    const to = from + page_size;
+    const data = filteredData.slice(from, to);
 
     // Get unique user IDs for public plans
     const publicPlanUserIds = (data || [])
@@ -158,8 +204,35 @@ export const marketplaceService = {
 
     return {
       plans: plansWithStats as unknown as MarketplacePlan[],
-      total: count || 0,
+      total,
     };
+  },
+
+  /**
+   * Helper function to parse time string to minutes
+   * Supports formats like "3:30:00", "45:00", "1:30"
+   */
+  parseTimeToMinutes(timeString: string): number | null {
+    if (!timeString) return null;
+
+    const parts = timeString.split(':').map((p) => parseInt(p, 10));
+
+    if (parts.length === 3) {
+      // Format: HH:MM:SS
+      const [hours, minutes, seconds] = parts;
+      return hours * 60 + minutes + (seconds / 60);
+    } else if (parts.length === 2) {
+      // Format: MM:SS or HH:MM
+      const [first, second] = parts;
+      // Assume HH:MM if first part > 60, otherwise MM:SS
+      if (first > 60) {
+        return first * 60 + second;
+      } else {
+        return first + (second / 60);
+      }
+    }
+
+    return null;
   },
 
   /**
