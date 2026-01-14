@@ -18,23 +18,23 @@ Für jedes Template (confirm-signup, magic-link, recovery, email-change):
 
 #### Bestätigungs-Email (confirm-signup.html)
 **Template:** Confirm signup
-**Subject (DE):** Bestätige deine E-Mail für Trainingsplan Generator
-**Subject (EN):** Confirm your email for Training Plan Generator
+**Subject (DE):** Bestätige deine E-Mail für zenit-it
+**Subject (EN):** Confirm your email for zenit-it
 
 #### Magic Link (magic-link.html)
 **Template:** Magic Link
-**Subject (DE):** Dein Anmelde-Link für Trainingsplan Generator
-**Subject (EN):** Your sign-in link for Training Plan Generator
+**Subject (DE):** Dein Anmelde-Link für zenit-it
+**Subject (EN):** Your sign-in link for zenit-it
 
 #### Passwort zurücksetzen (recovery.html)
 **Template:** Reset Password
-**Subject (DE):** Passwort zurücksetzen - Trainingsplan Generator
-**Subject (EN):** Reset your password - Training Plan Generator
+**Subject (DE):** Passwort zurücksetzen - zenit-it
+**Subject (EN):** Reset your password - zenit-it
 
 #### E-Mail ändern (email-change.html)
 **Template:** Change Email Address
-**Subject (DE):** E-Mail-Adresse bestätigen - Trainingsplan Generator
-**Subject (EN):** Confirm email address - Training Plan Generator
+**Subject (DE):** E-Mail-Adresse bestätigen - zenit-it
+**Subject (EN):** Confirm email address - zenit-it
 
 ### 3. Verfügbare Variablen
 

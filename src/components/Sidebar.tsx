@@ -73,7 +73,7 @@ export function Sidebar({ isCollapsed, isMobile = false }: SidebarProps) {
       <div className="border-b border-border-light">
         <div className={cn('flex items-center px-4 h-[72px]', isCollapsed ? 'justify-center' : 'justify-start')}>
           <img
-            src="/img.png"
+            src="/zenit-it_black.png"
             alt="Logo"
             className={cn(
               'transition-all duration-300',

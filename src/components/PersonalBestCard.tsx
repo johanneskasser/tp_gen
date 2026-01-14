@@ -72,7 +72,6 @@ export function PersonalBestCard({
           initialValue={personalBest}
           onSave={handleSave}
           onCancel={() => setIsEditing(false)}
-          mode="edit"
           saveButtonText="Änderungen speichern"
         />
       </div>

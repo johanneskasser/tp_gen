@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="public/img.png" alt="Trainingsplan Generator Logo" width="200"/>
+  <img src="public/zenit-it_black.png" alt="zenit-it Logo" width="200"/>
 
-  # Trainingsplan Generator
+  # zenit-it
 
   **Erstelle, verwalte und teile personalisierte Trainingspläne für Läufer**
 
@@ -18,7 +18,7 @@
 
 ## 📖 Über das Projekt
 
-Der **Trainingsplan Generator** ist eine moderne Web-Anwendung für Läufer, die ihre Trainingspläne selbst erstellen, verwalten und mit der Community teilen möchten. Von 5K bis Marathon – erstelle individuelle Pläne mit verschiedenen Trainingseinheiten, exportiere sie als PDF oder JSON, und entdecke Pläne von anderen Läufern im integrierten Marktplatz.
+Der **zenit-it** ist eine moderne Web-Anwendung für Läufer, die ihre Trainingspläne selbst erstellen, verwalten und mit der Community teilen möchten. Von 5K bis Marathon – erstelle individuelle Pläne mit verschiedenen Trainingseinheiten, exportiere sie als PDF oder JSON, und entdecke Pläne von anderen Läufern im integrierten Marktplatz.
 
 ### 🎯 Hauptziele
 
@@ -340,6 +340,6 @@ Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe [LICENSE](LICENSE) f�
 
   **Erstellt mit ❤️ für die Lauf-Community**
 
-  [⬆ Zurück nach oben](#trainingsplan-generator)
+  [⬆ Zurück nach oben](#zenit-it)
 
 </div>

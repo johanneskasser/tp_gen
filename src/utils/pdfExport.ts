@@ -319,7 +319,7 @@ export async function exportToPDF(plan: TrainingPlan) {
   doc.setFontSize(8);
   doc.setTextColor(128, 128, 128);
   doc.text(
-    `Erstellt mit Trainingsplan Generator am ${formatDate(new Date().toISOString().split('T')[0])}`,
+    `Erstellt mit zenit-it am ${formatDate(new Date().toISOString().split('T')[0])}`,
     pageWidth / 2,
     pageHeight - 10,
     { align: 'center' }

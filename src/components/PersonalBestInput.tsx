@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { PersonalBest } from '../types/userProfile';
 import { validateTimeInput, getTimeWarning } from '../utils/timeValidator';
-import { formatTimeInput, secondsToTimeString } from '../utils/timeInputFormatter';
 import { Check, X, AlertCircle, Calendar, Clock } from 'lucide-react';
 import { cn } from '../lib/designSystem';
 
@@ -9,7 +8,6 @@ interface PersonalBestInputProps {
   initialValue?: Partial<PersonalBest>;
   onSave: (pb: PersonalBest) => void;
   onCancel?: () => void;
-  mode?: 'add' | 'edit';
   saveButtonText?: string;
   showCancelButton?: boolean;
 }
@@ -26,7 +24,6 @@ export function PersonalBestInput({
   initialValue,
   onSave,
   onCancel,
-  mode = 'add',
   saveButtonText = 'Speichern',
   showCancelButton = true,
 }: PersonalBestInputProps) {

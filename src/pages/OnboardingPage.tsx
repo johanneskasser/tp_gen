@@ -421,7 +421,6 @@ export default function OnboardingPage() {
                   <PersonalBestInput
                     onSave={handleAddPB}
                     onCancel={() => setShowPBForm(false)}
-                    mode="add"
                   />
                 </div>
               )}

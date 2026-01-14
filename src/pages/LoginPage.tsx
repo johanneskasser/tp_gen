@@ -79,7 +79,7 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="mb-8">
             <img
-              src="/img.png"
+              src="/zenit-it_black.png"
               alt="Logo"
               className="h-32 w-32 drop-shadow-2xl"
             />
@@ -103,7 +103,7 @@ export default function LoginPage() {
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8">
             <img
-              src="/img.png"
+              src="/zenit-it_black.png"
               alt="Logo"
               className="h-20 w-20"
             />

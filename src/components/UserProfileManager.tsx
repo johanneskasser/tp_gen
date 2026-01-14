@@ -152,7 +152,6 @@ export function UserProfileManager({ profile, onUpdateProfile }: Props) {
             <PersonalBestInput
               onSave={handleAddPB}
               onCancel={() => setShowPBForm(false)}
-              mode="add"
             />
           </div>
         )}
