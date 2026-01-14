@@ -292,5 +292,110 @@
     "unauthorized": "Unauthorized",
     "forbidden": "Access denied",
     "serverError": "Server error. Please try again later."
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "roadmap": "Roadmap",
+      "login": "Sign In",
+      "getStarted": "Get Started Free"
+    },
+    "hero": {
+      "headline": "Create your personal training plan.",
+      "headlineAccent": "Free. Forever.",
+      "subheadline": "From 5K to marathon – plan, share, and export your training sessions. No paywall, no premium features, no commercialization.",
+      "ctaPrimary": "Start Free",
+      "ctaSecondary": "Watch Demo"
+    },
+    "features": {
+      "title": "Everything You Need",
+      "subtitle": "Professional training planning that's actually free",
+      "smartPlanning": {
+        "title": "Smart Planning",
+        "description": "VDOT-based training zones and personalized intensity calculations for optimal progress"
+      },
+      "exportAnywhere": {
+        "title": "Export Anywhere",
+        "description": "Export as PDF, JSON & FIT files for Garmin and other sports watches"
+      },
+      "marketplace": {
+        "title": "Community Marketplace",
+        "description": "Share and discover training plans with ratings, likes, and comments"
+      },
+      "autoSync": {
+        "title": "Always Synced",
+        "description": "Auto-save every 2 seconds and cloud storage – your plans are always safe"
+      }
+    },
+    "usp": {
+      "headline": "Running belongs to everyone.",
+      "headlineAccent": "Not just paying customers.",
+      "body": "We don't believe in gatekeeping and commercialization in running. This app was built by runners for runners – no hidden costs, no premium features, no data sales.",
+      "points": {
+        "noPaywall": "No paywall, no premium features",
+        "noAds": "No data sales, no advertising",
+        "openSource": "Open-source mindset, community-driven",
+        "forRunners": "Built by runners for runners"
+      }
+    },
+    "roadmap": {
+      "title": "What's Next",
+      "subtitle": "We're working on even more features for the community",
+      "comingSoon": "Coming Soon",
+      "smartwatchIntegration": {
+        "title": "Smartwatch Integration",
+        "description": "Direct sync with Garmin, Coros, Suunto, and Polar"
+      },
+      "aiPlanning": {
+        "title": "AI-Powered Planning",
+        "description": "Automatic plan generation based on your goals and fitness level"
+      },
+      "coaching": {
+        "title": "Coaching Features",
+        "description": "Coach-athlete system and group management for running clubs"
+      },
+      "mobileApps": {
+        "title": "Mobile Apps",
+        "description": "Native iOS & Android apps on the go"
+      }
+    },
+    "videos": {
+      "title": "See the App in Action",
+      "subtitle": "Learn how easy it is to create your perfect training plan",
+      "createPlan": {
+        "title": "Create a Plan",
+        "description": "From event configuration to weekly planning",
+        "duration": "2:30"
+      },
+      "browseMarketplace": {
+        "title": "Browse Marketplace",
+        "description": "Discover and clone plans from the community",
+        "duration": "1:45"
+      },
+      "watchVideo": "Watch Video"
+    },
+    "stats": {
+      "title": "Loved by the Community",
+      "plansCreated": "Plans Created",
+      "runners": "Runners",
+      "downloads": "Downloads",
+      "avgRating": "⭐ Average"
+    },
+    "finalCta": {
+      "headline": "Ready for your next running goal?",
+      "subheadline": "Start free and create your first training plan in minutes",
+      "cta": "Get Started Free",
+      "secondary": "Or browse marketplace"
+    },
+    "footer": {
+      "tagline": "Free training planning for all runners",
+      "madeWith": "Made with ❤️ for the running community",
+      "links": {
+        "about": "About",
+        "privacy": "Privacy",
+        "terms": "Terms",
+        "contact": "Contact"
+      }
+    }
   }
 }

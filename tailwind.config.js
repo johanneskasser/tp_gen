@@ -177,6 +177,8 @@ export default {
 
             fontFamily: {
                 sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                display: ['Outfit', 'sans-serif'],
+                body: ['Manrope', 'sans-serif'],
                 mono: ['JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'monospace'],
             },
 

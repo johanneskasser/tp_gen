@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { RunnerProfileProvider } from './contexts/RunnerProfileContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { ToastContainer } from './components/ui';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import Dashboard from './pages/Dashboard';
@@ -34,9 +35,15 @@ function AppRoutes() {
 
   return (
     <Routes>
-      {/* Public route - redirect to dashboard if already logged in */}
+      {/* Landing page - public route, redirect to dashboard if logged in */}
       <Route
         path="/"
+        element={user ? <Navigate to="/dashboard" replace /> : <LandingPage />}
+      />
+
+      {/* Login page - public route */}
+      <Route
+        path="/login"
         element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
       />
 

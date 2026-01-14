@@ -15,7 +15,7 @@ import {
   Loader2,
   Users,
 } from 'lucide-react';
-import { Button, Card, Input } from '../components/ui';
+import { Button, Card, Input, Pagination } from '../components/ui';
 import { cn } from '../lib/designSystem';
 import { useAuth } from '../contexts/AuthContext';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
@@ -399,29 +399,13 @@ export default function MarketplacePage() {
 
                   {/* Pagination */}
                   {total > (filters.page_size || 12) && (
-                    <div className="mt-4 flex justify-center items-center gap-3 pb-8">
-                      <Button
-                        onClick={() => setFilters({ ...filters, page: (filters.page || 1) - 1 })}
-                        disabled={filters.page === 1}
-                        variant="secondary"
-                        className="px-6"
-                      >
-                        {t('marketplace.pagination.previous')}
-                      </Button>
-                      <div className="px-6 py-2 bg-white rounded-xl border border-gray-200 shadow-sm">
-                        <span className="text-sm font-bold text-slate-900">
-                          Seite {filters.page} von {Math.ceil(total / (filters.page_size || 12))}
-                        </span>
-                      </div>
-                      <Button
-                        onClick={() => setFilters({ ...filters, page: (filters.page || 1) + 1 })}
-                        disabled={filters.page === Math.ceil(total / (filters.page_size || 12))}
-                        variant="secondary"
-                        className="px-6"
-                      >
-                        {t('marketplace.pagination.next')}
-                      </Button>
-                    </div>
+                    <Pagination
+                      currentPage={filters.page || 1}
+                      totalPages={Math.ceil(total / (filters.page_size || 12))}
+                      onPageChange={(page) => setFilters({ ...filters, page })}
+                      itemsPerPage={filters.page_size || 12}
+                      totalItems={total}
+                    />
                   )}
                 </>
               )}
@@ -429,20 +413,6 @@ export default function MarketplacePage() {
           </div>
         </div>
       </div>
-
-      {/* CSS Animation Keyframes */}
-      <style>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }

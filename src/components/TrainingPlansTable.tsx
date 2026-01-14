@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SavedTrainingPlan } from '../services/trainingPlanService';
 import { format } from 'date-fns';
@@ -25,7 +25,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '../components/ui';
-import { Button, Card, Input } from '../components/ui';
+import { Button, Card, Input, Pagination } from '../components/ui';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,6 +68,8 @@ export function TrainingPlansTable({
   const [visibilityFilter, setVisibilityFilter] = useState<string>('all');
   const [sortField, setSortField] = useState<SortField>('updated');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const getDistanceLabel = (plan: SavedTrainingPlan) => {
     const { distance, customDistance } = plan.plan_data.event;
@@ -103,40 +105,55 @@ export function TrainingPlansTable({
   };
 
   // Filter und Sort Logic
-  const filteredAndSortedPlans = plans
-    .filter((plan) => {
-      const matchesSearch = plan.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesDistance =
-        distanceFilter === 'all' || plan.plan_data.event.distance === distanceFilter;
-      const matchesVisibility =
-        visibilityFilter === 'all' || plan.visibility === visibilityFilter;
-      return matchesSearch && matchesDistance && matchesVisibility;
-    })
-    .sort((a, b) => {
-      let compareValue = 0;
+  const filteredAndSortedPlans = useMemo(() => {
+    return plans
+      .filter((plan) => {
+        const matchesSearch = plan.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesDistance =
+          distanceFilter === 'all' || plan.plan_data.event.distance === distanceFilter;
+        const matchesVisibility =
+          visibilityFilter === 'all' || plan.visibility === visibilityFilter;
+        return matchesSearch && matchesDistance && matchesVisibility;
+      })
+      .sort((a, b) => {
+        let compareValue = 0;
 
-      switch (sortField) {
-        case 'name':
-          compareValue = a.name.localeCompare(b.name);
-          break;
-        case 'date':
-          compareValue =
-            new Date(a.plan_data.event.date).getTime() -
-            new Date(b.plan_data.event.date).getTime();
-          break;
-        case 'updated':
-          compareValue =
-            new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
-          break;
-        case 'distance':
-          const distA = a.plan_data.event.customDistance || 0;
-          const distB = b.plan_data.event.customDistance || 0;
-          compareValue = distA - distB;
-          break;
-      }
+        switch (sortField) {
+          case 'name':
+            compareValue = a.name.localeCompare(b.name);
+            break;
+          case 'date':
+            compareValue =
+              new Date(a.plan_data.event.date).getTime() -
+              new Date(b.plan_data.event.date).getTime();
+            break;
+          case 'updated':
+            compareValue =
+              new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+            break;
+          case 'distance':
+            const distA = a.plan_data.event.customDistance || 0;
+            const distB = b.plan_data.event.customDistance || 0;
+            compareValue = distA - distB;
+            break;
+        }
 
-      return sortDirection === 'asc' ? compareValue : -compareValue;
-    });
+        return sortDirection === 'asc' ? compareValue : -compareValue;
+      });
+  }, [plans, searchQuery, distanceFilter, visibilityFilter, sortField, sortDirection]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAndSortedPlans.length / itemsPerPage);
+  const paginatedPlans = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredAndSortedPlans.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredAndSortedPlans, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when filters change
+  const handleFilterChange = (filterSetter: (value: string) => void, value: string) => {
+    filterSetter(value);
+    setCurrentPage(1);
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -167,12 +184,15 @@ export function TrainingPlansTable({
           <Input
             placeholder={t('dashboard.searchPlans')}
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             className="flex-1 sm:max-w-sm"
             leftIcon={<Edit className="h-4 w-4 text-slate-400" />}
           />
           <div className="flex gap-2 flex-wrap">
-            <Select value={distanceFilter} onValueChange={setDistanceFilter}>
+            <Select value={distanceFilter} onValueChange={(value) => handleFilterChange(setDistanceFilter, value)}>
               <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder={t('dashboard.filter.distance')} />
               </SelectTrigger>
@@ -186,7 +206,7 @@ export function TrainingPlansTable({
               </SelectContent>
             </Select>
 
-            <Select value={visibilityFilter} onValueChange={setVisibilityFilter}>
+            <Select value={visibilityFilter} onValueChange={(value) => handleFilterChange(setVisibilityFilter, value)}>
               <SelectTrigger className="w-full sm:w-[140px]">
                 <SelectValue placeholder={t('dashboard.filter.visibility')} />
               </SelectTrigger>
@@ -229,14 +249,14 @@ export function TrainingPlansTable({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAndSortedPlans.length === 0 ? (
+                {paginatedPlans.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="h-24 text-center text-slate-500">
                       {t('dashboard.noPlanFound')}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredAndSortedPlans.map((plan, index) => (
+                  paginatedPlans.map((plan, index) => (
                     <TableRow
                       key={plan.id}
                       className="cursor-pointer hover:bg-slate-50 transition-colors border-b border-gray-100"
@@ -349,142 +369,136 @@ export function TrainingPlansTable({
       </div>
 
       {/* Mobile Card View */}
-      <div className="lg:hidden space-y-3">
-        {filteredAndSortedPlans.length === 0 ? (
-          <Card className="p-8 text-center bg-white shadow-md">
+      <div className="lg:hidden space-y-3 -mx-4 sm:mx-0">
+        {paginatedPlans.length === 0 ? (
+          <Card className="mx-4 sm:mx-0 p-8 text-center bg-white shadow-md">
             <p className="text-slate-500">{t('dashboard.noPlanFound')}</p>
           </Card>
         ) : (
-          filteredAndSortedPlans.map((plan, index) => (
+          paginatedPlans.map((plan, index) => (
             <div
               key={plan.id}
               style={{ animation: `fadeInUp 0.3s ease-out ${index * 0.05}s both` }}
+              className="mx-4 sm:mx-0"
             >
-              <Card
-                className="p-4 cursor-pointer hover:shadow-lg transition-all bg-white border border-gray-200"
-                onClick={() => navigate(`/plan/${plan.id}`)}
-              >
-              <div className="space-y-3">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-slate-900 truncate">{plan.name}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">{plan.plan_data.event.name}</p>
-                  </div>
-                  {plan.is_active && (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full flex-shrink-0">
-                      <Calendar className="h-3 w-3" />
-                      <span className="text-xs font-medium">Aktiv</span>
+              <Card className="p-4 bg-white border border-gray-200 hover:shadow-lg transition-all">
+                <div className="space-y-3">
+                  {/* Header - Clickable */}
+                  <div
+                    className="flex items-start justify-between gap-2 cursor-pointer"
+                    onClick={() => navigate(`/plan/${plan.id}`)}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-slate-900 truncate">{plan.name}</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">{plan.plan_data.event.name}</p>
                     </div>
-                  )}
-                </div>
-
-                {/* Info Grid */}
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-slate-500 text-xs">{t('dashboard.table.distance')}</span>
-                    <div className="font-semibold text-slate-900 mt-0.5">
-                      {getDistanceLabel(plan)}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 text-xs">{t('dashboard.table.eventDate')}</span>
-                    <div className="font-semibold text-slate-900 mt-0.5">
-                      {format(new Date(plan.plan_data.event.date), 'dd. MMM yy', {
-                        locale: dateLocale,
-                      })}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 text-xs">{t('dashboard.table.weeks')}</span>
-                    <div className="font-semibold text-slate-900 mt-0.5">
-                      {plan.plan_data.weeks.length}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-slate-500 text-xs">{t('dashboard.table.visibility')}</span>
-                    <div className="mt-0.5">{getVisibilityBadge(plan.visibility)}</div>
-                  </div>
-                </div>
-
-                {/* Stats & Actions */}
-                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                  {plan.visibility !== 'private' ? (
-                    <div className="flex gap-3 text-xs text-slate-500">
-                      <div className="flex items-center gap-1">
-                        <Eye className="h-3.5 w-3.5" />
-                        <span className="tabular-nums">{plan.view_count}</span>
+                    {plan.is_active && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full flex-shrink-0">
+                        <Calendar className="h-3 w-3" />
+                        <span className="text-xs font-medium">Aktiv</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Share2 className="h-3.5 w-3.5" />
-                        <span className="tabular-nums">{plan.clone_count}</span>
+                    )}
+                  </div>
+
+                  {/* Info Grid - Clickable */}
+                  <div
+                    className="grid grid-cols-2 gap-3 text-sm cursor-pointer"
+                    onClick={() => navigate(`/plan/${plan.id}`)}
+                  >
+                    <div>
+                      <span className="text-slate-500 text-xs">{t('dashboard.table.distance')}</span>
+                      <div className="font-semibold text-slate-900 mt-0.5">
+                        {getDistanceLabel(plan)}
                       </div>
                     </div>
-                  ) : (
-                    <div />
-                  )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/plan/${plan.id}`);
-                      }}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        {t('common.edit')}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation();
-                        onPublish(plan.id);
-                      }}>
-                        <Share2 className="mr-2 h-4 w-4" />
-                        {plan.visibility !== 'private'
-                          ? t('dashboard.managePublication')
-                          : t('dashboard.publish')}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation();
-                        onSetActive(plan.id);
-                      }}>
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {plan.is_active
-                          ? t('dashboard.stats.removeActive')
-                          : t('dashboard.stats.setAsActive')}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete(plan.id, plan.name);
-                        }}
-                        disabled={deletingId === plan.id}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        {t('common.delete')}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                    <div>
+                      <span className="text-slate-500 text-xs">{t('dashboard.table.eventDate')}</span>
+                      <div className="font-semibold text-slate-900 mt-0.5">
+                        {format(new Date(plan.plan_data.event.date), 'dd. MMM yy', {
+                          locale: dateLocale,
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 text-xs">{t('dashboard.table.weeks')}</span>
+                      <div className="font-semibold text-slate-900 mt-0.5">
+                        {plan.plan_data.weeks.length}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-slate-500 text-xs">{t('dashboard.table.visibility')}</span>
+                      <div className="mt-0.5">{getVisibilityBadge(plan.visibility)}</div>
+                    </div>
+                  </div>
+
+                  {/* Stats & Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    {plan.visibility !== 'private' ? (
+                      <div className="flex gap-3 text-xs text-slate-500">
+                        <div className="flex items-center gap-1">
+                          <Eye className="h-3.5 w-3.5" />
+                          <span className="tabular-nums">{plan.view_count}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Share2 className="h-3.5 w-3.5" />
+                          <span className="tabular-nums">{plan.clone_count}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div />
+                    )}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="h-8 w-8 p-0 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 disabled:pointer-events-none disabled:opacity-50">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">{t('dashboard.openMenu')}</span>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => navigate(`/plan/${plan.id}`)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          {t('common.edit')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onPublish(plan.id)}>
+                          <Share2 className="mr-2 h-4 w-4" />
+                          {plan.visibility !== 'private'
+                            ? t('dashboard.managePublication')
+                            : t('dashboard.publish')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onSetActive(plan.id)}>
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {plan.is_active
+                            ? t('dashboard.stats.removeActive')
+                            : t('dashboard.stats.setAsActive')}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => onDelete(plan.id, plan.name)}
+                          disabled={deletingId === plan.id}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          {t('common.delete')}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              </div>
               </Card>
             </div>
           ))
         )}
       </div>
 
-      {/* Results Info */}
+      {/* Pagination */}
       {filteredAndSortedPlans.length > 0 && (
-        <div className="text-sm text-slate-500 text-center lg:text-left">
-          {t('dashboard.showingResults', {
-            count: filteredAndSortedPlans.length,
-            total: plans.length,
-          })}
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          itemsPerPage={itemsPerPage}
+          totalItems={filteredAndSortedPlans.length}
+        />
       )}
     </div>
   );

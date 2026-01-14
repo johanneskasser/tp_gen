@@ -8,15 +8,22 @@ import WeeklyPlan from '../components/WeeklyPlan';
 import WeeklyChart from '../components/WeeklyChart';
 import PublishPlanModal from '../components/PublishPlanModal';
 import { PlanDifficultyBadge } from '../components/PlanDifficultyBadge';
-import { FileDown, Download, Upload, ArrowLeft, Save, Loader2, Share2 } from 'lucide-react';
+import { FileDown, Download, Upload, ArrowLeft, Save, Loader2, Share2, ChevronDown } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
 import { calculatePace, formatPace } from '../utils/paceCalculator';
 import { exportToJSON, importFromJSON } from '../utils/jsonExportImport';
+import { exportToFIT, importFromFIT } from '../utils/fitExportImport';
 import { trainingPlanService, SavedTrainingPlan } from '../services/trainingPlanService';
 import { TrainingSession } from '../types';
 import { formatDistanceToNow } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Button, Card } from '../components/ui';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
 import { typography, cn, flex } from '../lib/designSystem';
 import { useToast } from '../contexts/ToastContext';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
@@ -223,10 +230,18 @@ export default function PlanEditor() {
   const handleExportJSON = () => {
     if (plan) {
       exportToJSON(plan);
+      toast.success('Plan als JSON exportiert');
     }
   };
 
-  const handleImportJSON = () => {
+  const handleExportFIT = () => {
+    if (plan) {
+      exportToFIT(plan);
+      toast.success('Plan als FIT exportiert');
+    }
+  };
+
+  const handleImport = () => {
     fileInputRef.current?.click();
   };
 
@@ -234,7 +249,28 @@ export default function PlanEditor() {
     const file = event.target.files?.[0];
     if (file) {
       try {
-        const importedPlan = await importFromJSON(file);
+        let importedPlan: TrainingPlan;
+
+        // Auto-detect file type based on extension
+        if (file.name.endsWith('.fit')) {
+          importedPlan = await importFromFIT(file);
+          toast.success('FIT-Datei erfolgreich importiert');
+        } else if (file.name.endsWith('.json')) {
+          importedPlan = await importFromJSON(file);
+          toast.success('JSON-Datei erfolgreich importiert');
+        } else {
+          // Try to detect by content
+          const text = await file.text();
+          if (text.trim().startsWith('{')) {
+            // Likely JSON
+            importedPlan = JSON.parse(text);
+            toast.success('JSON-Datei erfolgreich importiert');
+          } else {
+            // Try FIT
+            importedPlan = await importFromFIT(file);
+            toast.success('FIT-Datei erfolgreich importiert');
+          }
+        }
 
         // If we're on a new plan, create it in the database immediately
         if (isNewPlan) {
@@ -245,7 +281,7 @@ export default function PlanEditor() {
             navigate(`/plan/${saved.id}`, { replace: true });
           } catch (err) {
             console.error(err);
-            alert('Fehler beim Speichern des importierten Plans');
+            toast.error('Fehler beim Speichern des importierten Plans');
           } finally {
             setSaving(false);
           }
@@ -255,7 +291,7 @@ export default function PlanEditor() {
           setShowEventConfig(false);
         }
       } catch (error) {
-        alert((error as Error).message);
+        toast.error((error as Error).message);
       }
       event.target.value = '';
     }
@@ -302,7 +338,7 @@ export default function PlanEditor() {
           </div>
           {showEventConfig && !plan && (
             <Button
-              onClick={handleImportJSON}
+              onClick={handleImport}
               variant="secondary"
             >
               <Upload size={18} />
@@ -314,7 +350,7 @@ export default function PlanEditor() {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".json"
+          accept=".json,.fit"
           onChange={handleFileChange}
           className="hidden"
         />
@@ -386,21 +422,32 @@ export default function PlanEditor() {
                       >
                         Event bearbeiten
                       </Button>
-                      <Button
-                        onClick={handleExportJSON}
-                        variant="secondary"
-                        size="sm"
-                      >
-                        <Download size={18} />
-                        <span className="whitespace-nowrap">JSON Export</span>
-                      </Button>
-                      <Button
-                        onClick={handleExportPDF}
-                        size="sm"
-                      >
-                        <FileDown size={18} />
-                        <span className="whitespace-nowrap">PDF exportieren</span>
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                          >
+                            <Download size={18} />
+                            <span className="whitespace-nowrap">Export</span>
+                            <ChevronDown size={16} className="ml-1" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={handleExportJSON}>
+                            <Download size={16} className="mr-2" />
+                            JSON exportieren
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleExportFIT}>
+                            <Download size={16} className="mr-2" />
+                            FIT exportieren
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleExportPDF}>
+                            <FileDown size={16} className="mr-2" />
+                            PDF exportieren
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </Card>

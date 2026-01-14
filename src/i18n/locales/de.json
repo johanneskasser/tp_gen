@@ -292,5 +292,110 @@
     "unauthorized": "Nicht autorisiert",
     "forbidden": "Zugriff verweigert",
     "serverError": "Serverfehler. Bitte versuche es später erneut."
+  },
+  "landing": {
+    "nav": {
+      "features": "Funktionen",
+      "roadmap": "Roadmap",
+      "login": "Anmelden",
+      "getStarted": "Kostenlos starten"
+    },
+    "hero": {
+      "headline": "Erstelle deinen persönlichen Trainingsplan.",
+      "headlineAccent": "Kostenlos. Für immer.",
+      "subheadline": "Von 5K bis Marathon – plane, teile und exportiere deine Trainingseinheiten. Ohne Paywall, ohne Premium-Features, ohne Kommerzialisierung.",
+      "ctaPrimary": "Kostenlos starten",
+      "ctaSecondary": "Demo ansehen"
+    },
+    "features": {
+      "title": "Alles, was du brauchst",
+      "subtitle": "Professionelle Trainingsplanung, die wirklich kostenlos ist",
+      "smartPlanning": {
+        "title": "Intelligente Planung",
+        "description": "VDOT-basierte Trainingszonen und personalisierte Intensitätsberechnungen für optimale Fortschritte"
+      },
+      "exportAnywhere": {
+        "title": "Export überall hin",
+        "description": "Export als PDF, JSON & FIT-Dateien für Garmin und andere Sportuhren"
+      },
+      "marketplace": {
+        "title": "Community-Marktplatz",
+        "description": "Teile und entdecke Trainingspläne mit Bewertungen, Likes und Kommentaren"
+      },
+      "autoSync": {
+        "title": "Immer synchronisiert",
+        "description": "Auto-Save alle 2 Sekunden und Cloud-Speicher – deine Pläne sind immer sicher"
+      }
+    },
+    "usp": {
+      "headline": "Laufen gehört allen.",
+      "headlineAccent": "Nicht nur zahlenden Kunden.",
+      "body": "Wir glauben nicht an Gatekeeping und Kommerzialisierung im Laufsport. Diese App wurde von Läufern für Läufer gebaut – ohne versteckte Kosten, ohne Premium-Features, ohne Datenverkäufe.",
+      "points": {
+        "noPaywall": "Keine Paywall, keine Premium-Features",
+        "noAds": "Keine Datenverkäufe, keine Werbung",
+        "openSource": "Open-Source-Gedanke, Community-getrieben",
+        "forRunners": "Von Läufern für Läufer gebaut"
+      }
+    },
+    "roadmap": {
+      "title": "Was kommt als Nächstes",
+      "subtitle": "Wir arbeiten an noch mehr Features für die Community",
+      "comingSoon": "Demnächst",
+      "smartwatchIntegration": {
+        "title": "Smartwatch-Integration",
+        "description": "Direkte Synchronisation mit Garmin, Coros, Suunto und Polar"
+      },
+      "aiPlanning": {
+        "title": "KI-gestützte Planung",
+        "description": "Automatische Plan-Generierung basierend auf deinen Zielen und deiner Fitness"
+      },
+      "coaching": {
+        "title": "Coaching-Features",
+        "description": "Trainer-Athleten-System und Gruppen-Management für Laufgruppen"
+      },
+      "mobileApps": {
+        "title": "Mobile Apps",
+        "description": "Native iOS & Android Apps für unterwegs"
+      }
+    },
+    "videos": {
+      "title": "Sieh die App in Aktion",
+      "subtitle": "Erfahre, wie einfach es ist, deinen perfekten Trainingsplan zu erstellen",
+      "createPlan": {
+        "title": "Plan erstellen",
+        "description": "Von der Event-Konfiguration bis zur wöchentlichen Planung",
+        "duration": "2:30"
+      },
+      "browseMarketplace": {
+        "title": "Marketplace durchsuchen",
+        "description": "Entdecke und klone Pläne aus der Community",
+        "duration": "1:45"
+      },
+      "watchVideo": "Video ansehen"
+    },
+    "stats": {
+      "title": "Von der Community geliebt",
+      "plansCreated": "Pläne erstellt",
+      "runners": "Läufer",
+      "downloads": "Downloads",
+      "avgRating": "⭐ Durchschnitt"
+    },
+    "finalCta": {
+      "headline": "Bereit für dein nächstes Laufziel?",
+      "subheadline": "Starte kostenlos und erstelle deinen ersten Trainingsplan in wenigen Minuten",
+      "cta": "Kostenlos loslegen",
+      "secondary": "Oder Marketplace durchsuchen"
+    },
+    "footer": {
+      "tagline": "Kostenlose Trainingsplanung für alle Läufer",
+      "madeWith": "Gemacht mit ❤️ für die Lauf-Community",
+      "links": {
+        "about": "Über uns",
+        "privacy": "Datenschutz",
+        "terms": "Nutzungsbedingungen",
+        "contact": "Kontakt"
+      }
+    }
   }
 }

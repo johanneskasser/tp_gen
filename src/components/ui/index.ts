@@ -22,3 +22,5 @@ export type { AlertProps } from './Alert';
 
 export { Toast } from './Toast';
 export { ToastContainer } from './ToastContainer';
+
+export { Pagination } from './Pagination';
