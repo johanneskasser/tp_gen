@@ -7,12 +7,14 @@ import EventConfig from '../components/EventConfig';
 import WeeklyPlan from '../components/WeeklyPlan';
 import WeeklyChart from '../components/WeeklyChart';
 import PublishPlanModal from '../components/PublishPlanModal';
+import ICalSubscriptionModal from '../components/ICalSubscriptionModal';
 import { PlanDifficultyBadge } from '../components/PlanDifficultyBadge';
-import { FileDown, Download, Upload, ArrowLeft, Save, Loader2, Share2, ChevronDown } from 'lucide-react';
+import { FileDown, Download, Upload, ArrowLeft, Save, Loader2, Share2, ChevronDown, Calendar } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
 import { calculatePace, formatPace } from '../utils/paceCalculator';
 import { exportToJSON, importFromJSON } from '../utils/jsonExportImport';
 import { exportToFIT, importFromFIT } from '../utils/fitExportImport';
+import { exportToICal } from '../utils/icalExport';
 import { trainingPlanService, SavedTrainingPlan } from '../services/trainingPlanService';
 import { TrainingSession } from '../types';
 import { formatDistanceToNow } from 'date-fns';
@@ -22,6 +24,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
 import { typography, cn, flex } from '../lib/designSystem';
@@ -43,6 +46,7 @@ export default function PlanEditor() {
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [, setCurrentTime] = useState(new Date());
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -239,6 +243,21 @@ export default function PlanEditor() {
       exportToFIT(plan);
       toast.success('Plan als FIT exportiert');
     }
+  };
+
+  const handleExportICal = () => {
+    if (plan) {
+      exportToICal(plan);
+      toast.success('Plan als iCal exportiert');
+    }
+  };
+
+  const handleShowSubscription = () => {
+    if (isNewPlan) {
+      toast.error('Bitte speichern Sie den Plan zuerst, um ein Kalender-Abonnement zu erstellen');
+      return;
+    }
+    setShowSubscriptionModal(true);
   };
 
   const handleImport = () => {
@@ -442,9 +461,18 @@ export default function PlanEditor() {
                             <Download size={16} className="mr-2" />
                             FIT exportieren
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={handleExportICal}>
+                            <Calendar size={16} className="mr-2" />
+                            iCal exportieren
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={handleExportPDF}>
                             <FileDown size={16} className="mr-2" />
                             PDF exportieren
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={handleShowSubscription}>
+                            <Calendar size={16} className="mr-2" />
+                            Kalender-Abonnement...
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -503,6 +531,16 @@ export default function PlanEditor() {
             }}
           />
         )}
+
+      {/* iCal Subscription Modal */}
+      {id && !isNewPlan && plan && (
+        <ICalSubscriptionModal
+          planId={id}
+          planName={plan.event.name}
+          isOpen={showSubscriptionModal}
+          onClose={() => setShowSubscriptionModal(false)}
+        />
+      )}
       </div>
   );
 }
