@@ -439,6 +439,10 @@ export type Database = {
         Args: { follower_uuid: string; following_uuid: string }
         Returns: boolean
       }
+      log_plan_clone: {
+        Args: { original_plan_uuid: string; new_plan_uuid: string }
+        Returns: undefined
+      }
       set_active_plan: { Args: { plan_uuid: string }; Returns: undefined }
       toggle_active_plan: { Args: { plan_uuid: string }; Returns: boolean }
     }

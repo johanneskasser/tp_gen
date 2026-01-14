@@ -112,15 +112,21 @@ export async function saveRunnerProfile(profile: UserProfile): Promise<void> {
 
     const estimatedVO2Max = vdot ? estimateVO2Max(vdot) : undefined;
 
+    // Cap values to fit database constraints (NUMERIC(5,2) max is 999.99)
+    const cappedVdot = vdot ? Math.min(vdot, 999.99) : null;
+    const cappedVO2Max = estimatedVO2Max ? Math.min(estimatedVO2Max, 999.99) : null;
+    const cappedWeeklyKm = profile.weeklyKmBase ? Math.min(profile.weeklyKmBase, 999.99) : null;
+    const cappedYearsRunning = profile.yearsRunning ? Math.min(profile.yearsRunning, 999.99) : null;
+
     // Update user_profiles table
     const profileUpdate: UserProfileUpdate = {
       full_name: profile.name,
       age: profile.age || null,
       gender: profile.gender || null,
-      weekly_km_base: profile.weeklyKmBase || null,
-      years_running: profile.yearsRunning || null,
-      vdot: vdot || null,
-      estimated_vo2_max: estimatedVO2Max || null,
+      weekly_km_base: cappedWeeklyKm,
+      years_running: cappedYearsRunning,
+      vdot: cappedVdot,
+      estimated_vo2_max: cappedVO2Max,
       preferred_training_days: profile.preferredTrainingDays || null,
       available_time_per_week: profile.availableTimePerWeek || null,
       updated_at: new Date().toISOString(),

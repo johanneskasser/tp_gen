@@ -12,20 +12,58 @@ import { PersonalBest, TrainingZones } from '../types/userProfile';
 /**
  * Convert time string to seconds
  * Supports formats: "HH:MM:SS", "MM:SS", "SS"
+ * @throws {Error} if the time string is invalid
  */
 function timeToSeconds(timeStr: string): number {
-  const parts = timeStr.split(':').map(Number);
+  if (!timeStr || typeof timeStr !== 'string') {
+    throw new Error('Invalid time string: time must be a non-empty string');
+  }
 
-  if (parts.length === 3) {
+  const trimmed = timeStr.trim();
+  if (trimmed.length === 0) {
+    throw new Error('Invalid time string: time cannot be empty');
+  }
+
+  const parts = trimmed.split(':');
+
+  if (parts.length === 0 || parts.length > 3) {
+    throw new Error('Invalid time format: use HH:MM:SS, MM:SS, or SS');
+  }
+
+  const numbers = parts.map(p => {
+    const num = Number(p);
+    if (isNaN(num) || num < 0) {
+      throw new Error(`Invalid time component: ${p} is not a valid number`);
+    }
+    return num;
+  });
+
+  let totalSeconds = 0;
+
+  if (numbers.length === 3) {
     // HH:MM:SS
-    return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  } else if (parts.length === 2) {
+    const [hours, minutes, seconds] = numbers;
+    if (minutes >= 60 || seconds >= 60) {
+      throw new Error('Invalid time: minutes and seconds must be less than 60');
+    }
+    totalSeconds = hours * 3600 + minutes * 60 + seconds;
+  } else if (numbers.length === 2) {
     // MM:SS
-    return parts[0] * 60 + parts[1];
+    const [minutes, seconds] = numbers;
+    if (seconds >= 60) {
+      throw new Error('Invalid time: seconds must be less than 60');
+    }
+    totalSeconds = minutes * 60 + seconds;
   } else {
     // Just seconds
-    return parts[0];
+    totalSeconds = numbers[0];
   }
+
+  if (totalSeconds <= 0) {
+    throw new Error('Invalid time: total time must be greater than 0');
+  }
+
+  return totalSeconds;
 }
 
 /**

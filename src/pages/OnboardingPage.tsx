@@ -5,9 +5,12 @@ import { useRunnerProfile } from '../contexts/RunnerProfileContext';
 import { PersonalBest, UserProfile } from '../types/userProfile';
 import { Button, Card, Input } from '../components/ui';
 import { typography, cn } from '../lib/designSystem';
-import { ChevronRight, ChevronLeft, Check, Trophy, User as UserIcon, Rocket } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, Trophy, User as UserIcon, Rocket, Award } from 'lucide-react';
 import { profileService } from '../services/profileService';
 import { calculateVDOT } from '../utils/vdotCalculator';
+import { PersonalBestInput } from '../components/PersonalBestInput';
+import { PersonalBestCard } from '../components/PersonalBestCard';
+import { validateTimeInput } from '../utils/timeValidator';
 
 type RunnerLevel = 'beginner' | 'intermediate' | 'advanced';
 
@@ -29,10 +32,7 @@ export default function OnboardingPage() {
 
   // Step 3a: For Experienced Runners - Personal Bests
   const [personalBests, setPersonalBests] = useState<PersonalBest[]>([]);
-  const [pbForm, setPbForm] = useState<Partial<PersonalBest>>({
-    distance: '10K',
-    time: '',
-  });
+  const [showPBForm, setShowPBForm] = useState(false);
 
   // Step 3: Weekly KM (for all users)
   const [weeklyKm, setWeeklyKm] = useState<number>(10);
@@ -57,21 +57,13 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleAddPB = () => {
-    if (!pbForm.time) {
-      alert('Bitte Zeit eingeben');
-      return;
-    }
-
-    const pb: PersonalBest = {
-      distance: pbForm.distance as PersonalBest['distance'],
-      time: pbForm.time,
-      customDistanceKm: pbForm.customDistanceKm,
-      date: new Date().toISOString().split('T')[0],
-    };
-
+  const handleAddPB = (pb: PersonalBest) => {
     setPersonalBests([...personalBests, pb]);
-    setPbForm({ distance: '10K', time: '' });
+    setShowPBForm(false);
+  };
+
+  const handleEditPB = (index: number, pb: PersonalBest) => {
+    setPersonalBests(personalBests.map((existingPb, i) => (i === index ? pb : existingPb)));
   };
 
   const handleRemovePB = (index: number) => {
@@ -87,7 +79,8 @@ export default function OnboardingPage() {
     }
     if (currentStep === 3) {
       if (runnerLevel === 'beginner') {
-        return maxTime.length > 0 && weeklyKm > 0;
+        const timeValidation = validateTimeInput(maxTime);
+        return timeValidation.isValid && weeklyKm > 0;
       } else {
         return personalBests.length > 0 && weeklyKm > 0;
       }
@@ -131,10 +124,11 @@ export default function OnboardingPage() {
       if (runnerLevel === 'beginner') {
         // For beginners, create a synthetic PB based on max distance
         if (maxTime) {
+          const timeValidation = validateTimeInput(maxTime);
           const syntheticPB: PersonalBest = {
             distance: maxDistance === 5 ? '5K' : maxDistance === 10 ? '10K' : 'CUSTOM',
             customDistanceKm: maxDistance !== 5 && maxDistance !== 10 ? maxDistance : undefined,
-            time: maxTime,
+            time: timeValidation.formattedTime || maxTime,
             date: new Date().toISOString().split('T')[0],
           };
           profile.personalBests = [syntheticPB];
@@ -305,6 +299,8 @@ export default function OnboardingPage() {
 
       case 3:
         if (runnerLevel === 'beginner') {
+          const timeValidation = validateTimeInput(maxTime);
+
           return (
             <div className="space-y-6">
               <div className="text-center mb-8">
@@ -315,52 +311,92 @@ export default function OnboardingPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Was ist die längste Distanz, die du bisher gelaufen bist? *
+                <label className="block text-sm font-semibold text-text-secondary mb-3">
+                  Was ist die längste Distanz, die du bisher gelaufen bist?
                 </label>
-                <select
-                  value={maxDistance}
-                  onChange={(e) => setMaxDistance(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-medium focus:border-primary-400 focus:ring-2 focus:ring-primary-400"
-                >
-                  <option value="1">1 km</option>
-                  <option value="2">2 km</option>
-                  <option value="3">3 km</option>
-                  <option value="5">5 km</option>
-                  <option value="7">7 km</option>
-                  <option value="10">10 km</option>
-                  <option value="15">15 km</option>
-                </select>
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                  {[1, 2, 3, 5, 7, 10, 15].map((distance) => (
+                    <button
+                      key={distance}
+                      type="button"
+                      onClick={() => setMaxDistance(distance)}
+                      className={cn(
+                        'p-3 rounded-lg border-2 transition-all font-medium',
+                        'hover:scale-[1.02] active:scale-[0.98]',
+                        maxDistance === distance
+                          ? 'border-primary-600 bg-primary-50 text-primary-700'
+                          : 'border-slate-200 bg-white hover:border-primary-300 text-slate-700'
+                      )}
+                    >
+                      {distance} km
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <Input
-                label="In welcher Zeit hast du diese Distanz geschafft? *"
-                type="text"
-                value={maxTime}
-                onChange={(e) => setMaxTime(e.target.value)}
-                placeholder="z.B. 30:00 (MM:SS) oder 1:30:00 (HH:MM:SS)"
-                helperText="Format: MM:SS für unter einer Stunde, oder HH:MM:SS"
-                required
-              />
+              <div>
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  In welcher Zeit hast du diese Distanz geschafft?
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={maxTime}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setMaxTime(value);
+                    }}
+                    placeholder="MM:SS oder HH:MM:SS"
+                    className={cn(
+                      'w-full px-4 py-3 rounded-lg border-2 transition-all',
+                      'text-lg font-mono tracking-wider',
+                      'focus:outline-none focus:ring-2 focus:ring-primary-400',
+                      maxTime && !timeValidation.isValid
+                        ? 'border-red-300 bg-red-50'
+                        : maxTime && timeValidation.isValid
+                        ? 'border-green-300 bg-green-50'
+                        : 'border-slate-200 focus:border-primary-400'
+                    )}
+                  />
+                  {maxTime && timeValidation.isValid && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600">
+                      <Check size={20} />
+                    </div>
+                  )}
+                </div>
+                <div className="mt-1.5 min-h-[20px]">
+                  {maxTime && !timeValidation.isValid && timeValidation.error && (
+                    <p className="text-xs text-red-600">{timeValidation.error}</p>
+                  )}
+                  {maxTime && timeValidation.isValid && (
+                    <p className="text-xs text-green-600">Gültige Zeit</p>
+                  )}
+                  {!maxTime && (
+                    <p className="text-xs text-slate-500">
+                      Beispiele: 30:00 für 30 Minuten oder 1:15:30 für 1 Stunde 15 Minuten
+                    </p>
+                  )}
+                </div>
+              </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
                   Wie viele Kilometer läufst du aktuell pro Woche?
                 </label>
                 <input
                   type="number"
                   value={weeklyKm}
                   onChange={(e) => setWeeklyKm(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-medium focus:border-primary-400 focus:ring-2 focus:ring-primary-400"
+                  className="w-full px-4 py-2.5 rounded-lg border-2 border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all"
                   min="0"
                   max="100"
                 />
-                <p className="text-xs text-text-tertiary mt-1">
+                <p className="text-xs text-text-tertiary mt-1.5">
                   Durchschnittliche Kilometer pro Woche
                 </p>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-gradient-to-br from-blue-50 to-primary-50 border-2 border-blue-200 rounded-xl p-4">
                 <p className="text-sm text-blue-900">
                   💡 <strong>Tipp:</strong> Diese Informationen helfen uns, dein Fitnesslevel (VDOT) zu schätzen
                   und dir einen passenden Trainingsplan zu erstellen.
@@ -378,86 +414,68 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
-              {/* Existing PBs */}
-              {personalBests.length > 0 && (
-                <div className="space-y-2">
-                  {personalBests.map((pb, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between bg-slate-50 rounded-lg p-3 border border-slate-200"
-                    >
-                      <div>
-                        <div className="font-medium text-slate-800">
-                          {pb.distance === 'CUSTOM' ? `${pb.customDistanceKm}km` : pb.distance}
-                        </div>
-                        <div className="text-sm text-slate-600">Zeit: {pb.time}</div>
-                      </div>
-                      <button
-                        onClick={() => handleRemovePB(index)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
+              {/* Add PB Form */}
+              {showPBForm && (
+                <div className="p-5 bg-gradient-to-br from-blue-50 to-primary-50 border-2 border-primary-200 rounded-xl animate-in slide-in-from-top-2 duration-200">
+                  <h4 className="text-base font-semibold text-slate-800 mb-4">Bestzeit hinzufügen</h4>
+                  <PersonalBestInput
+                    onSave={handleAddPB}
+                    onCancel={() => setShowPBForm(false)}
+                    mode="add"
+                  />
                 </div>
               )}
 
-              {/* Add PB Form */}
-              <Card variant="default" className="p-4">
-                <h3 className={cn(typography.h4, 'mb-3')}>Bestzeit hinzufügen</h3>
+              {/* Existing PBs */}
+              {personalBests.length > 0 ? (
                 <div className="space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-1">
-                      Distanz
-                    </label>
-                    <select
-                      value={pbForm.distance}
-                      onChange={(e) => setPbForm({ ...pbForm, distance: e.target.value as PersonalBest['distance'] })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="5K">5K</option>
-                      <option value="10K">10K</option>
-                      <option value="HALF_MARATHON">Halbmarathon</option>
-                      <option value="MARATHON">Marathon</option>
-                    </select>
-                  </div>
-
-                  <Input
-                    label="Zeit"
-                    type="text"
-                    value={pbForm.time || ''}
-                    onChange={(e) => setPbForm({ ...pbForm, time: e.target.value })}
-                    placeholder="z.B. 45:30 oder 3:30:00"
-                  />
-
-                  <Button onClick={handleAddPB} variant="secondary" fullWidth size="sm">
-                    + Bestzeit hinzufügen
-                  </Button>
+                  {personalBests.map((pb, index) => (
+                    <PersonalBestCard
+                      key={index}
+                      personalBest={pb}
+                      onEdit={(updatedPb) => handleEditPB(index, updatedPb)}
+                      onDelete={() => handleRemovePB(index)}
+                    />
+                  ))}
                 </div>
-              </Card>
-
-              {personalBests.length === 0 && (
-                <div className="text-center text-sm text-text-tertiary">
-                  Füge mindestens eine Bestzeit hinzu, um fortzufahren
+              ) : (
+                <div className="text-center p-8 bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl border-2 border-dashed border-slate-300">
+                  <Award className="mx-auto mb-3 text-slate-400" size={40} />
+                  <p className="text-sm font-medium text-slate-700 mb-1">
+                    Noch keine Bestzeiten hinzugefügt
+                  </p>
+                  <p className="text-xs text-slate-500 mb-4">
+                    Füge mindestens eine Bestzeit hinzu, um fortzufahren
+                  </p>
                 </div>
+              )}
+
+              {/* Add PB Button (when form not shown) */}
+              {!showPBForm && (
+                <button
+                  onClick={() => setShowPBForm(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-all hover:shadow-md active:scale-[0.98]"
+                >
+                  <Trophy size={18} />
+                  {personalBests.length > 0 ? 'Weitere Bestzeit hinzufügen' : 'Erste Bestzeit hinzufügen'}
+                </button>
               )}
 
               {/* Weekly KM for experienced runners */}
               <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">
-                  Wie viele Kilometer läufst du aktuell pro Woche? *
+                <label className="block text-sm font-semibold text-text-secondary mb-2">
+                  Wie viele Kilometer läufst du aktuell pro Woche?
                 </label>
                 <input
                   type="number"
                   value={weeklyKm}
                   onChange={(e) => setWeeklyKm(Number(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-lg border border-border-medium focus:border-primary-400 focus:ring-2 focus:ring-primary-400"
+                  className="w-full px-4 py-2.5 rounded-lg border-2 border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all"
                   min="0"
                   max="200"
                   placeholder="z.B. 40"
                 />
-                <p className="text-xs text-text-tertiary mt-1">
+                <p className="text-xs text-text-tertiary mt-1.5">
                   Durchschnittliche Kilometer pro Woche
                 </p>
               </div>

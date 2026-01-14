@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { UserProfile, PersonalBest } from '../types/userProfile';
-import { calculateVDOT, getBestVDOT, calculateTrainingZones, getFitnessCategory, formatPace, projectRaceTime } from '../utils/vdotCalculator';
-import { User, Plus, Trash2, TrendingUp, Award, Target } from 'lucide-react';
+import { getBestVDOT, calculateTrainingZones, getFitnessCategory, formatPace, projectRaceTime } from '../utils/vdotCalculator';
+import { User, Plus, TrendingUp, Award, Target } from 'lucide-react';
+import { PersonalBestInput } from './PersonalBestInput';
+import { PersonalBestCard } from './PersonalBestCard';
 
 interface Props {
   profile: UserProfile;
@@ -15,25 +17,10 @@ interface Props {
  */
 export function UserProfileManager({ profile, onUpdateProfile }: Props) {
   const [showPBForm, setShowPBForm] = useState(false);
-  const [newPB, setNewPB] = useState<Partial<PersonalBest>>({
-    distance: '10K',
-    time: '',
-  });
+  const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
 
-  const handleAddPB = async (keepFormOpen: boolean = false) => {
-    if (!newPB.time) {
-      alert('Bitte Zeit eingeben');
-      return;
-    }
-
+  const handleAddPB = async (pb: PersonalBest) => {
     try {
-      const pb: PersonalBest = {
-        distance: newPB.distance as PersonalBest['distance'],
-        time: newPB.time,
-        customDistanceKm: newPB.customDistanceKm,
-        date: new Date().toISOString().split('T')[0],
-      };
-
       const updatedProfile = {
         ...profile,
         personalBests: [...profile.personalBests, pb],
@@ -43,21 +30,34 @@ export function UserProfileManager({ profile, onUpdateProfile }: Props) {
       updatedProfile.vdot = getBestVDOT(updatedProfile.personalBests);
 
       await onUpdateProfile(updatedProfile);
-
-      // Reset form
-      setNewPB({ distance: '10K', time: '' });
-
-      // Only close form if keepFormOpen is false
-      if (!keepFormOpen) {
-        setShowPBForm(false);
-      }
+      setShowPBForm(false);
     } catch (error) {
       console.error('Error adding PB:', error);
       alert('Fehler beim Speichern der Bestzeit. Bitte versuche es erneut.');
     }
   };
 
+  const handleEditPB = async (index: number, pb: PersonalBest) => {
+    try {
+      const updatedProfile = {
+        ...profile,
+        personalBests: profile.personalBests.map((existingPb, i) =>
+          i === index ? pb : existingPb
+        ),
+      };
+
+      // Recalculate VDOT
+      updatedProfile.vdot = getBestVDOT(updatedProfile.personalBests);
+
+      await onUpdateProfile(updatedProfile);
+    } catch (error) {
+      console.error('Error editing PB:', error);
+      alert('Fehler beim Aktualisieren der Bestzeit. Bitte versuche es erneut.');
+    }
+  };
+
   const handleDeletePB = async (index: number) => {
+    setDeletingIndex(index);
     try {
       const updatedProfile = {
         ...profile,
@@ -75,6 +75,8 @@ export function UserProfileManager({ profile, onUpdateProfile }: Props) {
     } catch (error) {
       console.error('Error deleting PB:', error);
       alert('Fehler beim Löschen der Bestzeit. Bitte versuche es erneut.');
+    } finally {
+      setDeletingIndex(null);
     }
   };
 
@@ -127,131 +129,65 @@ export function UserProfileManager({ profile, onUpdateProfile }: Props) {
 
       {/* Personal Bests */}
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-            <Award className="text-yellow-600" size={18} />
+        <div className="flex items-center justify-between mb-4">
+          <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <Award className="text-yellow-600" size={20} />
             Persönliche Bestzeiten (PBs)
           </label>
-          <button
-            onClick={() => setShowPBForm(!showPBForm)}
-            className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-          >
-            <Plus size={16} />
-            PB hinzufügen
-          </button>
+          {!showPBForm && (
+            <button
+              onClick={() => setShowPBForm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-all hover:shadow-md active:scale-[0.98]"
+            >
+              <Plus size={16} />
+              PB hinzufügen
+            </button>
+          )}
         </div>
-
-        {/* PB List */}
-        {profile.personalBests.length > 0 ? (
-          <div className="space-y-2 mb-3">
-            {profile.personalBests.map((pb, index) => {
-              const vdot = calculateVDOT(pb);
-              return (
-                <div
-                  key={index}
-                  className="flex items-center justify-between bg-slate-50 rounded p-3 border border-slate-200"
-                >
-                  <div>
-                    <div className="font-medium text-slate-800">
-                      {pb.distance === 'CUSTOM' ? `${pb.customDistanceKm}km` : pb.distance}
-                    </div>
-                    <div className="text-sm text-slate-600">
-                      Zeit: {pb.time} • VDOT: {vdot.toFixed(1)}
-                    </div>
-                    {pb.date && (
-                      <div className="text-xs text-slate-500">
-                        {new Date(pb.date).toLocaleDateString('de-DE')}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handleDeletePB(index)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="text-sm text-slate-500 bg-slate-50 rounded p-3 mb-3">
-            Noch keine PBs hinzugefügt. Füge deine Bestzeiten hinzu für personalisierte Empfehlungen!
-          </div>
-        )}
 
         {/* Add PB Form */}
         {showPBForm && (
-          <div className="bg-blue-50 border border-blue-200 rounded p-4 space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Distanz
-                </label>
-                <select
-                  value={newPB.distance}
-                  onChange={(e) => setNewPB({ ...newPB, distance: e.target.value as PersonalBest['distance'] })}
-                  className="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="5K">5K</option>
-                  <option value="10K">10K</option>
-                  <option value="HALF_MARATHON">Halbmarathon</option>
-                  <option value="MARATHON">Marathon</option>
-                  <option value="CUSTOM">Custom</option>
-                </select>
-              </div>
+          <div className="mb-4 p-5 bg-gradient-to-br from-blue-50 to-primary-50 border-2 border-primary-200 rounded-xl animate-in slide-in-from-top-2 duration-200">
+            <h4 className="text-base font-semibold text-slate-800 mb-4">Neue Bestzeit hinzufügen</h4>
+            <PersonalBestInput
+              onSave={handleAddPB}
+              onCancel={() => setShowPBForm(false)}
+              mode="add"
+            />
+          </div>
+        )}
 
-              {newPB.distance === 'CUSTOM' && (
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 mb-1">
-                    Distanz (km)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={newPB.customDistanceKm || ''}
-                    onChange={(e) => setNewPB({ ...newPB, customDistanceKm: Number(e.target.value) })}
-                    placeholder="z.B. 15"
-                    className="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-medium text-slate-700 mb-1">
-                  Zeit (HH:MM:SS oder MM:SS)
-                </label>
-                <input
-                  type="text"
-                  value={newPB.time}
-                  onChange={(e) => setNewPB({ ...newPB, time: e.target.value })}
-                  placeholder="z.B. 45:30 oder 1:32:15"
-                  className="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2">
+        {/* PB List */}
+        {profile.personalBests.length > 0 ? (
+          <div className="space-y-3">
+            {profile.personalBests.map((pb, index) => (
+              <PersonalBestCard
+                key={index}
+                personalBest={pb}
+                onEdit={(updatedPb) => handleEditPB(index, updatedPb)}
+                onDelete={() => handleDeletePB(index)}
+                isDeleting={deletingIndex === index}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center p-8 bg-gradient-to-br from-slate-50 to-blue-50 rounded-xl border-2 border-dashed border-slate-300">
+            <Award className="mx-auto mb-3 text-slate-400" size={40} />
+            <p className="text-sm font-medium text-slate-700 mb-1">
+              Noch keine Bestzeiten hinzugefügt
+            </p>
+            <p className="text-xs text-slate-500 mb-4">
+              Füge deine Bestzeiten hinzu für personalisierte Trainingsempfehlungen!
+            </p>
+            {!showPBForm && (
               <button
-                onClick={() => handleAddPB(true)}
-                className="px-4 py-2 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition-colors flex items-center gap-2"
+                onClick={() => setShowPBForm(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-all"
               >
                 <Plus size={16} />
-                Speichern & Weiteren hinzufügen
+                Erste Bestzeit hinzufügen
               </button>
-              <button
-                onClick={() => handleAddPB(false)}
-                className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-              >
-                Speichern
-              </button>
-              <button
-                onClick={() => setShowPBForm(false)}
-                className="px-4 py-2 bg-slate-200 text-slate-700 text-sm rounded hover:bg-slate-300 transition-colors"
-              >
-                Abbrechen
-              </button>
-            </div>
+            )}
           </div>
         )}
       </div>

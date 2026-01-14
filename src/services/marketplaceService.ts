@@ -460,6 +460,17 @@ export const marketplaceService = {
     // Increment clone count on original plan
     await this.incrementCloneCount(planId);
 
+    // Log the clone operation for audit purposes
+    try {
+      await supabase.rpc('log_plan_clone', {
+        original_plan_uuid: planId,
+        new_plan_uuid: data.id,
+      });
+    } catch (logError) {
+      console.error('Error logging clone operation:', logError);
+      // Don't fail the entire operation if logging fails
+    }
+
     return data.id;
   },
 
