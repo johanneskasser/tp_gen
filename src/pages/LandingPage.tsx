@@ -2,8 +2,11 @@ import { useEffect } from 'react';
 import { LandingNavbar } from '../components/landing/LandingNavbar';
 import { HeroSection } from '../components/landing/HeroSection';
 import { FeaturesSection } from '../components/landing/FeaturesSection';
+import { EaseOfUseShowcase } from '../components/landing/EaseOfUseShowcase';
+import { CalendarOrbitSection } from '../components/landing/CalendarOrbitSection';
 import { InteractiveDemoSection } from '../components/landing/InteractiveDemoSection';
-import { USPSection } from '../components/landing/USPSection';
+import { ICalDemoSection } from '../components/landing/ICalDemoSection';
+import { IndependenceSection } from '../components/landing/IndependenceSection';
 import { VideosSection } from '../components/landing/VideosSection';
 import { StatsSection } from '../components/landing/StatsSection';
 import { RoadmapSection } from '../components/landing/RoadmapSection';
@@ -32,9 +35,12 @@ export default function LandingPage() {
       <main>
         <HeroSection />
         <FeaturesSection />
+        <EaseOfUseShowcase />
+        <CalendarOrbitSection />
         <InteractiveDemoSection />
+        <ICalDemoSection />
+        <IndependenceSection />
         <VideosSection />
-        <USPSection />
         <StatsSection />
         <RoadmapSection />
         <CTASection />
@@ -46,9 +52,11 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             {/* Brand */}
             <div>
-              <h3 className="font-display font-bold text-2xl text-white mb-3 bg-gradient-to-r from-blue-400 to-primary-400 bg-clip-text text-transparent">
-                TrainingsPlan
-              </h3>
+              <img
+                src="/zenit-it_long_white.png"
+                alt="zenit-it"
+                className="h-8 w-auto mb-3"
+              />
               <p className="font-body text-sm text-white/60 leading-relaxed">
                 {t('landing.footer.tagline')}
               </p>
@@ -107,7 +115,7 @@ export default function LandingPage() {
           {/* Bottom Bar */}
           <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="font-body text-sm text-white/60">
-              © 2024 TrainingsPlan. {t('landing.footer.madeWith')}
+              © 2024 zenit-it. {t('landing.footer.madeWith')}
             </p>
             <div className="flex items-center gap-4 text-sm">
               <button

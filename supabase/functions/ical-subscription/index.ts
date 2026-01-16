@@ -337,12 +337,13 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role key to bypass RLS
+    // This is safe because we only return iCal data, no sensitive user info
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch the training plan
+    // Fetch the training plan (bypasses RLS for iCal subscriptions)
     const { data: planData, error } = await supabase
       .from('training_plans')
       .select('plan_data, name')

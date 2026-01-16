@@ -18,15 +18,17 @@ supabase login
 # Link zu deinem Projekt
 supabase link --project-ref <your-project-ref>
 
-# Deploy der ical-subscription Funktion
-supabase functions deploy ical-subscription
+# Deploy der ical-subscription Funktion mit JWT-Verifikation deaktiviert
+supabase functions deploy ical-subscription --no-verify-jwt
 ```
+
+**Wichtig:** Die Edge Function benötigt die Environment Variable `SUPABASE_SERVICE_ROLE_KEY`, die automatisch von Supabase bereitgestellt wird. Diese wird verwendet, um RLS (Row Level Security) zu umgehen, damit iCal-Abonnements funktionieren.
 
 ### Verwendung
 
 Nach dem Deployment ist die Funktion unter folgender URL verfügbar:
 
-```
+```text
 https://<your-project-ref>.supabase.co/functions/v1/ical-subscription/<plan-id>
 ```
 

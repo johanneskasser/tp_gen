@@ -49,11 +49,26 @@ export function LandingNavbar() {
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center space-x-2 font-display font-bold text-xl md:text-2xl text-primary-900 hover:text-primary-700 transition-colors"
+            className="flex items-center"
           >
-            <span className="bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent">
-              TrainingsPlan
-            </span>
+            <div className="relative h-8 md:h-10">
+              {/* White logo for transparent navbar */}
+              <img
+                src="/zenit-it_long_white.png"
+                alt="zenit-it"
+                className={`h-full w-auto transition-all duration-500 ${
+                  isScrolled ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                }`}
+              />
+              {/* Black logo for scrolled navbar */}
+              <img
+                src="/zenit-it_long_black.png"
+                alt="zenit-it"
+                className={`absolute top-0 left-0 h-full w-auto transition-all duration-500 ${
+                  isScrolled ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+                }`}
+              />
+            </div>
           </Link>
 
           {/* Desktop Navigation */}

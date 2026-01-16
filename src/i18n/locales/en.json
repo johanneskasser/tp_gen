@@ -397,6 +397,52 @@
         "terms": "Terms",
         "contact": "Contact"
       }
+    },
+    "ical": {
+      "title": "Your training plan, everywhere you need it",
+      "subtitle": "Subscribe once, sync forever. Your training sessions appear automatically in Google Calendar, Apple Calendar, Outlook, or any iCal-compatible app.",
+      "features": {
+        "realtime": "Real-time updates",
+        "noManual": "No manual export",
+        "offline": "Works offline"
+      },
+      "cta": "Subscribe to Calendar",
+      "subscribed": "Subscribed – Sessions syncing..."
+    },
+    "icalDemo": {
+      "title": "One link. Automatic sync.",
+      "subtitle": "Click subscribe and watch your training appear instantly",
+      "cta": "Subscribe to Calendar",
+      "subscribed": "Subscribed – Sessions syncing...",
+      "hint": "In your real calendar, sessions appear instantly after subscribing"
+    },
+    "independence": {
+      "reject": "What we reject",
+      "standFor": "What we stand for",
+      "problems": {
+        "paywall": "Paywalled features",
+        "data": "Data harvesting & sales",
+        "premium": "Premium tiers",
+        "corporate": "Corporate interests"
+      },
+      "values": {
+        "free": "Everything free, forever",
+        "privacy": "Your data stays yours",
+        "runners": "Built by runners",
+        "open": "Open-source mindset"
+      },
+      "badge": "For the running community"
+    },
+    "ease": {
+      "badge": "Super Easy",
+      "title": "Create your plan in seconds",
+      "tagline": "3 clicks. That's it.",
+      "description": "No complicated setup, no registration required. Pick your race, set the date – your personalized training plan is ready.",
+      "steps": {
+        "race": "Pick your race",
+        "date": "Set the date",
+        "done": "Done!"
+      }
     }
   }
 }
