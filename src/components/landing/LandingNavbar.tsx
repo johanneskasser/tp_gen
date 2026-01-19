@@ -51,24 +51,11 @@ export function LandingNavbar() {
             to="/"
             className="flex items-center"
           >
-            <div className="relative h-8 md:h-10">
-              {/* White logo for transparent navbar */}
-              <img
-                src="/zenit-it_long_white.png"
-                alt="zenit-it"
-                className={`h-full w-auto transition-all duration-500 ${
-                  isScrolled ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-                }`}
-              />
-              {/* Black logo for scrolled navbar */}
-              <img
-                src="/zenit-it_long_black.png"
-                alt="zenit-it"
-                className={`absolute top-0 left-0 h-full w-auto transition-all duration-500 ${
-                  isScrolled ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-                }`}
-              />
-            </div>
+            <img
+              src="/zenit-it_long_black.png"
+              alt="zenit-it"
+              className="h-8 md:h-10 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}

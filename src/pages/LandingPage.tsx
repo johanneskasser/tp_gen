@@ -115,7 +115,7 @@ export default function LandingPage() {
           {/* Bottom Bar */}
           <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="font-body text-sm text-white/60">
-              © 2024 zenit-it. {t('landing.footer.madeWith')}
+              © 2026 zenit-it. {t('landing.footer.madeWith')}
             </p>
             <div className="flex items-center gap-4 text-sm">
               <button

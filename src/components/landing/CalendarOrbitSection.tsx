@@ -6,15 +6,14 @@ interface CalendarApp {
   name: string;
   color: string;
   icon: string;
-  delay: number;
 }
 
 const calendarApps: CalendarApp[] = [
-  { name: 'Google Calendar', color: '#4285F4', icon: '📅', delay: 0 },
-  { name: 'Apple Calendar', color: '#FF3B30', icon: '🍎', delay: -5 },
-  { name: 'Outlook', color: '#0078D4', icon: '📧', delay: -10 },
-  { name: 'Notion', color: '#191919', icon: '📝', delay: -15 },
-  { name: 'Any iCal App', color: '#22C55E', icon: '✨', delay: -20 },
+  { name: 'Google Calendar', color: '#4285F4', icon: '📅' },
+  { name: 'Apple Calendar', color: '#FF3B30', icon: '🍎' },
+  { name: 'Outlook', color: '#0078D4', icon: '📧' },
+  { name: 'Notion', color: '#191919', icon: '📝' },
+  { name: 'Any iCal App', color: '#22C55E', icon: '✨' },
 ];
 
 const featurePills = [
@@ -132,104 +131,104 @@ export function CalendarOrbitSection() {
             </div>
           </div>
 
-          {/* Right: Orbit Animation */}
+          {/* Right: Orbit Animation - Fixed Positioning */}
           <div
-            className={`relative h-[400px] md:h-[500px] lg:h-[550px] transition-all duration-1000 delay-300 ${
+            className={`relative h-[400px] md:h-[480px] lg:h-[520px] transition-all duration-1000 delay-300 ${
               isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-90'
             }`}
           >
-            {/* Outer glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] md:w-[420px] md:h-[420px] bg-gradient-to-r from-blue-400/20 via-primary-400/20 to-blue-400/20 rounded-full blur-3xl" />
+            {/* Outer glow - centered */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[380px] md:h-[380px] bg-gradient-to-r from-blue-400/20 via-primary-400/20 to-blue-400/20 rounded-full blur-3xl" />
 
-            {/* Orbit rings */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] md:w-[380px] md:h-[380px] border-2 border-dashed border-slate-200 rounded-full" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] md:w-[280px] md:h-[280px] border border-slate-100 rounded-full" />
+            {/* Orbit container - centered with fixed dimensions */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] h-[320px] md:w-[400px] md:h-[400px]">
+              {/* Outer orbit ring */}
+              <div className="absolute inset-0 border-2 border-dashed border-slate-200/60 rounded-full" />
 
-            {/* Central logo hub */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-              <div className="relative">
-                {/* Pulse rings */}
-                <div className="absolute inset-0 w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-blue-400/30 animate-pulse-ring" />
-                <div className="absolute inset-0 w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-primary-400/20 animate-pulse-ring" style={{ animationDelay: '0.5s' }} />
+              {/* Inner orbit ring */}
+              <div className="absolute inset-[60px] md:inset-[75px] border border-slate-100 rounded-full" />
 
-                {/* Logo container */}
-                <div className="relative w-24 h-24 md:w-28 md:h-28 bg-white rounded-2xl shadow-2xl flex items-center justify-center border border-slate-100">
-                  <img
-                    src="/zenit-it_long_black.png"
-                    alt="zenit-it"
-                    className="w-16 md:w-20 h-auto"
-                  />
+              {/* Central logo hub - exactly centered */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                <div className="relative">
+                  {/* Pulse rings */}
+                  <div className="absolute -inset-4 rounded-2xl bg-blue-400/20 animate-pulse-ring" />
+                  <div className="absolute -inset-4 rounded-2xl bg-primary-400/15 animate-pulse-ring" style={{ animationDelay: '0.7s' }} />
+
+                  {/* Logo container */}
+                  <div className="relative w-20 h-20 md:w-24 md:h-24 bg-white rounded-2xl shadow-2xl flex items-center justify-center border border-slate-100">
+                    <img
+                      src="/zenit-it_long_black.png"
+                      alt="zenit-it"
+                      className="w-14 md:w-18 h-auto"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Orbiting calendar apps */}
-            <div
-              className="absolute top-1/2 left-1/2 w-[280px] h-[280px] md:w-[380px] md:h-[380px]"
-              style={{
-                animation: 'orbit 25s linear infinite',
-                transformOrigin: 'center center',
-              }}
-            >
-              {calendarApps.map((app, index) => {
-                const angle = (index * 360) / calendarApps.length;
-                const radius = 140; // Half of the orbit width for md
-                const x = Math.cos((angle * Math.PI) / 180) * radius;
-                const y = Math.sin((angle * Math.PI) / 180) * radius;
+              {/* Orbiting calendar apps */}
+              <div
+                className="absolute inset-0 animate-orbit"
+                style={{ transformOrigin: 'center center' }}
+              >
+                {calendarApps.map((app, index) => {
+                  const angle = (index * 360) / calendarApps.length - 90; // Start from top
+                  const radius = 50; // Percentage from center
+                  const x = 50 + radius * Math.cos((angle * Math.PI) / 180);
+                  const y = 50 + radius * Math.sin((angle * Math.PI) / 180);
 
-                return (
-                  <div
-                    key={app.name}
-                    className="absolute"
-                    style={{
-                      left: `calc(50% + ${x}px)`,
-                      top: `calc(50% + ${y}px)`,
-                      transform: 'translate(-50%, -50%)',
-                    }}
-                  >
+                  return (
                     <div
-                      className="relative"
+                      key={app.name}
+                      className="absolute"
                       style={{
-                        animation: 'counter-orbit 25s linear infinite',
+                        left: `${x}%`,
+                        top: `${y}%`,
+                        transform: 'translate(-50%, -50%)',
                       }}
-                      onMouseEnter={() => setHoveredApp(app.name)}
-                      onMouseLeave={() => setHoveredApp(null)}
                     >
-                      {/* Sync line to center */}
+                      {/* Counter-rotate to keep icons upright */}
                       <div
-                        className="absolute top-1/2 left-1/2 h-0.5 bg-gradient-to-r from-blue-400/60 to-transparent origin-left"
-                        style={{
-                          width: `${radius - 30}px`,
-                          transform: `rotate(${180 + angle}deg)`,
-                        }}
-                      />
-
-                      {/* Calendar app icon */}
-                      <div
-                        className={`relative w-14 h-14 md:w-16 md:h-16 rounded-xl bg-white shadow-lg flex items-center justify-center text-2xl cursor-pointer transition-all duration-300 ${
-                          hoveredApp === app.name ? 'scale-125 shadow-xl z-30' : 'hover:scale-110'
-                        }`}
-                        style={{
-                          borderWidth: '2px',
-                          borderColor: app.color,
-                        }}
+                        className="animate-counter-orbit"
+                        onMouseEnter={() => setHoveredApp(app.name)}
+                        onMouseLeave={() => setHoveredApp(null)}
                       >
-                        {app.icon}
-
-                        {/* Tooltip */}
+                        {/* Connection line to center */}
                         <div
-                          className={`absolute -bottom-10 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-lg whitespace-nowrap transition-all duration-200 ${
-                            hoveredApp === app.name ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
+                          className="absolute top-1/2 left-1/2 h-[1px] bg-gradient-to-r from-blue-300/50 to-transparent origin-left -z-10"
+                          style={{
+                            width: '60px',
+                            transform: `rotate(${180 + angle}deg) translateY(-50%)`,
+                          }}
+                        />
+
+                        {/* Calendar app icon */}
+                        <div
+                          className={`relative w-12 h-12 md:w-14 md:h-14 rounded-xl bg-white shadow-lg flex items-center justify-center text-xl md:text-2xl cursor-pointer transition-all duration-300 ${
+                            hoveredApp === app.name ? 'scale-125 shadow-xl z-30' : 'hover:scale-110'
                           }`}
+                          style={{
+                            borderWidth: '2px',
+                            borderColor: app.color,
+                          }}
                         >
-                          {app.name}
-                          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45" />
+                          {app.icon}
+
+                          {/* Tooltip */}
+                          <div
+                            className={`absolute -bottom-9 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-slate-900 text-white text-xs font-medium rounded-lg whitespace-nowrap transition-all duration-200 ${
+                              hoveredApp === app.name ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2 pointer-events-none'
+                            }`}
+                          >
+                            {app.name}
+                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45" />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
 
             {/* Floating labels */}

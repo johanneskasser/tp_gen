@@ -1,45 +1,43 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CalendarDays, Link2, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarDays, Link2, Check, ChevronLeft, ChevronRight, MousePointer2 } from 'lucide-react';
 
 interface TrainingSession {
-  day: number;
+  dayOffset: number; // Days from today
   type: 'easy' | 'intervals' | 'long' | 'recovery';
-  titleKey: string;
+  title: string;
   distance: string;
 }
-
-const trainingSessions: TrainingSession[] = [
-  { day: 0, type: 'easy', titleKey: 'Easy Run', distance: '5km' },
-  { day: 2, type: 'intervals', titleKey: 'Intervals', distance: '6x800m' },
-  { day: 4, type: 'recovery', titleKey: 'Recovery', distance: '4km' },
-  { day: 5, type: 'long', titleKey: 'Long Run', distance: '18km' },
-];
-
-const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
 const sessionColors = {
   easy: {
     bg: 'bg-blue-100',
     border: 'border-l-blue-500',
     text: 'text-blue-700',
+    dot: 'bg-blue-500',
   },
   intervals: {
     bg: 'bg-orange-100',
     border: 'border-l-orange-500',
     text: 'text-orange-700',
+    dot: 'bg-orange-500',
   },
   long: {
     bg: 'bg-green-100',
     border: 'border-l-green-500',
     text: 'text-green-700',
+    dot: 'bg-green-500',
   },
   recovery: {
     bg: 'bg-emerald-100',
     border: 'border-l-emerald-500',
     text: 'text-emerald-700',
+    dot: 'bg-emerald-500',
   },
 };
+
+const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
 export function ICalDemoSection() {
   const { t } = useTranslation();
@@ -48,6 +46,37 @@ export function ICalDemoSection() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [showingSessions, setShowingSessions] = useState<number[]>([]);
   const [syncProgress, setSyncProgress] = useState(0);
+  const [cursorPosition, setCursorPosition] = useState({ x: 280, y: 320 });
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Current date calculations
+  const today = useMemo(() => new Date(), []);
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth();
+  const currentDay = today.getDate();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
+  const adjustedFirstDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
+
+  // Training sessions based on current date
+  const trainingSessions: TrainingSession[] = useMemo(() => [
+    { dayOffset: 1, type: 'easy', title: 'Easy Run', distance: '5km' },
+    { dayOffset: 3, type: 'intervals', title: 'Intervalle', distance: '6x800m' },
+    { dayOffset: 5, type: 'recovery', title: 'Erholung', distance: '4km' },
+    { dayOffset: 6, type: 'long', title: 'Langer Lauf', distance: '18km' },
+  ], []);
+
+  // Map sessions to actual days
+  const sessionsByDay = useMemo(() => {
+    const map = new Map<number, TrainingSession>();
+    trainingSessions.forEach(session => {
+      const sessionDay = currentDay + session.dayOffset;
+      if (sessionDay <= daysInMonth) {
+        map.set(sessionDay, session);
+      }
+    });
+    return map;
+  }, [trainingSessions, currentDay, daysInMonth]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -67,35 +96,57 @@ export function ICalDemoSection() {
   }, []);
 
   const handleSubscribe = () => {
-    if (isSubscribed) return;
+    if (isSubscribed || isAnimating) return;
 
-    setIsSubscribed(true);
-    setSyncProgress(0);
+    setIsAnimating(true);
+    setCursorPosition({ x: 280, y: 370 });
+
+    // Cursor moves to button (button is at bottom of calendar area)
+    setTimeout(() => setCursorPosition({ x: 280, y: 430 }), 200);
+
+    // Click effect
+    setTimeout(() => {
+      setIsSubscribed(true);
+      setSyncProgress(0);
+    }, 600);
 
     // Animate progress bar
+    let progress = 0;
     const progressInterval = setInterval(() => {
-      setSyncProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 100);
+      progress += 8;
+      setSyncProgress(progress);
+      if (progress >= 100) {
+        clearInterval(progressInterval);
+      }
+    }, 80);
 
-    // Animate sessions appearing one by one
+    // Animate sessions appearing one by one with cursor following
     trainingSessions.forEach((_, i) => {
       setTimeout(() => {
         setShowingSessions((prev) => [...prev, i]);
-      }, 500 + i * 400);
+        // Move cursor to show import (calendar grid area)
+        const yOffset = 230 + (i * 25);
+        setCursorPosition({ x: 200 + (i * 30), y: yOffset });
+      }, 800 + i * 500);
     });
+
+    // Hide cursor after animation
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 800 + trainingSessions.length * 500 + 500);
   };
 
   const handleReset = () => {
     setIsSubscribed(false);
     setShowingSessions([]);
     setSyncProgress(0);
+    setIsAnimating(false);
+    setCursorPosition({ x: 280, y: 370 });
   };
+
+  // Calculate which week row contains today
+  const todayPosition = adjustedFirstDay + currentDay - 1;
+  const todayRow = Math.floor(todayPosition / 7);
 
   return (
     <section
@@ -136,7 +187,7 @@ export function ICalDemoSection() {
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
           }`}
         >
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
             {/* Calendar header */}
             <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-primary-600 text-white p-4 sm:p-5">
               <div className="flex items-center justify-between">
@@ -153,8 +204,8 @@ export function ICalDemoSection() {
                   <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
                     <ChevronLeft size={18} />
                   </button>
-                  <span className="font-mono text-sm px-3 py-1 bg-white/10 rounded-lg">
-                    Januar 2025
+                  <span className="font-mono text-sm px-3 py-1 bg-white/10 rounded-lg min-w-[140px] text-center">
+                    {monthNames[currentMonth]} {currentYear}
                   </span>
                   <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
                     <ChevronRight size={18} />
@@ -163,8 +214,8 @@ export function ICalDemoSection() {
               </div>
             </div>
 
-            {/* Week view */}
-            <div className="p-4 sm:p-6">
+            {/* Week view - show current week */}
+            <div className="p-4 sm:p-6 relative">
               {/* Day headers */}
               <div className="grid grid-cols-7 gap-2 mb-3">
                 {weekDays.map((day, i) => (
@@ -179,49 +230,79 @@ export function ICalDemoSection() {
                 ))}
               </div>
 
-              {/* Calendar grid */}
-              <div className="grid grid-cols-7 gap-2">
-                {weekDays.map((_, dayIndex) => {
-                  const session = trainingSessions.find((s) => s.day === dayIndex);
-                  const sessionIndex = session ? trainingSessions.indexOf(session) : -1;
-                  const isShowing = sessionIndex !== -1 && showingSessions.includes(sessionIndex);
-                  const colors = session ? sessionColors[session.type] : null;
+              {/* Calendar grid - show 2 weeks starting from current week */}
+              <div className="space-y-2">
+                {[0, 1].map((weekOffset) => {
+                  const weekStartDay = (todayRow + weekOffset) * 7 - adjustedFirstDay + 1;
 
                   return (
-                    <div
-                      key={dayIndex}
-                      className={`aspect-square sm:aspect-[4/5] border rounded-xl p-2 relative overflow-hidden transition-all duration-300 ${
-                        session && isShowing
-                          ? 'border-slate-200 bg-white shadow-md'
-                          : 'border-slate-100 bg-slate-50/50'
-                      }`}
-                    >
-                      {/* Date number */}
-                      <span
-                        className={`text-xs font-medium ${
-                          dayIndex === 5 || dayIndex === 6 ? 'text-blue-600' : 'text-slate-400'
-                        }`}
-                      >
-                        {13 + dayIndex}
-                      </span>
+                    <div key={weekOffset} className="grid grid-cols-7 gap-2">
+                      {weekDays.map((_, dayIndex) => {
+                        const dayNumber = weekStartDay + dayIndex;
+                        const isValidDay = dayNumber >= 1 && dayNumber <= daysInMonth;
+                        const isToday = dayNumber === currentDay;
+                        const session = sessionsByDay.get(dayNumber);
+                        const sessionIndex = session ? trainingSessions.findIndex(s => s === session) : -1;
+                        const isShowing = sessionIndex !== -1 && showingSessions.includes(sessionIndex);
+                        const colors = session ? sessionColors[session.type] : null;
+                        const isWeekend = dayIndex === 5 || dayIndex === 6;
 
-                      {/* Training session card */}
-                      {session && (
-                        <div
-                          className={`absolute inset-x-1 bottom-1 top-7 rounded-lg p-1.5 border-l-[3px] transition-all duration-500 ${
-                            isShowing
-                              ? `opacity-100 translate-y-0 scale-100 ${colors?.bg} ${colors?.border}`
-                              : 'opacity-0 translate-y-4 scale-90 bg-slate-100'
-                          }`}
-                        >
-                          <div className={`text-[10px] sm:text-xs font-semibold ${colors?.text}`}>
-                            {session.titleKey}
+                        if (!isValidDay) {
+                          return <div key={dayIndex} className="aspect-[4/5] sm:aspect-square" />;
+                        }
+
+                        return (
+                          <div
+                            key={dayIndex}
+                            className={`aspect-[4/5] sm:aspect-square border rounded-xl p-1.5 sm:p-2 relative overflow-hidden transition-all duration-300 ${
+                              isToday
+                                ? 'border-blue-400 bg-blue-50/50 ring-2 ring-blue-400/30'
+                                : session && isShowing
+                                ? 'border-slate-200 bg-white shadow-md'
+                                : 'border-slate-100 bg-slate-50/50'
+                            }`}
+                          >
+                            {/* Date number */}
+                            <div className="flex items-center justify-between">
+                              <span
+                                className={`text-xs font-medium ${
+                                  isToday
+                                    ? 'bg-blue-500 text-white w-5 h-5 rounded-full flex items-center justify-center'
+                                    : isWeekend
+                                    ? 'text-blue-600'
+                                    : 'text-slate-400'
+                                }`}
+                              >
+                                {dayNumber}
+                              </span>
+                              {isToday && (
+                                <span className="text-[8px] font-bold text-blue-500 uppercase">Heute</span>
+                              )}
+                            </div>
+
+                            {/* Training session card */}
+                            {session && (
+                              <div
+                                className={`absolute inset-x-1 bottom-1 top-6 sm:top-7 rounded-lg p-1 border-l-[3px] transition-all duration-500 ${
+                                  isShowing
+                                    ? `opacity-100 translate-y-0 scale-100 ${colors?.bg} ${colors?.border}`
+                                    : 'opacity-0 translate-y-4 scale-90 bg-slate-100'
+                                }`}
+                              >
+                                <div className="flex items-center gap-1 mb-0.5">
+                                  <div className={`w-1.5 h-1.5 rounded-full ${colors?.dot}`} />
+                                  <span className={`text-[9px] sm:text-[10px] font-semibold ${colors?.text} truncate`}>
+                                    {session.title}
+                                  </span>
+                                </div>
+                                <div className="text-[8px] sm:text-[9px] text-slate-500 font-mono">
+                                  {session.distance}
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div className="text-[9px] sm:text-[10px] text-slate-500 font-mono">
-                            {session.distance}
-                          </div>
-                        </div>
-                      )}
+                        );
+                      })}
                     </div>
                   );
                 })}
@@ -231,7 +312,10 @@ export function ICalDemoSection() {
               {isSubscribed && syncProgress < 100 && (
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span className="font-body">Synchronisiere...</span>
+                    <span className="font-body flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                      Synchronisiere Trainingseinheiten...
+                    </span>
                     <span className="font-mono">{syncProgress}%</span>
                   </div>
                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -242,15 +326,46 @@ export function ICalDemoSection() {
                   </div>
                 </div>
               )}
+
+              {/* Import success message */}
+              {isSubscribed && syncProgress >= 100 && showingSessions.length === trainingSessions.length && (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl animate-fade-in">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <Check size={18} />
+                    <span className="font-body font-medium text-sm">
+                      {trainingSessions.length} Trainingseinheiten importiert!
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Animated cursor */}
+              {isAnimating && (
+                <div
+                  className="absolute z-30 pointer-events-none transition-all duration-300 ease-out"
+                  style={{
+                    left: cursorPosition.x,
+                    top: cursorPosition.y,
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                >
+                  <MousePointer2
+                    size={24}
+                    className="text-slate-800 drop-shadow-lg fill-white"
+                    strokeWidth={2}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Subscribe button area */}
             <div className="border-t border-slate-100 p-4 sm:p-5 bg-slate-50/50">
               <button
-                onClick={isSubscribed ? handleReset : handleSubscribe}
+                onClick={handleSubscribe}
+                disabled={isSubscribed}
                 className={`w-full py-3.5 px-6 rounded-xl font-body font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 ${
                   isSubscribed
-                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                    ? 'bg-green-100 text-green-700 cursor-default'
                     : 'bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 shadow-lg hover:shadow-xl hover:-translate-y-0.5'
                 }`}
               >
