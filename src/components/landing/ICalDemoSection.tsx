@@ -42,12 +42,16 @@ const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 export function ICalDemoSection() {
   const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [showingSessions, setShowingSessions] = useState<number[]>([]);
   const [syncProgress, setSyncProgress] = useState(0);
-  const [cursorPosition, setCursorPosition] = useState({ x: 280, y: 320 });
+  const [cursorPosition, setCursorPosition] = useState({ x: 50, y: 50 });
   const [isAnimating, setIsAnimating] = useState(false);
+  const [buttonPressed, setButtonPressed] = useState(false);
+  const [hasAnimatedOnce, setHasAnimatedOnce] = useState(false);
 
   // Current date calculations
   const today = useMemo(() => new Date(), []);
@@ -95,45 +99,93 @@ export function ICalDemoSection() {
     return () => observer.disconnect();
   }, []);
 
-  const handleSubscribe = () => {
+  // Auto-start animation when visible and not yet animated
+  useEffect(() => {
+    if (isVisible && !hasAnimatedOnce && !isAnimating && !isSubscribed) {
+      const timer = setTimeout(() => {
+        startAnimation();
+      }, 800);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, hasAnimatedOnce, isAnimating, isSubscribed]);
+
+  const startAnimation = () => {
     if (isSubscribed || isAnimating) return;
 
     setIsAnimating(true);
-    setCursorPosition({ x: 280, y: 370 });
+    setHasAnimatedOnce(true);
 
-    // Cursor moves to button (button is at bottom of calendar area)
-    setTimeout(() => setCursorPosition({ x: 280, y: 430 }), 200);
+    // Get button position relative to calendar container
+    const getButtonCenter = () => {
+      if (buttonRef.current && calendarRef.current) {
+        const buttonRect = buttonRef.current.getBoundingClientRect();
+        const containerRect = calendarRef.current.getBoundingClientRect();
+        return {
+          x: buttonRect.left - containerRect.left + buttonRect.width / 2,
+          y: buttonRect.top - containerRect.top + buttonRect.height / 2,
+        };
+      }
+      return { x: 280, y: 480 }; // Fallback
+    };
 
-    // Click effect
+    // Start cursor from top-center of calendar
+    setCursorPosition({ x: 280, y: 100 });
+
+    // Move cursor down towards button
     setTimeout(() => {
+      const buttonPos = getButtonCenter();
+      setCursorPosition({ x: buttonPos.x, y: buttonPos.y - 60 });
+    }, 400);
+
+    // Move to button center
+    setTimeout(() => {
+      const buttonPos = getButtonCenter();
+      setCursorPosition(buttonPos);
+    }, 800);
+
+    // Press button (visual feedback)
+    setTimeout(() => {
+      setButtonPressed(true);
+    }, 1100);
+
+    // Click effect - release button and trigger subscription
+    setTimeout(() => {
+      setButtonPressed(false);
       setIsSubscribed(true);
       setSyncProgress(0);
-    }, 600);
+    }, 1300);
 
     // Animate progress bar
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += 8;
-      setSyncProgress(progress);
-      if (progress >= 100) {
-        clearInterval(progressInterval);
-      }
-    }, 80);
+    setTimeout(() => {
+      let progress = 0;
+      const progressInterval = setInterval(() => {
+        progress += 8;
+        setSyncProgress(progress);
+        if (progress >= 100) {
+          clearInterval(progressInterval);
+        }
+      }, 80);
+    }, 1400);
 
     // Animate sessions appearing one by one with cursor following
     trainingSessions.forEach((_, i) => {
       setTimeout(() => {
         setShowingSessions((prev) => [...prev, i]);
         // Move cursor to show import (calendar grid area)
-        const yOffset = 230 + (i * 25);
-        setCursorPosition({ x: 200 + (i * 30), y: yOffset });
-      }, 800 + i * 500);
+        const yOffset = 180 + (i * 25);
+        setCursorPosition({ x: 120 + (i * 40), y: yOffset });
+      }, 1600 + i * 500);
     });
 
     // Hide cursor after animation
     setTimeout(() => {
       setIsAnimating(false);
-    }, 800 + trainingSessions.length * 500 + 500);
+    }, 1600 + trainingSessions.length * 500 + 500);
+  };
+
+  const handleSubscribe = () => {
+    if (isSubscribed || isAnimating) return;
+    startAnimation();
   };
 
   const handleReset = () => {
@@ -141,7 +193,9 @@ export function ICalDemoSection() {
     setShowingSessions([]);
     setSyncProgress(0);
     setIsAnimating(false);
-    setCursorPosition({ x: 280, y: 370 });
+    setButtonPressed(false);
+    setHasAnimatedOnce(false); // Allow animation to play again
+    setCursorPosition({ x: 280, y: 100 });
   };
 
   // Calculate which week row contains today
@@ -187,7 +241,7 @@ export function ICalDemoSection() {
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
           }`}
         >
-          <div className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+          <div ref={calendarRef} className="relative bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
             {/* Calendar header */}
             <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-primary-600 text-white p-4 sm:p-5">
               <div className="flex items-center justify-between">
@@ -361,13 +415,14 @@ export function ICalDemoSection() {
             {/* Subscribe button area */}
             <div className="border-t border-slate-100 p-4 sm:p-5 bg-slate-50/50">
               <button
+                ref={buttonRef}
                 onClick={handleSubscribe}
                 disabled={isSubscribed}
-                className={`w-full py-3.5 px-6 rounded-xl font-body font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 ${
+                className={`w-full py-3.5 px-6 rounded-xl font-body font-semibold text-base transition-all duration-150 flex items-center justify-center gap-2 ${
                   isSubscribed
                     ? 'bg-green-100 text-green-700 cursor-default'
-                    : 'bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 shadow-lg hover:shadow-xl hover:-translate-y-0.5'
-                }`}
+                    : 'bg-gradient-to-r from-blue-600 to-blue-500 text-white hover:from-blue-700 hover:to-blue-600 shadow-lg hover:shadow-xl'
+                } ${buttonPressed ? 'scale-95 shadow-md' : ''}`}
               >
                 {isSubscribed ? (
                   <>

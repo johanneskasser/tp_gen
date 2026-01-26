@@ -37,8 +37,8 @@ export default function LandingPage() {
         <FeaturesSection />
         <EaseOfUseShowcase />
         <CalendarOrbitSection />
-        <InteractiveDemoSection />
         <ICalDemoSection />
+        <InteractiveDemoSection />
         <IndependenceSection />
         <VideosSection />
         <StatsSection />

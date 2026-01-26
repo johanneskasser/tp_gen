@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { TrainingWeek, TrainingSession, TrainingPlan } from '../types';
 import { TrainingSuggestion } from '../types/suggestions';
 import { formatDate, getDayName } from '../utils/dateUtils';
@@ -6,10 +6,12 @@ import SessionEditor from './SessionEditor';
 import { Plus, ChevronDown, ChevronUp, Lightbulb, Sparkles } from 'lucide-react';
 import { calculateSessionDistance } from '../utils/calculationUtils';
 import { generateSessionTitle } from '../utils/titleGenerator';
-import { TrainingSuggestionPanel } from './TrainingSuggestionPanel';
+import { CoachingPanel, WeekCoachBadge } from './coaching';
+import { TrainingRuleEngine } from '../expertSystem';
 import { analyzeWeekIntensity } from '../utils/intensityAnalyzer';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
 import { calculateTrainingZones, getBestVDOT } from '../utils/vdotCalculator';
+import { cn, typography } from '../lib/designSystem';
 
 interface WeeklyPlanProps {
   week: TrainingWeek;
@@ -146,6 +148,25 @@ export default function WeeklyPlan({
   // Calculate intensity distribution for the week (using dynamic RPE if zones available)
   const intensityDist = analyzeWeekIntensity(week.sessions, zones);
 
+  // Expert System - for coaching badge
+  const ruleEngine = useMemo(() => {
+    if (!plan) return null;
+    return new TrainingRuleEngine(plan, runnerProfile || undefined);
+  }, [plan, runnerProfile]);
+
+  // Count actual suggestions (not violations/tips) for coaching badge
+  const suggestionCount = useMemo(() => {
+    if (!ruleEngine) return 0;
+    let count = 0;
+    for (let d = 0; d < 7; d++) {
+      const hasSession = week.sessions.some(s => s.dayOfWeek === d);
+      if (hasSession) continue;
+      const dailyAnalysis = ruleEngine.getSuggestionsForDay(week, d);
+      count += dailyAnalysis?.suggestions.length || 0;
+    }
+    return count;
+  }, [ruleEngine, week]);
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <div className="w-full px-3 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-blue-50 to-slate-50">
@@ -165,6 +186,16 @@ export default function WeeklyPlan({
               <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-600 text-white rounded-full text-xs sm:text-sm font-medium">
                 {week.totalKm.toFixed(1)} km
               </span>
+              {/* Coaching Badge - shows actual suggestion count */}
+              {plan && (
+                <WeekCoachBadge
+                  tipCount={suggestionCount}
+                  onClick={() => {
+                    setIsExpanded(true);
+                    handleShowSuggestions(undefined);
+                  }}
+                />
+              )}
               <div className="flex-shrink-0 text-slate-600">
                 {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
               </div>
@@ -222,10 +253,10 @@ export default function WeeklyPlan({
                 e.stopPropagation();
                 handleShowSuggestions(undefined);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-md hover:shadow-lg text-sm font-medium"
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-lg hover:from-violet-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg text-sm font-medium"
             >
               <Sparkles size={16} />
-              <span className="hidden sm:inline">KI-Vorschläge</span>
+              <span className="hidden sm:inline">Coaching</span>
             </button>
           )}
         </div>
@@ -233,17 +264,20 @@ export default function WeeklyPlan({
 
       {isExpanded && (
         <div className="p-3 sm:p-6 space-y-4">
-          {/* Days Grid */}
+          {/* Days Grid - no violation coloring */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4">
             {daysToShow.map((dayOfWeek) => {
               const daySessions = getSessionsForDay(dayOfWeek);
+
               return (
                 <div
                   key={dayOfWeek}
-                  className="border border-slate-200 rounded-lg p-3 bg-slate-50"
+                  className="border border-slate-200 bg-slate-50 rounded-lg p-3"
                 >
-                  <div className="font-medium text-slate-700 mb-2 text-sm">
-                    {getDayName(dayOfWeek)}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-slate-700 text-sm">
+                      {getDayName(dayOfWeek)}
+                    </span>
                   </div>
 
                   <div className="space-y-2">
@@ -282,7 +316,7 @@ export default function WeeklyPlan({
                     {plan && (
                       <button
                         onClick={() => handleShowSuggestions(dayOfWeek)}
-                        className="w-full py-2 border-2 border-dashed border-purple-300 rounded hover:border-purple-500 hover:bg-purple-50 transition-colors flex items-center justify-center gap-1 text-purple-600 hover:text-purple-700 text-xs font-medium"
+                        className="w-full py-2 border-2 border-dashed border-violet-300 rounded hover:border-violet-500 hover:bg-violet-50 transition-colors flex items-center justify-center gap-1 text-violet-600 hover:text-violet-700 text-xs font-medium"
                       >
                         <Lightbulb size={14} />
                         <span>Vorschlag</span>
@@ -294,24 +328,36 @@ export default function WeeklyPlan({
             })}
           </div>
 
-          {/* Suggestion Panel Modal */}
+          {/* Coaching Panel Modal */}
           {showSuggestions && plan && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-              <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center z-10">
-                  <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                    <Sparkles className="text-purple-600" />
-                    Smart Trainings-Vorschläge
-                  </h3>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+              <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden animate-scale-in">
+                <div className="sticky top-0 bg-white border-b border-stone-100 px-6 py-4 flex justify-between items-center z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-xl bg-gradient-to-br from-violet-100 to-purple-100">
+                      <Sparkles className="w-6 h-6 text-violet-600" />
+                    </div>
+                    <div>
+                      <h3 className={cn(typography.h2, 'text-text-primary')}>
+                        Coaching
+                      </h3>
+                      <p className={cn(typography.caption, 'text-text-tertiary')}>
+                        Personalisierte Trainingsvorschläge
+                      </p>
+                    </div>
+                  </div>
                   <button
                     onClick={() => setShowSuggestions(false)}
-                    className="text-slate-500 hover:text-slate-700 text-2xl font-bold"
+                    className="text-stone-400 hover:text-stone-600 transition-colors p-2 rounded-lg hover:bg-stone-100"
                   >
-                    ×
+                    <span className="sr-only">Schließen</span>
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 </div>
-                <div className="p-6">
-                  <TrainingSuggestionPanel
+                <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
+                  <CoachingPanel
                     plan={plan}
                     currentWeek={week}
                     dayOfWeek={suggestionDayOfWeek}

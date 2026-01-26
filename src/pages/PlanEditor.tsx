@@ -8,25 +8,15 @@ import WeeklyPlan from '../components/WeeklyPlan';
 import WeeklyChart from '../components/WeeklyChart';
 import PublishPlanModal from '../components/PublishPlanModal';
 import ICalSubscriptionModal from '../components/ICalSubscriptionModal';
-import { PlanDifficultyBadge } from '../components/PlanDifficultyBadge';
-import { FileDown, Download, Upload, ArrowLeft, Save, Loader2, Share2, ChevronDown, Calendar } from 'lucide-react';
+import { CompactPlanHeader } from '../components/CompactPlanHeader';
+import { ArrowLeft, Upload, Loader2 } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
-import { calculatePace, formatPace } from '../utils/paceCalculator';
 import { exportToJSON, importFromJSON } from '../utils/jsonExportImport';
 import { exportToFIT, importFromFIT } from '../utils/fitExportImport';
 import { exportToICal } from '../utils/icalExport';
 import { trainingPlanService, SavedTrainingPlan } from '../services/trainingPlanService';
 import { TrainingSession } from '../types';
-import { formatDistanceToNow } from 'date-fns';
-import { de } from 'date-fns/locale';
-import { Button, Card } from '../components/ui';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
+import { Button } from '../components/ui';
 import { typography, cn, flex } from '../lib/designSystem';
 import { useToast } from '../contexts/ToastContext';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
@@ -44,7 +34,6 @@ export default function PlanEditor() {
   const [loading, setLoading] = useState(!isNewPlan);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [, setCurrentTime] = useState(new Date());
   const [showPublishModal, setShowPublishModal] = useState(false);
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,30 +66,6 @@ export default function PlanEditor() {
       }
     };
   }, [plan]);
-
-  // Update relative time display every 10 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 10000); // Update every 10 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const getRelativeSaveTime = () => {
-    if (!lastSaved) return '';
-
-    const secondsAgo = Math.floor((Date.now() - lastSaved.getTime()) / 1000);
-
-    if (secondsAgo < 10) {
-      return 'Gespeichert gerade jetzt';
-    }
-
-    return `Gespeichert ${formatDistanceToNow(lastSaved, {
-      addSuffix: true,
-      locale: de
-    })}`;
-  };
 
   const loadPlan = async (planId: string) => {
     try {
@@ -330,42 +295,7 @@ export default function PlanEditor() {
   }
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-7xl">
-        {/* Action Bar */}
-        <div className="mb-6 sm:mb-8 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={() => navigate('/dashboard')}
-              variant="ghost"
-              size="sm"
-            >
-              <ArrowLeft size={18} />
-              Zurück
-            </Button>
-            {lastSaved && (
-              <p className={cn(typography.bodySmall, 'text-text-tertiary')}>
-                {saving ? (
-                  <span className="flex items-center gap-1">
-                    <Save size={14} className="animate-pulse" />
-                    Speichert...
-                  </span>
-                ) : (
-                  getRelativeSaveTime()
-                )}
-              </p>
-            )}
-          </div>
-          {showEventConfig && !plan && (
-            <Button
-              onClick={handleImport}
-              variant="secondary"
-            >
-              <Upload size={18} />
-              Plan laden
-            </Button>
-          )}
-        </div>
-
+    <div className="min-h-screen">
         <input
           ref={fileInputRef}
           type="file"
@@ -375,136 +305,73 @@ export default function PlanEditor() {
         />
 
         {showEventConfig ? (
-          <EventConfig
-            onSubmit={handleEventSubmit}
-            initialData={plan?.event}
-            initialStartDate={plan?.startDate}
-          />
+          <div className="container mx-auto px-3 sm:px-4 py-6 max-w-7xl">
+            {/* Action Bar for EventConfig */}
+            <div className="mb-6 flex justify-between items-center">
+              <Button
+                onClick={() => navigate('/dashboard')}
+                variant="ghost"
+                size="sm"
+              >
+                <ArrowLeft size={18} />
+                Zurück
+              </Button>
+              {!plan && (
+                <Button
+                  onClick={handleImport}
+                  variant="secondary"
+                >
+                  <Upload size={18} />
+                  Plan laden
+                </Button>
+              )}
+            </div>
+            <EventConfig
+              onSubmit={handleEventSubmit}
+              initialData={plan?.event}
+              initialStartDate={plan?.startDate}
+            />
+          </div>
         ) : (
           <>
             {plan && (
               <>
-                {/* Event Summary Card */}
-                <Card variant="default" className="mb-4 sm:mb-6">
-                  <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-                    <div className="flex-1">
-                      <h2 className={cn(typography.h2, 'mb-2')}>
-                        {plan.event.name}
-                      </h2>
-                      <p className={cn(typography.body, 'text-text-secondary mb-1')}>
-                        {plan.event.distance}
-                        {plan.event.distance === 'CUSTOM' &&
-                          ` (${plan.event.customDistance} km)`}{' '}
-                        - {plan.event.terrain === 'road' ? 'Straße' : 'Trail'}
-                        {plan.event.terrain === 'trail' &&
-                          plan.event.elevationGain &&
-                          ` - ${plan.event.elevationGain} HM`}
-                      </p>
-                      {plan.event.targetTime && (
-                        <p className={cn(typography.bodySmall, 'text-text-secondary')}>
-                          <strong>Zielzeit:</strong> {plan.event.targetTime} |{' '}
-                          <strong>Pace:</strong>{' '}
-                          {formatPace(
-                            calculatePace(
-                              plan.event.targetTime,
-                              getRaceDistanceKm(
-                                plan.event.distance,
-                                plan.event.customDistance
-                              )
-                            )
-                          )}
-                        </p>
-                      )}
-                      <p className={cn(typography.bodySmall, 'text-text-tertiary mt-1')}>
-                        {plan.weeks.length} Wochen Training
-                      </p>
-                    </div>
+                {/* Compact Sticky Header */}
+                <CompactPlanHeader
+                  plan={plan}
+                  savedPlan={savedPlan}
+                  saving={saving}
+                  lastSaved={lastSaved}
+                  runnerProfile={runnerProfile}
+                  onBack={() => navigate('/dashboard')}
+                  onPublish={() => setShowPublishModal(true)}
+                  onEditEvent={handleEditEvent}
+                  onExportJSON={handleExportJSON}
+                  onExportFIT={handleExportFIT}
+                  onExportICal={handleExportICal}
+                  onExportPDF={handleExportPDF}
+                  onShowSubscription={handleShowSubscription}
+                />
 
-                    {/* Action Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
-                      {savedPlan && (
-                        <Button
-                          onClick={() => setShowPublishModal(true)}
-                          variant={savedPlan?.visibility !== 'private' ? 'default' : 'secondary'}
-                          size="sm"
-                        >
-                          <Share2 size={18} />
-                          <span className="whitespace-nowrap">
-                            {savedPlan?.visibility !== 'private' ? 'Veröffentlicht' : 'Veröffentlichen'}
-                          </span>
-                        </Button>
-                      )}
-                      <Button
-                        onClick={handleEditEvent}
-                        variant="secondary"
-                        size="sm"
-                      >
-                        Event bearbeiten
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                          >
-                            <Download size={18} />
-                            <span className="whitespace-nowrap">Export</span>
-                            <ChevronDown size={16} className="ml-1" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={handleExportJSON}>
-                            <Download size={16} className="mr-2" />
-                            JSON exportieren
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleExportFIT}>
-                            <Download size={16} className="mr-2" />
-                            FIT exportieren
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleExportICal}>
-                            <Calendar size={16} className="mr-2" />
-                            iCal exportieren
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={handleExportPDF}>
-                            <FileDown size={16} className="mr-2" />
-                            PDF exportieren
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={handleShowSubscription}>
-                            <Calendar size={16} className="mr-2" />
-                            Kalender-Abonnement...
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                {/* Main Content */}
+                <div className="container mx-auto px-3 sm:px-4 py-4 max-w-7xl">
+                  {/* Weekly Chart - Hero Element */}
+                  <WeeklyChart weeks={plan.weeks} userProfile={runnerProfile || undefined} />
+
+                  {/* Weekly Plans */}
+                  <div className="mt-4 sm:mt-6 space-y-4 sm:space-y-6">
+                    {plan.weeks.map((week, index) => (
+                      <WeeklyPlan
+                        key={week.weekNumber}
+                        week={week}
+                        weekIndex={index}
+                        onUpdate={(updatedWeek) =>
+                          handleUpdateWeek(index, updatedWeek)
+                        }
+                        plan={plan}
+                      />
+                    ))}
                   </div>
-                </Card>
-
-                {/* Plan Difficulty Badge */}
-                {runnerProfile && (
-                  <PlanDifficultyBadge
-                    plan={plan}
-                    userProfile={runnerProfile}
-                    showDetails={false}
-                  />
-                )}
-
-                {/* Weekly Chart */}
-                <WeeklyChart weeks={plan.weeks} userProfile={runnerProfile || undefined} />
-
-                {/* Weekly Plans */}
-                <div className="mt-6 sm:mt-8 space-y-4 sm:space-y-6">
-                  {plan.weeks.map((week, index) => (
-                    <WeeklyPlan
-                      key={week.weekNumber}
-                      week={week}
-                      weekIndex={index}
-                      onUpdate={(updatedWeek) =>
-                        handleUpdateWeek(index, updatedWeek)
-                      }
-                      plan={plan}
-                    />
-                  ))}
                 </div>
               </>
             )}
