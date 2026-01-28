@@ -241,6 +241,7 @@ export default {
 
             animation: {
                 'fade-in': 'fadeIn 200ms ease-out',
+                'fade-in-up': 'fadeInUp 400ms ease-out',
                 'scale-in': 'scaleIn 200ms ease-out',
                 'slide-down': 'slideDown 300ms ease-out',
                 'slide-up': 'slideUp 300ms ease-out',
@@ -257,6 +258,10 @@ export default {
                 fadeIn: {
                     '0%': { opacity: '0' },
                     '100%': { opacity: '1' },
+                },
+                fadeInUp: {
+                    '0%': { opacity: '0', transform: 'translateY(20px)' },
+                    '100%': { opacity: '1', transform: 'translateY(0)' },
                 },
                 scaleIn: {
                     '0%': { transform: 'scale(0.95)', opacity: '0' },

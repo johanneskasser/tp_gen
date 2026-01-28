@@ -3,20 +3,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { TrainingPlan, TrainingWeek, RaceEvent } from '../types';
 import { calculateWeeks } from '../utils/dateUtils';
 import { calculateWeeklyKm, getRaceDistanceKm } from '../utils/calculationUtils';
-import EventConfig from '../components/EventConfig';
+import EventConfigLayout from '../components/EventConfigLayout';
 import WeeklyPlan from '../components/WeeklyPlan';
 import WeeklyChart from '../components/WeeklyChart';
 import PublishPlanModal from '../components/PublishPlanModal';
 import ICalSubscriptionModal from '../components/ICalSubscriptionModal';
 import { CompactPlanHeader } from '../components/CompactPlanHeader';
-import { ArrowLeft, Upload, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { exportToPDF } from '../utils/pdfExport';
 import { exportToJSON, importFromJSON } from '../utils/jsonExportImport';
 import { exportToFIT, importFromFIT } from '../utils/fitExportImport';
 import { exportToICal } from '../utils/icalExport';
 import { trainingPlanService, SavedTrainingPlan } from '../services/trainingPlanService';
 import { TrainingSession } from '../types';
-import { Button } from '../components/ui';
 import { typography, cn, flex } from '../lib/designSystem';
 import { useToast } from '../contexts/ToastContext';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
@@ -225,6 +224,31 @@ export default function PlanEditor() {
     setShowSubscriptionModal(true);
   };
 
+  const handleCopyPlan = async () => {
+    if (!plan) return;
+
+    try {
+      // Create a copy of the plan with a new name
+      const copiedPlan: TrainingPlan = {
+        ...plan,
+        event: {
+          ...plan.event,
+          name: `${plan.event.name} (Kopie)`,
+        },
+      };
+
+      // Save as new plan
+      const saved = await trainingPlanService.createPlan(copiedPlan);
+
+      // Navigate to the new plan
+      navigate(`/plan/${saved.id}`);
+      toast.success('Plan erfolgreich kopiert');
+    } catch (err) {
+      console.error(err);
+      toast.error('Fehler beim Kopieren des Plans');
+    }
+  };
+
   const handleImport = () => {
     fileInputRef.current?.click();
   };
@@ -305,33 +329,14 @@ export default function PlanEditor() {
         />
 
         {showEventConfig ? (
-          <div className="container mx-auto px-3 sm:px-4 py-6 max-w-7xl">
-            {/* Action Bar for EventConfig */}
-            <div className="mb-6 flex justify-between items-center">
-              <Button
-                onClick={() => navigate('/dashboard')}
-                variant="ghost"
-                size="sm"
-              >
-                <ArrowLeft size={18} />
-                Zurück
-              </Button>
-              {!plan && (
-                <Button
-                  onClick={handleImport}
-                  variant="secondary"
-                >
-                  <Upload size={18} />
-                  Plan laden
-                </Button>
-              )}
-            </div>
-            <EventConfig
-              onSubmit={handleEventSubmit}
-              initialData={plan?.event}
-              initialStartDate={plan?.startDate}
-            />
-          </div>
+          <EventConfigLayout
+            onSubmit={handleEventSubmit}
+            onBack={() => navigate('/dashboard')}
+            onImport={handleImport}
+            initialData={plan?.event}
+            initialStartDate={plan?.startDate}
+            showImportButton={!plan}
+          />
         ) : (
           <>
             {plan && (
@@ -351,6 +356,7 @@ export default function PlanEditor() {
                   onExportICal={handleExportICal}
                   onExportPDF={handleExportPDF}
                   onShowSubscription={handleShowSubscription}
+                  onCopyPlan={handleCopyPlan}
                 />
 
                 {/* Main Content */}

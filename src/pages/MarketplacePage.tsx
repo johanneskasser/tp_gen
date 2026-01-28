@@ -5,22 +5,12 @@ import {
   MarketplaceFilters,
   PREDEFINED_TAGS,
 } from '../types/marketplace';
-import {
-  Search,
-  Filter,
-  TrendingUp,
-  Clock,
-  Star,
-  Copy,
-  Loader2,
-  Users,
-} from 'lucide-react';
-import { Button, Card, Input, Pagination } from '../components/ui';
-import { cn } from '../lib/designSystem';
-import { useAuth } from '../contexts/AuthContext';
+import { Search, Loader2 } from 'lucide-react';
+import { Button, Card, Pagination } from '../components/ui';
+import { cn, typography, flex } from '../lib/designSystem';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
-import { FilterSidebar } from '../components/marketplace/FilterSidebar';
-import { FilterChips } from '../components/marketplace/FilterChips';
+import { CommandPaletteSearch } from '../components/marketplace/CommandPaletteSearch';
+import { FilterOverlay } from '../components/marketplace/FilterOverlay';
 import { calculatePlanDifficulty } from '../utils/personalizedIntensity';
 import { useTranslation } from 'react-i18next';
 import { PlanCard } from '../components/marketplace/PlanCard';
@@ -40,10 +30,9 @@ export default function MarketplacePage() {
   const [selectedDistances, setSelectedDistances] = useState<number[]>([]);
   const [selectedIntensities, setSelectedIntensities] = useState<string[]>([]);
   const [targetTimeRange, setTargetTimeRange] = useState<{ min?: number; max?: number }>({});
-  const [showFilterSheet, setShowFilterSheet] = useState(false);
   const [showFollowingOnly, setShowFollowingOnly] = useState(false);
-
-  const { user } = useAuth();
+  const [showFilterOverlay, setShowFilterOverlay] = useState(false);
+  const [activeCommand, setActiveCommand] = useState<string>();
   const { runnerProfile } = useRunnerProfile();
   const { t } = useTranslation();
 
@@ -100,18 +89,27 @@ export default function MarketplacePage() {
     });
   };
 
-  const handleSortChange = (sort_by: MarketplaceFilters['sort_by']) => {
-    setFilters({ ...filters, sort_by, from_following: showFollowingOnly || undefined, page: 1 });
-  };
+  const handleCommandSelect = (command: string) => {
+    setActiveCommand(command);
 
-  const toggleFollowing = () => {
-    const newValue = !showFollowingOnly;
-    setShowFollowingOnly(newValue);
-    setFilters({
-      ...filters,
-      from_following: newValue || undefined,
-      page: 1
-    });
+    // Map commands to sort_by values
+    const commandMap: Record<string, MarketplaceFilters['sort_by']> = {
+      recent: 'recent',
+      popular: 'popular',
+      rating: 'rating',
+      clones: 'clones',
+    };
+
+    if (command === 'friends') {
+      setShowFollowingOnly(true);
+      setFilters({
+        ...filters,
+        from_following: true,
+        page: 1
+      });
+    } else if (commandMap[command]) {
+      setFilters({ ...filters, sort_by: commandMap[command], page: 1 });
+    }
   };
 
   const toggleTag = (tag: string) => {
@@ -210,140 +208,67 @@ export default function MarketplacePage() {
   const filterChips = getFilterChips();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex flex-col">
-      {/* Modern Header */}
-      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm flex-shrink-0">
-        <div className="w-full">
-          {/* Header Content */}
-          <div className="py-4 px-6">
-            <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide">
-              {/* Sorting Pills */}
-              {[
-                { value: 'recent', labelKey: 'marketplace.sortBy.recent', icon: Clock },
-                { value: 'popular', labelKey: 'marketplace.sortBy.popular', icon: TrendingUp },
-                { value: 'rating', labelKey: 'marketplace.sortBy.rating', icon: Star },
-                { value: 'clones', labelKey: 'marketplace.sortBy.clones', icon: Copy },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleSortChange(option.value as any)}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl transition-all duration-200 flex-shrink-0',
-                    filters.sort_by === option.value
-                      ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
-                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-gray-200'
-                  )}
-                >
-                  <option.icon size={16} />
-                  <span className="whitespace-nowrap">{t(option.labelKey)}</span>
-                </button>
-              ))}
-
-              {/* Following Filter - Only show if authenticated */}
-              {user && (
-                <button
-                  onClick={toggleFollowing}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex-shrink-0',
-                    showFollowingOnly
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-gray-200'
-                  )}
-                >
-                  <Users size={16} />
-                  <span className="whitespace-nowrap">{t('marketplace.filters.fromFollowing')}</span>
-                </button>
-              )}
-
-              {/* Search */}
-              <div className="w-80 hidden lg:block flex-shrink-0">
-                <Input
-                  type="text"
-                  placeholder="Suchen..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  leftIcon={<Search size={16} />}
-                  className="w-full text-sm"
-                />
-              </div>
-
-              {/* Filter Button (Mobile) */}
-              <Button
-                onClick={() => setShowFilterSheet(!showFilterSheet)}
-                variant="secondary"
-                className="lg:hidden relative flex-shrink-0 ml-auto"
-                size="sm"
-              >
-                <Filter size={18} />
-                {filterChips.length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                    {filterChips.length}
-                  </span>
-                )}
-              </Button>
-            </div>
-          </div>
-
-          {/* Mobile Search */}
-          <div className="lg:hidden pb-4">
-            <Input
-              type="text"
-              placeholder="Suchen..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              leftIcon={<Search size={16} />}
-              className="w-full text-sm"
-            />
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-background-secondary via-white to-background-primary flex flex-col">
+      {/* Command Palette Header - Clean & Powerful */}
+      <div className="sticky top-0 z-20 bg-white flex-shrink-0">
+        <div className="container mx-auto px-4 sm:px-8 max-w-[1600px] py-4 sm:py-8">
+          <CommandPaletteSearch
+            searchValue={searchInput}
+            onSearchChange={setSearchInput}
+            onCommandSelect={handleCommandSelect}
+            activeFilters={filterChips}
+            onFilterClick={() => setShowFilterOverlay(true)}
+            activeCommand={activeCommand}
+            onClearCommand={() => {
+              setActiveCommand(undefined);
+              // Reset to default sort when clearing command
+              if (activeCommand === 'friends') {
+                setShowFollowingOnly(false);
+              }
+              setFilters({ ...filters, sort_by: 'recent', from_following: undefined, page: 1 });
+            }}
+          />
         </div>
       </div>
 
-      {/* Filter Chips */}
-      {filterChips.length > 0 && (
-        <div className="container mx-auto px-6 max-w-[1600px] py-4 flex-shrink-0">
-          <FilterChips chips={filterChips} onClearAll={clearFilters} />
-        </div>
-      )}
+      {/* Filter Overlay Modal */}
+      <FilterOverlay
+        isOpen={showFilterOverlay}
+        onClose={() => setShowFilterOverlay(false)}
+        selectedDistances={selectedDistances}
+        onDistanceToggle={toggleDistance}
+        selectedIntensities={selectedIntensities}
+        onIntensityToggle={toggleIntensity}
+        runnerProfile={runnerProfile || undefined}
+        targetTimeRange={targetTimeRange}
+        onTargetTimeChange={setTargetTimeRange}
+        selectedTags={selectedTags}
+        onTagToggle={toggleTag}
+        availableTags={PREDEFINED_TAGS}
+        onApply={() => {
+          handleSearch();
+          setShowFilterOverlay(false);
+        }}
+        onClear={clearFilters}
+      />
 
-      {/* Layout: Sidebar + Content */}
+      {/* Layout: Main Content with more breathing room */}
       <div className="flex-1 flex flex-col">
-        <div className="container mx-auto px-6 max-w-[1600px] flex-1">
-          <div className="flex gap-8 py-8 h-full">
-            {/* Filter Sidebar (Desktop) */}
-            <aside className="hidden lg:block w-80 flex-shrink-0">
-              <div className="sticky top-32 h-[calc(100vh-180px)] shadow-xl shadow-slate-900/5">
-                <FilterSidebar
-                  selectedDistances={selectedDistances}
-                  onDistanceToggle={toggleDistance}
-                  selectedIntensities={selectedIntensities}
-                  onIntensityToggle={toggleIntensity}
-                  runnerProfile={runnerProfile || undefined}
-                  targetTimeRange={targetTimeRange}
-                  onTargetTimeChange={setTargetTimeRange}
-                  selectedTags={selectedTags}
-                  onTagToggle={toggleTag}
-                  availableTags={PREDEFINED_TAGS}
-                  onApply={handleSearch}
-                  onClear={clearFilters}
-                />
-              </div>
-            </aside>
-
+        <div className="container mx-auto px-6 max-w-[1400px] flex-1">
+          <div className="py-10">
             {/* Main Content */}
-            <main className="flex-1 min-w-0 flex flex-col">
+            <main className="flex flex-col">
               {/* Results Header */}
               {!loading && filteredPlans.length > 0 && (
-                <div className="mb-6 flex items-center justify-between">
+                <div className={cn('mb-8', flex.rowJustified)}>
                   <div>
-                    <h2 className="text-lg font-bold text-slate-900">
+                    <h2 className={typography.h2}>
                       {selectedIntensities.length > 0 && runnerProfile
                         ? `${filteredPlans.length} von ${total} Plänen`
                         : t('marketplace.resultsCount', { count: total })}
                     </h2>
                     {selectedIntensities.length > 0 && runnerProfile && (
-                      <p className="text-sm text-slate-600 mt-0.5">
+                      <p className={cn(typography.bodySmall, 'mt-1')}>
                         Gefiltert nach deiner Intensität
                       </p>
                     )}
@@ -353,40 +278,45 @@ export default function MarketplacePage() {
 
               {/* Results */}
               {loading ? (
-                <div className="flex justify-center items-center py-20">
-                  <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                    <span className="text-sm font-medium text-slate-600">
+                <div className={cn(flex.center, 'py-24')}>
+                  <div className={cn(flex.colNormal, 'items-center')}>
+                    <Loader2 className="w-10 h-10 animate-spin text-primary-600" />
+                    <span className={cn(typography.body, 'font-medium text-text-secondary')}>
                       {t('marketplace.loadingPlans')}
                     </span>
                   </div>
                 </div>
               ) : filteredPlans.length === 0 ? (
-                <div className="flex items-center justify-center py-20">
-                  <Card variant="default" className="p-12 text-center max-w-md bg-white shadow-xl">
-                    <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-slate-100 flex items-center justify-center">
-                      <Search size={32} className="text-slate-400" />
+                <div className={cn(flex.center, 'py-24')}>
+                  <Card variant="default" className="p-12 text-center max-w-md bg-white shadow-xl border border-border-light">
+                    <div className={cn(
+                      'w-20 h-20 mx-auto mb-6 rounded-full bg-background-tertiary',
+                      flex.center
+                    )}>
+                      <Search size={36} className="text-text-tertiary" />
                     </div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-2">
+                    <h3 className={cn(typography.h2, 'mb-3')}>
                       {t('marketplace.noResults')}
                     </h3>
-                    <p className="text-sm text-slate-600 mb-6">
+                    <p className={cn(typography.body, 'mb-8')}>
                       {t('marketplace.noResultsDescription')}
                     </p>
-                    <Button onClick={clearFilters} variant="secondary" className="px-6">
+                    <Button onClick={clearFilters} variant="secondary" className="px-8 py-3">
                       {t('marketplace.filters.resetFilters')}
                     </Button>
                   </Card>
                 </div>
               ) : (
                 <>
-                  {/* Plans Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                  {/* Plans Grid - More spacing */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-12">
                     {filteredPlans.map((plan, index) => (
                       <div
                         key={plan.id}
+                        className="animate-fade-in-up"
                         style={{
-                          animation: `fadeInUp 0.4s ease-out ${index * 0.05}s both`,
+                          animationDelay: `${index * 0.05}s`,
+                          animationFillMode: 'both',
                         }}
                       >
                         <PlanCard

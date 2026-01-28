@@ -1,8 +1,19 @@
 /**
- * Converts time string to total minutes
- * Accepts formats: HH:MM:SS or MM:SS
+ * Minimum realistic pace in min/km (~2:30 min/km, world-class sprinting pace).
+ * If a MM:SS interpretation yields a pace faster than this, the input is
+ * reinterpreted as H:MM (hours:minutes).
  */
-export function timeStringToMinutes(timeString: string): number {
+const MIN_REALISTIC_PACE = 2.5;
+
+/**
+ * Converts time string to total minutes.
+ * Accepts formats: HH:MM:SS, H:MM, or MM:SS.
+ *
+ * When distanceKm is provided and the input has two parts (e.g. "1:40"),
+ * the function checks whether treating it as MM:SS would produce an
+ * unrealistically fast pace. If so, it reinterprets the input as H:MM.
+ */
+export function timeStringToMinutes(timeString: string, distanceKm?: number): number {
   if (!timeString || !timeString.trim()) return 0;
 
   const trimmed = timeString.trim();
@@ -27,9 +38,21 @@ export function timeStringToMinutes(timeString: string): number {
     const [hours, minutes, seconds] = parts;
     return hours * 60 + minutes + seconds / 60;
   } else if (parts.length === 2) {
-    // MM:SS
-    const [minutes, seconds] = parts;
-    return minutes + seconds / 60;
+    const [a, b] = parts;
+
+    // Default: MM:SS
+    const asMMSS = a + b / 60;
+
+    // If we know the distance, check whether MM:SS yields an unrealistic pace
+    if (distanceKm && distanceKm > 0) {
+      const paceIfMMSS = asMMSS / distanceKm;
+      if (paceIfMMSS < MIN_REALISTIC_PACE) {
+        // Reinterpret as H:MM (e.g. "1:40" → 1 h 40 min = 100 min)
+        return a * 60 + b;
+      }
+    }
+
+    return asMMSS;
   }
 
   return 0;
@@ -47,7 +70,7 @@ export function calculatePace(targetTime: string, distanceKm: number): string {
     return '';
   }
 
-  const totalMinutes = timeStringToMinutes(targetTime);
+  const totalMinutes = timeStringToMinutes(targetTime, distanceKm);
   console.log('totalMinutes:', totalMinutes, 'from', targetTime);
 
   if (totalMinutes === 0) {

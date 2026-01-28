@@ -7,7 +7,6 @@ import {
   Copy,
   Star,
   Calendar,
-  Target,
   TrendingUp,
   User,
   Check,
@@ -15,7 +14,8 @@ import {
 import { useToast } from '../../contexts/ToastContext';
 import { Badge } from '../ui';
 import { PlanDifficultyBadge } from '../PlanDifficultyBadge';
-import { cn } from '../../lib/designSystem';
+import { cn, typography, flex, hoverEffects } from '../../lib/designSystem';
+import { DISTANCE_COLORS, type RaceDistance } from '../../constants/distanceColors';
 
 interface PlanCardProps {
   plan: MarketplacePlan;
@@ -28,27 +28,27 @@ export function PlanCard({ plan, runnerProfile }: PlanCardProps) {
   const toast = useToast();
   const [copiedLink, setCopiedLink] = useState(false);
 
-  const getDistanceLabel = () => {
+  const getDistanceInfo = (): { label: string; type: RaceDistance } => {
     const distance = plan.plan_data?.event?.distance;
     const customDistance = plan.plan_data?.event?.customDistance;
 
     // Handle string distance types
-    if (distance === '5K') return '5K';
-    if (distance === '10K') return '10K';
-    if (distance === 'HM') return t('marketplace.distance.halfMarathon');
-    if (distance === 'M') return t('marketplace.distance.marathon');
-    if (distance === 'CUSTOM' && customDistance) return `${customDistance} km`;
+    if (distance === '5K') return { label: '5K', type: '5K' };
+    if (distance === '10K') return { label: '10K', type: '10K' };
+    if (distance === 'HM') return { label: 'HM', type: 'HM' };
+    if (distance === 'M') return { label: 'Marathon', type: 'M' };
+    if (distance === 'CUSTOM' && customDistance) return { label: `${customDistance} km`, type: 'CUSTOM' };
 
     // Fallback for legacy numeric format
     if (typeof distance === 'number') {
-      if (distance === 5) return '5K';
-      if (distance === 10) return '10K';
-      if (distance === 21.0975) return t('marketplace.distance.halfMarathon');
-      if (distance === 42.195) return t('marketplace.distance.marathon');
-      return `${distance} km`;
+      if (distance === 5) return { label: '5K', type: '5K' };
+      if (distance === 10) return { label: '10K', type: '10K' };
+      if (distance === 21.0975) return { label: 'HM', type: 'HM' };
+      if (distance === 42.195) return { label: 'Marathon', type: 'M' };
+      return { label: `${distance} km`, type: 'CUSTOM' };
     }
 
-    return 'N/A';
+    return { label: 'N/A', type: 'CUSTOM' };
   };
 
   const getDuration = () => {
@@ -77,37 +77,60 @@ export function PlanCard({ plan, runnerProfile }: PlanCardProps) {
     navigate(`/marketplace/${plan.id}`);
   };
 
+  const distanceInfo = getDistanceInfo();
+  const colors = DISTANCE_COLORS[distanceInfo.type];
+
   return (
     <article
       onClick={handleCardClick}
       className={cn(
-        'group relative bg-white rounded-2xl border border-gray-200 overflow-hidden',
+        'group relative bg-white rounded-2xl overflow-hidden',
         'cursor-pointer transition-all duration-300 ease-out',
-        'hover:shadow-2xl hover:shadow-slate-900/10 hover:-translate-y-1',
-        'flex flex-col h-full'
+        'hover:shadow-2xl hover:-translate-y-1',
+        'flex flex-col'
       )}
+      style={{
+        boxShadow: `0 1px 3px rgba(0, 0, 0, 0.1), 0 0 20px ${colors.glow}`,
+      }}
     >
-      {/* Header Section with Distance Badge */}
-      <div className="relative bg-gradient-to-br from-slate-50 to-slate-100/50 px-6 pt-6 pb-4 border-b border-gray-100">
-        <div className="flex items-start justify-between gap-3 mb-3">
-          {/* Distance Badge - Large and Bold */}
-          <div className="flex-shrink-0">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-lg shadow-lg">
-              <Target size={20} className="text-slate-300" />
-              {getDistanceLabel()}
-            </div>
+      {/* Racing Stripe - Left Border */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1 transition-all duration-300 group-hover:w-1.5"
+        style={{
+          backgroundColor: colors.hex,
+          boxShadow: `0 0 20px ${colors.glow}`,
+        }}
+      />
+
+      {/* Content with left padding for stripe */}
+      <div className="pl-6 pr-6 pt-6 pb-4 flex flex-col gap-4">
+        {/* Header: Badge and Share */}
+        <div className={cn(flex.rowJustified, 'gap-3')}>
+          {/* Distance Badge - Vibrant but smaller */}
+          <div
+            className="inline-flex items-center px-4 py-2 rounded-lg font-bold text-base text-white shadow-md transition-all duration-300 group-hover:scale-105"
+            style={{
+              backgroundColor: colors.hex,
+              boxShadow: `0 2px 8px ${colors.glow}`,
+            }}
+          >
+            {distanceInfo.label}
           </div>
 
-          {/* Share Button */}
+          {/* Share Button - Minimal */}
           <button
             onClick={handleShareLink}
-            className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-400 hover:text-gray-700 hover:border-gray-300 hover:shadow-md transition-all duration-200"
+            className={cn(
+              'p-2 rounded-lg border border-border-light',
+              'text-text-tertiary hover:text-text-secondary hover:border-border-medium',
+              'transition-all duration-base opacity-0 group-hover:opacity-100'
+            )}
             title="Link teilen"
           >
             {copiedLink ? (
-              <Check size={18} className="text-green-600" />
+              <Check size={16} className="text-success-text" />
             ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
                 <polyline points="16 6 12 2 8 6" />
                 <line x1="12" y1="2" x2="12" y2="15" />
@@ -117,125 +140,54 @@ export function PlanCard({ plan, runnerProfile }: PlanCardProps) {
         </div>
 
         {/* Plan Name */}
-        <h3 className="text-xl font-bold text-slate-900 mb-1 leading-tight group-hover:text-blue-600 transition-colors">
+        <h3 className={cn(typography.h4, 'leading-tight')}>
           {plan.name}
         </h3>
 
         {/* Description */}
         {plan.description && (
-          <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed">
+          <p className={cn(typography.bodySmall, 'line-clamp-2 leading-relaxed text-text-tertiary')}>
             {plan.description}
           </p>
         )}
-      </div>
 
-      {/* Stats Grid - Athletic Metrics Style */}
-      <div className="px-6 py-4 bg-white grid grid-cols-3 gap-4 border-b border-gray-100">
-        {/* Duration */}
-        <div className="flex flex-col">
-          <div className="flex items-center gap-1.5 mb-1">
-            <Calendar size={14} className="text-slate-400" />
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-              Dauer
-            </span>
+        {/* Compact Stats - Single line, subtle */}
+        <div className={cn(flex.rowTight, 'text-text-tertiary', typography.caption, 'flex-wrap')}>
+          <div className={flex.rowTight}>
+            <Calendar size={12} />
+            <span>{getDuration()} Wo</span>
           </div>
-          <div className="text-2xl font-bold text-slate-900 tabular-nums">
-            {getDuration()}<span className="text-sm font-normal text-slate-500 ml-1">Wo</span>
+          <span>•</span>
+          <div className={flex.rowTight}>
+            <Star size={12} className="text-yellow-500 fill-yellow-500" />
+            <span>{plan.stats?.rating_avg ? plan.stats.rating_avg.toFixed(1) : '—'}</span>
           </div>
+          <span>•</span>
+          <div className={flex.rowTight}>
+            <Copy size={12} />
+            <span>{plan.clone_count} Nutzer</span>
+          </div>
+          {plan.plan_data?.event?.targetTime && (
+            <>
+              <span>•</span>
+              <div className={flex.rowTight}>
+                <TrendingUp size={12} style={{ color: colors.hex }} />
+                <span className="font-semibold">Ziel: {plan.plan_data.event.targetTime}</span>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* Rating */}
-        <div className="flex flex-col">
-          <div className="flex items-center gap-1.5 mb-1">
-            <Star size={14} className="text-yellow-500 fill-yellow-500" />
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-              Rating
-            </span>
-          </div>
-          <div className="text-2xl font-bold text-slate-900 tabular-nums">
-            {plan.stats?.rating_avg ? plan.stats.rating_avg.toFixed(1) : '—'}
-            <span className="text-sm font-normal text-slate-500 ml-1">/5</span>
-          </div>
-        </div>
-
-        {/* Clones */}
-        <div className="flex flex-col">
-          <div className="flex items-center gap-1.5 mb-1">
-            <Copy size={14} className="text-slate-400" />
-            <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-              Nutzer
-            </span>
-          </div>
-          <div className="text-2xl font-bold text-slate-900 tabular-nums">
-            {plan.clone_count}
-          </div>
+        {/* Creator - Always show for uniform height */}
+        <div className={cn(flex.rowTight, typography.caption, 'text-text-tertiary pt-2 border-t border-border-light')}>
+          <User size={12} />
+          <span>
+            {plan.creator && plan.visibility !== 'public_anonymous'
+              ? plan.creator.full_name || 'Anonymer Nutzer'
+              : 'Anonymer Nutzer'}
+          </span>
         </div>
       </div>
-
-      {/* Main Content Area */}
-      <div className="flex-1 px-6 py-4 space-y-4">
-        {/* Target Time */}
-        {plan.plan_data?.event?.targetTime && (
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 text-sm">
-              <TrendingUp size={16} className="text-blue-500" />
-              <span className="font-medium text-slate-700">Zielzeit:</span>
-            </div>
-            <span className="text-sm font-bold text-slate-900 px-3 py-1 bg-blue-50 rounded-lg">
-              {plan.plan_data.event.targetTime}
-            </span>
-          </div>
-        )}
-
-        {/* Difficulty Badge */}
-        {runnerProfile && plan.plan_data && (
-          <div onClick={(e) => e.stopPropagation()}>
-            <PlanDifficultyBadge
-              plan={plan.plan_data}
-              userProfile={runnerProfile}
-              compact={true}
-            />
-          </div>
-        )}
-
-        {/* Tags */}
-        {plan.tags && plan.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {plan.tags.slice(0, 3).map((tag, idx) => (
-              <Badge
-                key={idx}
-                variant="default"
-                className="text-xs px-2.5 py-1 bg-slate-100 text-slate-700 border-0 font-medium"
-              >
-                {tag}
-              </Badge>
-            ))}
-            {plan.tags.length > 3 && (
-              <Badge
-                variant="default"
-                className="text-xs px-2.5 py-1 bg-slate-100 text-slate-700 border-0 font-medium"
-              >
-                +{plan.tags.length - 3}
-              </Badge>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Footer - Creator Info */}
-      {plan.creator && plan.visibility !== 'public_anonymous' && (
-        <div className="px-6 py-3 bg-gradient-to-br from-slate-50/50 to-transparent border-t border-gray-100">
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <User size={14} className="text-slate-400" />
-            <span className="font-medium">
-              {plan.creator.full_name || 'Anonymer Nutzer'}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Hover Accent Line */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
     </article>
   );
 }

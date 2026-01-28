@@ -7,7 +7,8 @@ import { useToast } from '../contexts/ToastContext';
 import PublishPlanModal from '../components/PublishPlanModal';
 import { useTranslation } from 'react-i18next';
 import { DashboardStats } from '../components/DashboardStats';
-import { TrainingPlansTable } from '../components/TrainingPlansTable';
+import { TrainingPlansGrid } from '../components/TrainingPlansGrid';
+import { DashboardFilters } from '../components/DashboardFilters';
 import { useAuth } from '../contexts/AuthContext';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
 
@@ -16,6 +17,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [publishingPlanId, setPublishingPlanId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [distanceFilters, setDistanceFilters] = useState<string[]>([]);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -208,6 +211,7 @@ export default function Dashboard() {
     vdot: runnerProfile?.vdot,
     weeklyKm: runnerProfile?.weeklyKmBase,
     activePlan: activePlan ? {
+      id: activePlan.id,
       name: activePlan.name,
       progress: calculatePlanProgress(activePlan),
       nextSession: getNextSession(activePlan),
@@ -280,7 +284,7 @@ export default function Dashboard() {
                 </Card>
               </div>
             ) : (
-              /* Dashboard with Stats and Table */
+              /* Dashboard with Stats and Grid */
               <div className="space-y-6 sm:space-y-8 flex-1 flex flex-col">
                 {/* Stats Section */}
                 <div style={{ animation: 'fadeInUp 0.4s ease-out' }}>
@@ -294,14 +298,32 @@ export default function Dashboard() {
                   </h2>
                 </div>
 
-                {/* Training Plans Table */}
+                {/* Filters */}
                 <div style={{ animation: 'fadeInUp 0.4s ease-out 0.15s both' }}>
-                  <TrainingPlansTable
+                  <DashboardFilters
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    distanceFilters={distanceFilters}
+                    onDistanceFiltersChange={setDistanceFilters}
+                    resultCount={plans.filter(p => {
+                      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.plan_data.event.name.toLowerCase().includes(searchQuery.toLowerCase());
+                      const matchesDistance = distanceFilters.length === 0 || distanceFilters.includes(p.plan_data.event.distance);
+                      return matchesSearch && matchesDistance;
+                    }).length}
+                    totalCount={plans.length}
+                  />
+                </div>
+
+                {/* Training Plans Grid */}
+                <div style={{ animation: 'fadeInUp 0.4s ease-out 0.2s both' }}>
+                  <TrainingPlansGrid
                     plans={plans}
                     onDelete={handleDelete}
                     onPublish={setPublishingPlanId}
                     onSetActive={handleSetActive}
                     deletingId={deletingId}
+                    searchQuery={searchQuery}
+                    distanceFilters={distanceFilters}
                   />
                 </div>
               </div>
