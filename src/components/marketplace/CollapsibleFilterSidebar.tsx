@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Filter } from 'lucide-react';
-import { cn, typography, flex, focusRing } from '../../lib/designSystem';
+import { cn, focusRing } from '../../lib/designSystem';
 import { FilterSidebar } from './FilterSidebar';
 import { UserProfile } from '../../types/userProfile';
 

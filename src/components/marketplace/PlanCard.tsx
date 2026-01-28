@@ -12,9 +12,7 @@ import {
   Check,
 } from 'lucide-react';
 import { useToast } from '../../contexts/ToastContext';
-import { Badge } from '../ui';
-import { PlanDifficultyBadge } from '../PlanDifficultyBadge';
-import { cn, typography, flex, hoverEffects } from '../../lib/designSystem';
+import { cn, typography, flex } from '../../lib/designSystem';
 import { DISTANCE_COLORS, type RaceDistance } from '../../constants/distanceColors';
 
 interface PlanCardProps {
@@ -22,9 +20,8 @@ interface PlanCardProps {
   runnerProfile?: UserProfile;
 }
 
-export function PlanCard({ plan, runnerProfile }: PlanCardProps) {
+export function PlanCard({ plan }: PlanCardProps) {
   const navigate = useNavigate();
-  const { t } = useTranslation();
   const toast = useToast();
   const [copiedLink, setCopiedLink] = useState(false);
 
