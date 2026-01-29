@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { MarketplacePlan } from '../../types/marketplace';
 import { UserProfile } from '../../types/userProfile';
-import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
 import {
   Copy,
