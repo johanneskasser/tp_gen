@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { RunnerProfileProvider } from './contexts/RunnerProfileContext';
 import { ToastProvider } from './contexts/ToastContext';
@@ -17,6 +18,7 @@ import OnboardingPage from './pages/OnboardingPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { OnboardingGuard } from './components/OnboardingGuard';
 import { AppLayout } from './components/AppLayout';
+import { MarketplaceLayout } from './components/MarketplaceLayout';
 import { Analytics } from '@vercel/analytics/react';
 import './i18n/config'; // Initialize i18n
 import { useTranslation } from 'react-i18next';
@@ -109,28 +111,21 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      {/* Marketplace routes - public with conditional layout */}
       <Route
         path="/marketplace"
         element={
-          <ProtectedRoute>
-            <OnboardingGuard>
-              <AppLayout>
-                <MarketplacePage />
-              </AppLayout>
-            </OnboardingGuard>
-          </ProtectedRoute>
+          <MarketplaceLayout>
+            <MarketplacePage />
+          </MarketplaceLayout>
         }
       />
       <Route
         path="/marketplace/:planId"
         element={
-          <ProtectedRoute>
-            <OnboardingGuard>
-              <AppLayout>
-                <PlanDetailPage />
-              </AppLayout>
-            </OnboardingGuard>
-          </ProtectedRoute>
+          <MarketplaceLayout>
+            <PlanDetailPage />
+          </MarketplaceLayout>
         }
       />
       <Route
@@ -154,17 +149,19 @@ function AppRoutes() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <RunnerProfileProvider>
-          <ToastProvider>
-            <AppRoutes />
-            <ToastContainer />
-            <Analytics />
-          </ToastProvider>
-        </RunnerProfileProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <RunnerProfileProvider>
+            <ToastProvider>
+              <AppRoutes />
+              <ToastContainer />
+              <Analytics />
+            </ToastProvider>
+          </RunnerProfileProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </HelmetProvider>
   );
 }
 

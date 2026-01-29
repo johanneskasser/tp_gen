@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { marketplaceService } from '../services/marketplaceService';
 import { userService } from '../services/userService';
 import { MarketplacePlan, PlanComment } from '../types/marketplace';
@@ -10,8 +10,6 @@ import {
   Copy,
   Eye,
   User,
-  Calendar,
-  MapPin,
   Clock,
   Loader2,
   Send,
@@ -25,9 +23,13 @@ import {
   Check,
   BarChart3,
   ListChecks,
+  MoreHorizontal,
+  Calendar,
+  TrendingUp,
+  MapPin,
 } from 'lucide-react';
-import { Button, Card, Input, Badge } from '../components/ui';
-import { cn, getSessionTypeConfig } from '../lib/designSystem';
+import { Button, Input, Badge } from '../components/ui';
+import { cn, getSessionTypeConfig, typography, flex } from '../lib/designSystem';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useAuth } from '../contexts/AuthContext';
@@ -37,6 +39,24 @@ import ClonePlanModal from '../components/ClonePlanModal';
 import WeeklyChart from '../components/WeeklyChart';
 import { PlanDifficultyBadge } from '../components/PlanDifficultyBadge';
 import { calculateSessionDistance } from '../utils/calculationUtils';
+import { DISTANCE_COLORS, type RaceDistance } from '../constants/distanceColors';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
+import { SEOHead } from '../components/seo/SEOHead';
+import { AuthGate } from '../components/marketplace/AuthGate';
+import { PublicCTABanner } from '../components/marketplace/PublicCTABanner';
+import { useTranslation } from 'react-i18next';
 
 export default function PlanDetailPage() {
   const { planId } = useParams<{ planId: string }>();
@@ -44,6 +64,8 @@ export default function PlanDetailPage() {
   const { user } = useAuth();
   const { runnerProfile } = useRunnerProfile();
   const toast = useToast();
+  const { t } = useTranslation();
+  const location = useLocation();
 
   const [plan, setPlan] = useState<MarketplacePlan | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,28 +74,16 @@ export default function PlanDetailPage() {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [selectedRating, setSelectedRating] = useState<number>(0);
   const [showCloneModal, setShowCloneModal] = useState(false);
-  // Mobile: start collapsed, Desktop: first week expanded
-  const [expandedWeeks, setExpandedWeeks] = useState<Set<number>>(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 640) {
-      return new Set<number>();
-    }
-    return new Set([0]);
-  });
   const [showChart, setShowChart] = useState(true);
-  const [showPlanDetails, setShowPlanDetails] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [visibleComments, setVisibleComments] = useState(10);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [selectedWeekForHorizontalView, setSelectedWeekForHorizontalView] = useState<number>(0);
+  const [selectedDayInWeek, setSelectedDayInWeek] = useState<number | null>(null);
 
-  const toggleWeek = (weekNumber: number) => {
-    const newExpanded = new Set(expandedWeeks);
-    if (newExpanded.has(weekNumber)) {
-      newExpanded.delete(weekNumber);
-    } else {
-      newExpanded.add(weekNumber);
-    }
-    setExpandedWeeks(newExpanded);
-  };
+  const loginRedirect = `/login?redirect=${encodeURIComponent(location.pathname)}`;
 
   useEffect(() => {
     if (planId) {
@@ -133,7 +143,7 @@ export default function PlanDetailPage() {
 
   const handleLike = async () => {
     if (!user) {
-      toast.error('Bitte melde dich an, um Pläne zu liken');
+      navigate(loginRedirect);
       return;
     }
 
@@ -142,7 +152,6 @@ export default function PlanDetailPage() {
     try {
       const isLiked = await marketplaceService.toggleLike(planId);
 
-      // Update local state
       setPlan({
         ...plan,
         stats: {
@@ -166,7 +175,7 @@ export default function PlanDetailPage() {
 
   const handleRating = async (rating: number) => {
     if (!user) {
-      toast.error('Bitte melde dich an, um zu bewerten');
+      navigate(loginRedirect);
       return;
     }
 
@@ -174,18 +183,15 @@ export default function PlanDetailPage() {
 
     try {
       if (rating === selectedRating) {
-        // Remove rating
         await marketplaceService.deleteRating(planId);
         setSelectedRating(0);
         toast.success('Bewertung entfernt');
       } else {
-        // Set rating
         await marketplaceService.ratePlan(planId, rating);
         setSelectedRating(rating);
         toast.success(`${rating} Sterne vergeben`);
       }
 
-      // Reload plan to get updated stats
       await loadPlan();
     } catch (err) {
       console.error('Error rating plan:', err);
@@ -195,7 +201,7 @@ export default function PlanDetailPage() {
 
   const handleSubmitComment = async () => {
     if (!user) {
-      toast.error('Bitte melde dich an, um zu kommentieren');
+      navigate(loginRedirect);
       return;
     }
 
@@ -230,13 +236,12 @@ export default function PlanDetailPage() {
 
   const handleFollow = async () => {
     if (!user) {
-      toast.error('Bitte melde dich an, um Usern zu folgen');
+      navigate(loginRedirect);
       return;
     }
 
     if (!plan?.creator?.id) return;
 
-    // Don't allow following yourself
     if (user.id === plan.creator.id) {
       toast.error('Du kannst dir selbst nicht folgen');
       return;
@@ -265,7 +270,6 @@ export default function PlanDetailPage() {
       setLinkCopied(true);
       toast.success('Link kopiert!');
 
-      // Reset the copied state after 2 seconds
       setTimeout(() => {
         setLinkCopied(false);
       }, 2000);
@@ -275,17 +279,25 @@ export default function PlanDetailPage() {
     }
   };
 
-  const getDistanceLabel = () => {
-    if (!plan) return '';
-    const distance = plan.plan_data?.event?.distance;
+  const getDistanceInfo = (): { label: string; type: RaceDistance } => {
+    const distance = plan?.plan_data?.event?.distance;
+    const customDistance = plan?.plan_data?.event?.customDistance;
+
+    if (distance === '5K') return { label: '5K', type: '5K' };
+    if (distance === '10K') return { label: '10K', type: '10K' };
+    if (distance === 'HM') return { label: 'Halbmarathon', type: 'HM' };
+    if (distance === 'M') return { label: 'Marathon', type: 'M' };
+    if (distance === 'CUSTOM' && customDistance) return { label: `${customDistance} km`, type: 'CUSTOM' };
+
     if (typeof distance === 'number') {
-      if (distance === 5) return '5K';
-      if (distance === 10) return '10K';
-      if (distance === 21.0975) return 'Halbmarathon';
-      if (distance === 42.195) return 'Marathon';
-      return `${distance} km`;
+      if (distance === 5) return { label: '5K', type: '5K' };
+      if (distance === 10) return { label: '10K', type: '10K' };
+      if (distance === 21.0975) return { label: 'Halbmarathon', type: 'HM' };
+      if (distance === 42.195) return { label: 'Marathon', type: 'M' };
+      return { label: `${distance} km`, type: 'CUSTOM' };
     }
-    return distance || 'N/A';
+
+    return { label: 'N/A', type: 'CUSTOM' };
   };
 
   if (loading) {
@@ -307,522 +319,884 @@ export default function PlanDetailPage() {
     return null;
   }
 
+  const distanceInfo = getDistanceInfo();
+  const colors = DISTANCE_COLORS[distanceInfo.type];
+  const description = plan.description || '';
+  const shouldTruncateDescription = description.length > 200;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-      {/* Sticky Header with Navigation and Actions - Stacks below PageHeader (72px) */}
-      <div className="sticky top-[72px] z-10 bg-white/80 backdrop-blur-xl border-b border-gray-200 shadow-sm">
-        <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
-          <div className="py-3 flex items-center justify-between gap-3">
-            {/* Back Button */}
-            <Button
-              onClick={() => navigate('/marketplace')}
-              variant="ghost"
-              size="sm"
-              className="flex-shrink-0"
-            >
-              <ArrowLeft size={18} />
-              <span className="hidden sm:inline ml-1">Zurück</span>
-            </Button>
+    <TooltipProvider delayDuration={300}>
+      {plan && (
+        <SEOHead
+          title={t('seo.marketplace.planTitle', {
+            name: plan.name,
+            distance: getDistanceInfo().label,
+          })}
+          description={t('seo.marketplace.planDescription', {
+            weeks: plan.plan_data?.weeks?.length || 0,
+            distance: getDistanceInfo().label,
+            description: (plan.description || '').slice(0, 120),
+          })}
+          canonicalUrl={`/marketplace/${planId}`}
+          ogType="article"
+          structuredData={{
+            '@context': 'https://schema.org',
+            '@type': 'CreativeWork',
+            name: plan.name,
+            description: plan.description || '',
+            url: `https://zenit-it.com/marketplace/${planId}`,
+            author: plan.creator ? { '@type': 'Person', name: plan.creator.full_name || 'Anonymous' } : undefined,
+            datePublished: plan.published_at || plan.created_at,
+            ...(plan.stats?.rating_avg ? {
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: plan.stats.rating_avg,
+                reviewCount: plan.stats.rating_count,
+                bestRating: 5,
+              },
+            } : {}),
+          }}
+          alternateUrls={[
+            { lang: 'de', url: `/marketplace/${planId}` },
+            { lang: 'en', url: `/marketplace/${planId}` },
+          ]}
+        />
+      )}
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+        {/* Sticky Header */}
+        <header
+          className={cn(
+            "sticky z-10 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm relative",
+            user ? "top-[72px]" : "top-0"
+          )}
+        >
 
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button
-                onClick={handleShareLink}
-                variant="secondary"
-                size="sm"
-                title="Link kopieren"
-                className="flex-shrink-0"
-              >
-                {linkCopied ? <Check size={16} /> : <Share2 size={16} />}
-                <span className="hidden sm:inline ml-1">{linkCopied ? 'Kopiert!' : 'Teilen'}</span>
-              </Button>
-              <Button
-                onClick={() => setShowCloneModal(true)}
-                variant="default"
-                size="sm"
-                className="flex-shrink-0"
-              >
-                <Copy size={16} />
-                <span className="hidden sm:inline ml-1">Kopieren</span>
-                <span className="hidden lg:inline">&nbsp;& anpassen</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+          {/* Desktop Layout */}
+          <div className="hidden md:flex items-center gap-3 px-4 py-2.5 max-w-7xl mx-auto">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => navigate('/marketplace')}
+                  variant="ghost"
+                  size="sm"
+                  className="px-2"
+                  aria-label="Zurück zum Marketplace"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Zurück zum Marketplace</TooltipContent>
+            </Tooltip>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl">
+            <div className="w-px h-5 bg-slate-200" />
 
-      {/* Plan Header */}
-      <Card variant="default" className="mb-6 shadow-lg shadow-slate-900/5">
-        <div className="p-4 sm:p-6">
-          {/* Title - Now without action buttons (moved to sticky header) */}
-          <div className="mb-4">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 leading-tight">
+            {/* Plan name + Distance badge */}
+            <h1 className="font-semibold text-sm text-slate-800 truncate max-w-[200px] lg:max-w-[300px]">
               {plan.name}
             </h1>
-          </div>
-
-          {/* Stats and Rating Row - Mobile Optimized */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-            {/* Stats - Horizontal scroll on mobile */}
-            <div className="flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide pb-1 sm:pb-0 sm:overflow-visible">
-              <div className="flex items-center gap-2 flex-shrink-0 text-slate-500">
-                <Eye size={18} />
-                <span className="text-sm font-medium">{plan.view_count}</span>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0 text-slate-500">
-                <Copy size={18} />
-                <span className="text-sm font-medium">{plan.clone_count}</span>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0 text-slate-500">
-                <Heart
-                  size={18}
-                  className={plan.user_interaction?.has_liked ? 'fill-red-500 text-red-500' : ''}
-                />
-                <span className="text-sm font-medium">{plan.stats?.likes_count || 0}</span>
-              </div>
+            <div
+              className="inline-flex items-center px-3 py-1 rounded-lg font-bold text-xs text-white shadow-md transition-all duration-300"
+              style={{
+                backgroundColor: colors.hex,
+              }}
+            >
+              {distanceInfo.label}
             </div>
 
-            {/* Divider - Hidden on mobile */}
-            <div className="hidden sm:block h-6 w-px bg-gray-200" />
-
-            {/* Rating Stars - Touch-optimized */}
-            <div className="flex items-center gap-0.5 sm:gap-1">
-              {[1, 2, 3, 4, 5].map((rating) => (
-                <button
-                  key={rating}
-                  onClick={() => handleRating(rating)}
-                  className="p-1.5 sm:p-1 transition-transform hover:scale-110 active:scale-95 touch-manipulation"
-                  title={`${rating} Sterne vergeben`}
-                >
-                  <Star
-                    size={22}
-                    className={
-                      rating <= selectedRating
-                        ? 'fill-yellow-500 text-yellow-500'
-                        : 'text-gray-300 hover:text-yellow-400'
-                    }
-                  />
-                </button>
-              ))}
-              <span className="ml-2 text-xs sm:text-sm text-slate-500">
-                {plan.stats?.rating_avg
-                  ? `${plan.stats.rating_avg.toFixed(1)} (${plan.stats.rating_count})`
-                  : 'Noch keine'}
-              </span>
-            </div>
-          </div>
-
-          {/* Plan Details Grid - Responsive */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-            {/* Distance */}
-            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <MapPin size={20} className="text-blue-600" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-xs text-slate-500">Distanz</div>
-                <div className="text-sm font-semibold text-slate-900 truncate">{getDistanceLabel()}</div>
-              </div>
-            </div>
-
-            {/* Duration */}
-            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                <Calendar size={20} className="text-green-600" />
-              </div>
-              <div className="min-w-0">
-                <div className="text-xs text-slate-500">Dauer</div>
-                <div className="text-sm font-semibold text-slate-900">{plan.plan_data?.weeks?.length || 0} Wochen</div>
-              </div>
-            </div>
-
-            {/* Target Time */}
-            {plan.plan_data?.event?.targetTime && (
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
-                  <Clock size={20} className="text-purple-600" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs text-slate-500">Zielzeit</div>
-                  <div className="text-sm font-semibold text-slate-900">{plan.plan_data.event.targetTime} min</div>
-                </div>
-              </div>
-            )}
-
-            {/* Creator */}
+            {/* Creator + Follow */}
             {plan.creator && plan.visibility === 'public' && (
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl col-span-2 sm:col-span-1">
-                <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0">
-                  <User size={20} className="text-orange-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs text-slate-500">Ersteller</div>
-                  <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <button
                       onClick={() => navigate(`/profile/${plan.creator!.id}`)}
-                      className="text-sm font-semibold text-slate-900 hover:text-blue-600 hover:underline transition-colors truncate"
+                      className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-blue-600 transition-colors"
                     >
-                      {plan.creator.full_name || 'Anonym'}
+                      <User size={14} />
+                      <span className="font-medium max-w-[120px] truncate">
+                        {plan.creator.full_name || 'Anonym'}
+                      </span>
                     </button>
-                    {user && user.id !== plan.creator.id && (
+                  </TooltipTrigger>
+                  <TooltipContent>Profil anzeigen</TooltipContent>
+                </Tooltip>
+
+                {user && user.id !== plan.creator.id && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
                       <Button
                         onClick={handleFollow}
                         disabled={followLoading}
-                        variant={isFollowing ? 'secondary' : 'default'}
+                        variant={isFollowing ? 'secondary' : 'ghost'}
                         size="sm"
-                        className="h-7 text-xs"
+                        className="h-6 text-xs px-2"
                       >
                         {isFollowing ? <UserMinus size={12} /> : <UserPlus size={12} />}
-                        <span className="hidden sm:inline ml-1">{isFollowing ? 'Entfolgen' : 'Folgen'}</span>
                       </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isFollowing ? 'Entfolgen' : 'Folgen'}</TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+            )}
+
+            {/* Stats */}
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <div className="flex items-center gap-1">
+                <Eye size={14} />
+                <span className="font-medium">{plan.view_count}</span>
+              </div>
+              <span>•</span>
+              <div className="flex items-center gap-1">
+                <Copy size={14} />
+                <span className="font-medium">{plan.clone_count}</span>
+              </div>
+            </div>
+
+            {/* Combined Rating & Like */}
+            <div className="flex items-center gap-3">
+              {/* Rating Stars - Interactive or Read-only */}
+              <div className="flex items-center gap-0.5">
+                {user ? (
+                  <>
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <Tooltip key={rating}>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => handleRating(rating)}
+                            className="p-0.5 transition-transform hover:scale-110 active:scale-95"
+                            aria-label={`${rating} Sterne vergeben`}
+                          >
+                            <Star
+                              size={16}
+                              className={
+                                rating <= selectedRating
+                                  ? 'fill-yellow-500 text-yellow-500'
+                                  : 'text-gray-300 hover:text-yellow-400'
+                              }
+                            />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>{rating} Stern{rating !== 1 ? 'e' : ''}</TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <span key={rating} className="p-0.5">
+                        <Star
+                          size={16}
+                          className={
+                            rating <= (plan.stats?.rating_avg || 0)
+                              ? 'fill-yellow-500 text-yellow-500'
+                              : 'text-gray-300'
+                          }
+                        />
+                      </span>
+                    ))}
+                  </>
+                )}
+                <span className="ml-1.5 text-xs text-slate-500">
+                  {plan.stats?.rating_avg
+                    ? `${plan.stats.rating_avg.toFixed(1)} (${plan.stats.rating_count})`
+                    : '—'}
+                </span>
+              </div>
+
+              {/* Like Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={handleLike}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors active:scale-95"
+                  >
+                    <Heart
+                      size={16}
+                      className={cn(
+                        "transition-all",
+                        plan.user_interaction?.has_liked
+                          ? 'fill-red-500 text-red-500'
+                          : 'text-slate-400 hover:text-red-400'
+                      )}
+                    />
+                    <span className="text-xs font-medium text-slate-600">
+                      {plan.stats?.likes_count || 0}
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {plan.user_interaction?.has_liked ? 'Like entfernen' : 'Plan liken'}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            <div className="flex-1" />
+
+            {/* Clone Button - Primary CTA */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={() => user ? setShowCloneModal(true) : navigate(loginRedirect)}
+                  variant="default"
+                  size="sm"
+                  className="gap-1.5"
+                >
+                  <Copy size={16} />
+                  <span>{user ? 'Kopieren' : t('publicCta.signUpFree')}</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Plan kopieren & anpassen</TooltipContent>
+            </Tooltip>
+
+            {/* More Menu */}
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="px-2" aria-label="Weitere Aktionen">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Weitere Aktionen</TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={handleShareLink}>
+                  {linkCopied ? <Check size={16} className="mr-2" /> : <Share2 size={16} className="mr-2" />}
+                  {linkCopied ? 'Link kopiert!' : 'Link teilen'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => {
+                  const commentsSection = document.getElementById('comments-section');
+                  commentsSection?.scrollIntoView({ behavior: 'smooth' });
+                }}>
+                  <MessageCircle size={16} className="mr-2" />
+                  Kommentare ({comments.length})
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Mobile Layout */}
+          <div className="md:hidden">
+            {/* Row 1 */}
+            <div className="flex items-center gap-2 px-3 py-2 border-b border-slate-100">
+              <Button
+                onClick={() => navigate('/marketplace')}
+                variant="ghost"
+                size="sm"
+                className="px-1.5"
+                aria-label="Zurück"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+
+              <h1 className="font-semibold text-sm text-slate-800 truncate flex-1">
+                {plan.name}
+              </h1>
+
+              <Button
+                onClick={() => user ? setShowCloneModal(true) : navigate(loginRedirect)}
+                variant="default"
+                size="sm"
+                className="px-2"
+              >
+                <Copy size={16} />
+              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="px-1.5">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={handleShareLink}>
+                    {linkCopied ? <Check size={16} className="mr-2" /> : <Share2 size={16} className="mr-2" />}
+                    {linkCopied ? 'Link kopiert!' : 'Link teilen'}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLike}>
+                    <Heart size={16} className={cn("mr-2", plan.user_interaction?.has_liked && "fill-current")} />
+                    {plan.user_interaction?.has_liked ? 'Like entfernen' : 'Plan liken'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    const commentsSection = document.getElementById('comments-section');
+                    commentsSection?.scrollIntoView({ behavior: 'smooth' });
+                  }}>
+                    <MessageCircle size={16} className="mr-2" />
+                    Kommentare ({comments.length})
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Row 2 */}
+            <div className="flex items-center gap-2 px-3 py-2 text-xs">
+              <div
+                className="inline-flex items-center px-2.5 py-1 rounded-lg font-bold text-white shadow-md"
+                style={{
+                  backgroundColor: colors.hex,
+                }}
+              >
+                {distanceInfo.label}
+              </div>
+
+              {plan.creator && plan.visibility === 'public' && (
+                <>
+                  <div className="flex items-center gap-1 text-slate-600">
+                    <User size={12} />
+                    <span className="max-w-[100px] truncate font-medium">
+                      {plan.creator.full_name || 'Anonym'}
+                    </span>
+                  </div>
+                  {user && user.id !== plan.creator.id && (
+                    <Button
+                      onClick={handleFollow}
+                      disabled={followLoading}
+                      variant={isFollowing ? 'secondary' : 'ghost'}
+                      size="sm"
+                      className="h-6 text-xs px-2"
+                    >
+                      {isFollowing ? <UserMinus size={10} /> : <UserPlus size={10} />}
+                    </Button>
+                  )}
+                </>
+              )}
+
+              <div className="flex-1" />
+
+              <div className="flex items-center gap-1.5 text-slate-500">
+                <Eye size={12} />
+                <span>{plan.view_count}</span>
+                <span>•</span>
+                <Copy size={12} />
+                <span>{plan.clone_count}</span>
+                <span>•</span>
+                <Heart size={12} className={plan.user_interaction?.has_liked ? 'fill-red-500 text-red-500' : ''} />
+                <span>{plan.stats?.likes_count || 0}</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-5xl">
+          {/* Plan Header Info */}
+          <article
+            className="relative bg-white rounded-xl overflow-hidden mb-6 shadow-lg"
+            role="article"
+            aria-label="Plan details"
+          >
+            <div className="px-4 sm:px-6 pt-5 pb-4">
+              {/* Title */}
+              <h2 className={cn(typography.h1, 'mb-3 leading-tight')}>
+                {plan.name}
+              </h2>
+
+              {/* Description */}
+              {plan.description && (
+                <div className="mb-4">
+                  <p
+                    className={cn(
+                      typography.bodySmall,
+                      'text-slate-600 leading-relaxed',
+                      !descriptionExpanded && shouldTruncateDescription && 'line-clamp-3'
                     )}
+                  >
+                    {plan.description}
+                  </p>
+                  {shouldTruncateDescription && (
+                    <button
+                      onClick={() => setDescriptionExpanded(!descriptionExpanded)}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium mt-1 transition-colors"
+                    >
+                      {descriptionExpanded ? 'Weniger anzeigen' : 'Mehr anzeigen'}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Metadata Row */}
+              <div className={cn(flex.rowTight, 'flex-wrap', typography.caption, 'text-slate-500 mb-3')}>
+                <div className="flex items-center gap-1">
+                  <Calendar size={14} />
+                  <span>{plan.plan_data?.weeks?.length || 0} Wochen</span>
+                </div>
+                <span>•</span>
+                <div className="flex items-center gap-1">
+                  <MapPin size={14} />
+                  <span>{distanceInfo.label}</span>
+                </div>
+                {plan.plan_data?.event?.targetTime && (
+                  <>
+                    <span>•</span>
+                    <div className="flex items-center gap-1">
+                      <TrendingUp size={14} style={{ color: colors.hex }} />
+                      <span className="font-semibold">Ziel: {plan.plan_data.event.targetTime}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Tags */}
+              {plan.tags && plan.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {plan.tags.map((tag, idx) => (
+                    <Badge key={idx} className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Action Bar - Comments Only */}
+              <div className="flex items-center justify-end pt-3 border-t border-slate-100">
+                <Button
+                  onClick={() => {
+                    const commentsSection = document.getElementById('comments-section');
+                    commentsSection?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5"
+                >
+                  <MessageCircle size={16} />
+                  <span>{comments.length} Kommentar{comments.length !== 1 ? 'e' : ''}</span>
+                </Button>
+              </div>
+            </div>
+          </article>
+
+          {/* Weekly Chart Section */}
+          {plan.plan_data?.weeks && plan.plan_data.weeks.length > 0 && (
+            <section
+              className="relative bg-white rounded-xl overflow-hidden mb-6 shadow-lg"
+            >
+              <button
+                onClick={() => setShowChart(!showChart)}
+                className="w-full flex items-center gap-3 pl-6 pr-4 py-4 hover:bg-slate-50 transition-colors group touch-manipulation"
+                aria-expanded={showChart}
+                aria-controls="chart-content"
+              >
+                <BarChart3 className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                <div className="flex-1 text-left">
+                  <h2 className="text-base font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                    Wöchentlicher Überblick
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    {plan.plan_data.weeks.length} Wochen Trainingsplan
+                  </p>
+                </div>
+                {showChart ? (
+                  <ChevronUp size={20} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
+                ) : (
+                  <ChevronDown size={20} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
+                )}
+              </button>
+
+              {showChart && (
+                <div
+                  id="chart-content"
+                  className="px-4 sm:px-6 pb-4 border-t border-slate-100"
+                  style={{ animation: 'fadeInUp 0.3s ease-out' }}
+                >
+                  {runnerProfile && (
+                    <div className="pt-4 pb-2">
+                      <PlanDifficultyBadge
+                        plan={plan.plan_data}
+                        userProfile={runnerProfile}
+                        showDetails={true}
+                      />
+                    </div>
+                  )}
+                  <WeeklyChart weeks={plan.plan_data.weeks} userProfile={runnerProfile || undefined} />
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* Training Plan Content */}
+          <section
+            className="relative bg-white rounded-xl overflow-hidden mb-6 shadow-lg"
+          >
+            {/* Refined Modern Header */}
+            <div className="relative pl-6 pr-4 py-4 bg-white border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-md">
+                    <ListChecks className="w-5 h-5 text-white" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900 leading-none mb-1">
+                      Trainingsplan
+                    </h2>
+                    <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                      <span className="font-medium">{plan.plan_data?.weeks?.length || 0} Wochen</span>
+                      <span>•</span>
+                      <span className="font-medium">{plan.plan_data?.weeks?.reduce((sum, w) => sum + w.sessions.length, 0) || 0} Sessions</span>
+                      <span>•</span>
+                      <span className="font-bold text-slate-900">{plan.plan_data?.weeks?.reduce((sum, w) => sum + w.totalKm, 0).toFixed(0) || 0} km</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Description */}
-          {plan.description && (
-            <div className="mb-6">
-              <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">Beschreibung</h3>
-              <p className="text-sm sm:text-base text-slate-600 whitespace-pre-wrap leading-relaxed">
-                {plan.description}
-              </p>
-            </div>
-          )}
-
-          {/* Tags */}
-          {plan.tags && plan.tags.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-base sm:text-lg font-semibold text-slate-900 mb-2">Tags</h3>
-              <div className="flex flex-wrap gap-2">
-                {plan.tags.map((tag, idx) => (
-                  <Badge key={idx} className="text-xs sm:text-sm">{tag}</Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Like and Comment Actions - Touch-optimized */}
-          <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
-            <Button
-              onClick={handleLike}
-              variant={plan.user_interaction?.has_liked ? 'default' : 'ghost'}
-              size="sm"
-              title={plan.user_interaction?.has_liked ? 'Like entfernen' : 'Liken'}
-              className="min-w-[44px] min-h-[44px] touch-manipulation"
-            >
-              <Heart
-                size={18}
-                className={plan.user_interaction?.has_liked ? 'fill-current' : ''}
-              />
-              <span className="ml-1 text-sm">{plan.user_interaction?.has_liked ? 'Liked' : 'Like'}</span>
-            </Button>
-            <Button
-              onClick={() => {
-                const commentsSection = document.getElementById('comments-section');
-                commentsSection?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              variant="ghost"
-              size="sm"
-              title="Zu den Kommentaren"
-              className="min-w-[44px] min-h-[44px] touch-manipulation"
-            >
-              <MessageCircle size={18} />
-              <span className="ml-1 text-sm">{comments.length}</span>
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      {/* Weekly Chart Section */}
-      {plan.plan_data?.weeks && plan.plan_data.weeks.length > 0 && (
-        <Card variant="default" className="mb-6 shadow-lg shadow-slate-900/5 overflow-hidden">
-          <button
-            onClick={() => setShowChart(!showChart)}
-            className="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-colors group touch-manipulation"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <BarChart3 size={20} className="text-blue-600" />
-              </div>
-              <div className="text-left">
-                <h2 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
-                  Wöchentlicher Überblick
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-500">
-                  Distanz und Intensität pro Woche
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge className="hidden sm:inline-flex">{plan.plan_data.weeks.length} Wochen</Badge>
-              {showChart ? (
-                <ChevronUp size={20} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
-              ) : (
-                <ChevronDown size={20} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
-              )}
-            </div>
-          </button>
-          {showChart && (
-            <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-gray-100 space-y-4"
-                 style={{ animation: 'fadeInUp 0.3s ease-out' }}>
-              {/* Plan Difficulty Badge */}
-              {runnerProfile && (
-                <div className="pt-4">
-                  <PlanDifficultyBadge
-                    plan={plan.plan_data}
-                    userProfile={runnerProfile}
-                    showDetails={true}
-                  />
-                </div>
-              )}
-
-              <WeeklyChart weeks={plan.plan_data.weeks} userProfile={runnerProfile || undefined} />
-            </div>
-          )}
-        </Card>
-      )}
-
-      {/* Training Plan Content */}
-      <Card variant="default" className="mb-6 shadow-lg shadow-slate-900/5 overflow-hidden">
-        <button
-          onClick={() => setShowPlanDetails(!showPlanDetails)}
-          className="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-slate-50 transition-colors group touch-manipulation"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-              <ListChecks size={20} className="text-green-600" />
-            </div>
-            <div className="text-left">
-              <h2 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-green-600 transition-colors">
-                Trainingsplan
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500">
-                Alle Trainingseinheiten im Detail
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge className="hidden sm:inline-flex">{plan.plan_data?.weeks?.reduce((sum, w) => sum + w.sessions.length, 0) || 0} Einheiten</Badge>
-            {showPlanDetails ? (
-              <ChevronUp size={20} className="text-slate-400 group-hover:text-green-600 transition-colors" />
-            ) : (
-              <ChevronDown size={20} className="text-slate-400 group-hover:text-green-600 transition-colors" />
-            )}
-          </div>
-        </button>
-        {showPlanDetails && (
-          <div className="px-4 sm:px-5 pb-4 sm:pb-5 border-t border-gray-100"
-               style={{ animation: 'fadeInUp 0.3s ease-out' }}>
             {plan.plan_data?.weeks && plan.plan_data.weeks.length > 0 ? (
-            <div className="space-y-3 pt-4">
-              {plan.plan_data.weeks.map((week, idx) => (
-                <div key={idx} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
-                  {/* Week Header - Touch-optimized */}
-                  <button
-                    onClick={() => toggleWeek(week.weekNumber)}
-                    className="w-full flex items-center justify-between p-3 sm:p-4 bg-gradient-to-r from-slate-50 to-white hover:from-slate-100 hover:to-slate-50 transition-colors touch-manipulation"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-left">
-                      <span className="text-sm sm:text-base font-bold text-slate-900">Woche {week.weekNumber}</span>
-                      <span className="text-xs text-slate-500">
-                        {week.startDate} - {week.endDate}
-                      </span>
+              <div className="px-4 sm:px-6 pb-4">
+                {/* Refined Week Selector */}
+                <div className="border-b border-slate-200">
+                  <div className="overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-1 min-w-min px-4 sm:px-6">
+                      {plan.plan_data.weeks.map((week, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setSelectedWeekForHorizontalView(week.weekNumber)}
+                          className={cn(
+                            'relative px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-all',
+                            selectedWeekForHorizontalView === week.weekNumber
+                              ? 'text-slate-900'
+                              : 'text-slate-500 hover:text-slate-700'
+                          )}
+                        >
+                          <span className="relative z-10">
+                            Woche {week.weekNumber}
+                            <span className={cn(
+                              "ml-1.5 text-xs",
+                              selectedWeekForHorizontalView === week.weekNumber
+                                ? "font-bold"
+                                : "opacity-60"
+                            )}>
+                              {week.totalKm.toFixed(0)}
+                            </span>
+                          </span>
+                          {selectedWeekForHorizontalView === week.weekNumber && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-900" />
+                          )}
+                        </button>
+                      ))}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className="text-xs bg-blue-100 text-blue-700">{week.totalKm.toFixed(1)} km</Badge>
-                      <Badge className="text-xs hidden sm:inline-flex">{week.sessions.length} Einheiten</Badge>
-                      {expandedWeeks.has(week.weekNumber) ? (
-                        <ChevronUp size={18} className="text-slate-400" />
-                      ) : (
-                        <ChevronDown size={18} className="text-slate-400" />
-                      )}
-                    </div>
-                  </button>
+                  </div>
+                </div>
 
-                  {/* Week Sessions - Mobile optimized */}
-                  {expandedWeeks.has(week.weekNumber) && (
-                    <div className="p-3 sm:p-4 space-y-3 bg-slate-50/50 border-t border-gray-100">
-                      {week.sessions.length === 0 ? (
-                        <p className="text-sm text-slate-500 text-center py-4">
-                          Keine Trainingseinheiten
-                        </p>
-                      ) : (
-                        week.sessions.map((session, sessionIdx) => {
-                          const config = getSessionTypeConfig(session.type);
-                          // Calculate total distance including intervals, warm-up, cool-down
-                          const totalDistance = calculateSessionDistance(session);
-                          return (
-                            <div
-                              key={session.id}
-                              className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 hover:border-blue-300 hover:shadow-md transition-all duration-200 touch-manipulation"
-                              style={{ animation: `fadeInUp 0.3s ease-out ${sessionIdx * 0.05}s both` }}
-                            >
-                              {/* Session Header */}
-                              <div className="flex items-start justify-between gap-2 mb-2">
-                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                                  <span className="inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-100 text-slate-700 text-xs sm:text-sm font-bold">
-                                    {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][session.dayOfWeek]}
-                                  </span>
-                                  <span className={cn(
-                                    "inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium",
-                                    config.bgColor, config.textColor
-                                  )}>
-                                    {config.label}
-                                  </span>
-                                </div>
-                                {totalDistance > 0 && (
-                                  <span className="text-sm sm:text-base font-bold text-slate-900 whitespace-nowrap">
-                                    {totalDistance.toFixed(1)} km
-                                  </span>
+                {/* Horizontal Day Cards */}
+                {(() => {
+                  const selectedWeek = plan.plan_data.weeks.find(
+                    w => w.weekNumber === selectedWeekForHorizontalView
+                  ) || plan.plan_data.weeks[0];
+
+                  // Create array of all 7 days
+                  const daysInWeek = Array.from({ length: 7 }, (_, dayIndex) => {
+                    const session = selectedWeek.sessions.find(s => s.dayOfWeek === dayIndex);
+                    return { dayIndex, session };
+                  });
+
+                  return (
+                    <>
+                      {/* Week Summary - Compact */}
+                      <div className="px-4 sm:px-6 py-3 bg-slate-50/50">
+                        <div className="flex items-center justify-center gap-2 text-sm">
+                          <span className="text-slate-600">Diese Woche:</span>
+                          <span className="font-bold text-slate-900">{selectedWeek.totalKm.toFixed(1)} km</span>
+                          <span className="text-slate-400">•</span>
+                          <span className="text-slate-600">{selectedWeek.sessions.length} Sessions</span>
+                        </div>
+                      </div>
+
+                      {/* Horizontal Scrollable Days - Refined Minimalist */}
+                      <div className="overflow-x-auto scrollbar-hide -mx-4 sm:-mx-6 px-4 sm:px-6 py-3">
+                        <div className="flex gap-2 min-w-min">
+                          {daysInWeek.map(({ dayIndex, session }) => {
+                            const dayNames = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+                            const dayNamesFull = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+                            const config = session ? getSessionTypeConfig(session.type) : null;
+                            const totalDistance = session ? calculateSessionDistance(session) : 0;
+                            const isRestDay = !session;
+                            const isSelected = selectedDayInWeek === dayIndex;
+
+                            return (
+                              <button
+                                key={dayIndex}
+                                onClick={() => {
+                                  if (session) {
+                                    setSelectedDayInWeek(isSelected ? null : dayIndex);
+                                  }
+                                }}
+                                className={cn(
+                                  'relative flex flex-col min-w-[100px] rounded-lg p-3 transition-all duration-150',
+                                  'border',
+                                  isRestDay
+                                    ? 'bg-white/40 border-slate-200/60 cursor-default opacity-50'
+                                    : isSelected
+                                    ? 'bg-white border-slate-900 shadow-sm'
+                                    : 'bg-white border-slate-200/80 hover:border-slate-400 cursor-pointer'
                                 )}
+                                disabled={isRestDay}
+                                title={isRestDay ? `${dayNamesFull[dayIndex]} - Ruhetag` : `${dayNamesFull[dayIndex]} - Klicken für Details`}
+                              >
+                                {/* Selected indicator - Top border accent */}
+                                {session && isSelected && (
+                                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-slate-900" />
+                                )}
+
+                                {/* Day Name - Clean typography */}
+                                <div className="mb-3">
+                                  <p className={cn(
+                                    "text-xs font-semibold tracking-wide uppercase",
+                                    isSelected ? "text-slate-900" : "text-slate-600"
+                                  )}>
+                                    {dayNames[dayIndex]}
+                                  </p>
+                                </div>
+
+                                {/* Session Content */}
+                                {session && config ? (
+                                  <div className="flex-1 flex flex-col gap-2.5">
+                                    {/* Session Type - Minimal badge */}
+                                    <div
+                                      className={cn(
+                                        'px-2 py-1 rounded text-[10px] font-semibold text-center uppercase tracking-wide',
+                                        config.bgColor,
+                                        config.textColor
+                                      )}
+                                    >
+                                      {config.label}
+                                    </div>
+
+                                    {/* Distance/Duration - Prominent display */}
+                                    <div className="text-center">
+                                      {totalDistance > 0 ? (
+                                        <div className="flex flex-col items-center gap-0.5">
+                                          <p className="text-2xl font-bold leading-none text-slate-900">
+                                            {totalDistance.toFixed(1)}
+                                          </p>
+                                          <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">km</p>
+                                        </div>
+                                      ) : session.duration ? (
+                                        <div className="flex flex-col items-center gap-0.5">
+                                          <p className="text-2xl font-bold leading-none text-slate-900">{session.duration}</p>
+                                          <p className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">min</p>
+                                        </div>
+                                      ) : (
+                                        <p className="text-xs text-slate-300">—</p>
+                                      )}
+
+                                      {/* Interval indicator */}
+                                      {session.intervals && session.intervals.length > 0 && (
+                                        <div className="mt-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm bg-slate-100 text-[9px] font-semibold text-slate-600 uppercase tracking-wide">
+                                          {session.intervals.length}x
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex-1 flex flex-col items-center justify-center gap-1">
+                                    <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                                      <Clock size={12} strokeWidth={2} />
+                                    </div>
+                                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wide">Ruhe</p>
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Session Detail View - Enhanced */}
+                      {selectedDayInWeek !== null && (() => {
+                        const session = selectedWeek.sessions.find(s => s.dayOfWeek === selectedDayInWeek);
+                        if (!session) return null;
+
+                        const config = getSessionTypeConfig(session.type);
+                        const totalDistance = calculateSessionDistance(session);
+                        const dayNamesFull = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+
+                        return (
+                          <AuthGate featureKey="sessions">
+                            <div
+                              className="mt-6 p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 shadow-lg"
+                              style={{ animation: 'fadeInUp 0.3s ease-out' }}
+                            >
+                              {/* Header with close button */}
+                              <div className="flex items-start justify-between mb-4">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div className="px-3 py-1.5 rounded-lg bg-blue-600 text-white font-black text-sm shadow-md">
+                                      {dayNamesFull[session.dayOfWeek]}
+                                    </div>
+                                    <span
+                                      className={cn(
+                                        'inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-black shadow-md',
+                                        config.bgColor,
+                                        config.textColor
+                                      )}
+                                    >
+                                      {config.label}
+                                    </span>
+                                    {totalDistance > 0 && (
+                                      <span className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-sm font-black shadow-md">
+                                        {totalDistance.toFixed(1)} km
+                                      </span>
+                                    )}
+                                  </div>
+                                  <h4 className="text-xl font-black text-slate-900">
+                                    {session.title || 'Training'}
+                                  </h4>
+                                </div>
+                                <button
+                                  onClick={() => setSelectedDayInWeek(null)}
+                                  className="ml-2 w-8 h-8 rounded-lg bg-white/50 hover:bg-white flex items-center justify-center text-slate-600 hover:text-slate-900 transition-all shadow-sm hover:shadow-md active:scale-95"
+                                  aria-label="Schließen"
+                                >
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                  </svg>
+                                </button>
                               </div>
 
-                              {/* Session Title */}
-                              <h4 className="text-sm sm:text-base font-semibold text-slate-900 mb-2">
-                                {session.title || 'Training'}
-                              </h4>
-
-                              {/* Session Details */}
-                              <div className="space-y-1.5 text-xs sm:text-sm text-slate-600">
+                              {/* Session details with better visual hierarchy */}
+                              <div className="space-y-3">
                                 {session.duration && (
-                                  <p className="flex items-center gap-2">
-                                    <Clock size={14} className="text-slate-400 flex-shrink-0" />
-                                    <span>Dauer: {session.duration} min</span>
-                                  </p>
+                                  <div className="flex items-center gap-2 px-3 py-2 bg-white/60 rounded-lg">
+                                    <Clock size={16} className="text-blue-600 flex-shrink-0" />
+                                    <span className="font-bold text-slate-900">Dauer: {session.duration} min</span>
+                                  </div>
                                 )}
 
-                                {/* Intervals */}
                                 {session.intervals && session.intervals.length > 0 && (
-                                  <div className="mt-2 p-2 sm:p-3 bg-slate-50 rounded-lg space-y-1.5">
+                                  <div className="p-4 bg-white/80 rounded-xl space-y-2">
                                     {session.warmUp && (
-                                      <p className="text-slate-600">
-                                        🔥 Aufwärmen: {session.warmUp} {session.warmUpUnit || 'min'}
-                                      </p>
+                                      <div className="flex items-center gap-2 text-orange-600 font-bold">
+                                        <span className="text-lg">🔥</span>
+                                        <span>Aufwärmen: {session.warmUp}{session.warmUpUnit || 'min'}</span>
+                                      </div>
                                     )}
-                                    {session.intervals.map((interval, iIdx) => (
-                                      <p key={iIdx} className="text-slate-700 font-medium">
-                                        ⚡ {interval.repetitions}x {interval.distance}km @ {interval.pace}
-                                        <span className="text-slate-500 font-normal"> (Pause: {interval.recovery} {interval.recoveryUnit || 'min'})</span>
-                                      </p>
-                                    ))}
+                                    <div className="space-y-2 border-l-4 border-blue-500 pl-3">
+                                      {session.intervals.map((interval, iIdx) => (
+                                        <div key={iIdx} className="font-bold text-slate-900">
+                                          <span className="text-blue-600 text-lg mr-1">⚡</span>
+                                          {interval.repetitions}x {interval.distance}km @ {interval.pace}
+                                          <span className="block text-sm text-slate-600 font-medium ml-6 mt-0.5">
+                                            Pause: {interval.recovery} {interval.recoveryUnit || 'min'}
+                                          </span>
+                                        </div>
+                                      ))}
+                                    </div>
                                     {session.coolDown && (
-                                      <p className="text-slate-600">
-                                        ❄️ Auslaufen: {session.coolDown} {session.coolDownUnit || 'min'}
-                                      </p>
+                                      <div className="flex items-center gap-2 text-blue-600 font-bold mt-2">
+                                        <span className="text-lg">❄️</span>
+                                        <span>Auslaufen: {session.coolDown}{session.coolDownUnit || 'min'}</span>
+                                      </div>
                                     )}
                                   </div>
                                 )}
 
-                                {/* Warm-up/Cool-down without intervals */}
                                 {!session.intervals && (session.warmUp || session.coolDown) && (
-                                  <div className="mt-2 p-2 sm:p-3 bg-slate-50 rounded-lg space-y-1">
+                                  <div className="p-3 bg-white/80 rounded-xl space-y-2">
                                     {session.warmUp && (
-                                      <p className="text-slate-600">
-                                        🔥 Aufwärmen: {session.warmUp} {session.warmUpUnit || 'min'}
-                                      </p>
+                                      <div className="flex items-center gap-2 text-orange-600 font-bold">
+                                        <span className="text-lg">🔥</span>
+                                        <span>Aufwärmen: {session.warmUp} {session.warmUpUnit || 'min'}</span>
+                                      </div>
                                     )}
                                     {session.coolDown && (
-                                      <p className="text-slate-600">
-                                        ❄️ Auslaufen: {session.coolDown} {session.coolDownUnit || 'min'}
-                                      </p>
+                                      <div className="flex items-center gap-2 text-blue-600 font-bold">
+                                        <span className="text-lg">❄️</span>
+                                        <span>Auslaufen: {session.coolDown} {session.coolDownUnit || 'min'}</span>
+                                      </div>
                                     )}
                                   </div>
                                 )}
 
-                                {/* Notes */}
                                 {session.notes && (
-                                  <p className="mt-2 p-2 sm:p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 italic">
-                                    💡 {session.notes}
-                                  </p>
+                                  <div className="p-4 bg-amber-50 border-l-4 border-amber-400 rounded-xl">
+                                    <div className="flex gap-2">
+                                      <span className="text-amber-600 text-lg flex-shrink-0">💡</span>
+                                      <p className="text-amber-900 font-medium italic">
+                                        {session.notes}
+                                      </p>
+                                    </div>
+                                  </div>
                                 )}
                               </div>
                             </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-slate-500 text-center py-8">
-              Kein Trainingsplan verfügbar
-            </p>
-          )}
-          </div>
-        )}
-      </Card>
-
-      {/* Comments Section */}
-      <div id="comments-section">
-        <Card variant="default" className="shadow-lg shadow-slate-900/5 overflow-hidden">
-          {/* Comments Header */}
-          <div className="p-4 sm:p-5 border-b border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
-                <MessageCircle size={20} className="text-purple-600" />
-              </div>
-              <div>
-                <h2 className="text-base sm:text-lg font-semibold text-slate-900">
-                  Kommentare
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-500">
-                  {comments.length === 0 ? 'Noch keine Kommentare' : `${comments.length} Kommentar${comments.length !== 1 ? 'e' : ''}`}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Add Comment - Touch-optimized */}
-          <div className="p-4 sm:p-5 bg-slate-50/50">
-            {user ? (
-              <div className="flex gap-2 sm:gap-3 items-stretch">
-                <Input
-                  type="text"
-                  placeholder="Schreibe einen Kommentar..."
-                  value={commentText}
-                  onChange={(e) => setCommentText(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleSubmitComment();
-                    }
-                  }}
-                  className="flex-1 min-w-0 text-sm sm:text-base"
-                />
-                <Button
-                  onClick={handleSubmitComment}
-                  disabled={!commentText.trim() || submittingComment}
-                  variant="default"
-                  title="Senden (Enter)"
-                  className="flex-shrink-0 min-w-[44px] min-h-[44px] touch-manipulation"
-                >
-                  {submittingComment ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <Send size={18} />
-                  )}
-                </Button>
+                          </AuthGate>
+                        );
+                      })()}
+                    </>
+                  );
+                })()}
               </div>
             ) : (
-              <div className="p-4 bg-white border border-gray-200 rounded-xl text-center">
-                <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-500 text-center py-8">
+                Kein Trainingsplan verfügbar
+              </p>
+            )}
+          </section>
+
+          {/* Comments Section */}
+          <section
+            id="comments-section"
+            className="bg-white rounded-xl overflow-hidden shadow-lg"
+            role="region"
+            aria-label="Kommentare"
+          >
+            {/* Header */}
+            <header className="flex items-center gap-2 pl-4 pr-4 py-3 border-b border-slate-100">
+              <MessageCircle className="w-5 h-5 text-purple-600" />
+              <h2 className="text-base font-semibold text-slate-900">
+                {comments.length === 0
+                  ? 'Noch keine Kommentare'
+                  : `${comments.length} Kommentar${comments.length !== 1 ? 'e' : ''}`}
+              </h2>
+            </header>
+
+            {/* Add Comment */}
+            <div className="p-3 border-b border-slate-100 bg-slate-50">
+              {user ? (
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="Schreibe einen Kommentar..."
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSubmitComment();
+                      }
+                    }}
+                    className="flex-1 text-sm"
+                    aria-label="Kommentar schreiben"
+                  />
+                  <Button
+                    onClick={handleSubmitComment}
+                    disabled={!commentText.trim() || submittingComment}
+                    variant="default"
+                    size="sm"
+                    title="Senden (Enter)"
+                    className="flex-shrink-0"
+                  >
+                    {submittingComment ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Send size={16} />
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-xs text-center text-slate-500 py-1">
                   Melde dich an, um zu kommentieren
                 </p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Comments List */}
-          <div className="p-4 sm:p-5">
-            <div className="space-y-4">
+            {/* Comments List */}
+            <div className="divide-y divide-slate-100">
               {comments.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center">
@@ -833,66 +1207,73 @@ export default function PlanDetailPage() {
                   </p>
                 </div>
               ) : (
-                comments.map((comment, idx) => (
-                  <div
-                    key={comment.id}
-                    className="bg-white border border-gray-100 rounded-xl p-3 sm:p-4 shadow-sm"
-                    style={{ animation: `fadeInUp 0.3s ease-out ${idx * 0.05}s both` }}
-                  >
-                    {/* Comment Header */}
-                    <div className="flex justify-between items-start gap-2 mb-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
-                          <User size={14} className="text-slate-500" />
+                <>
+                  {comments.slice(0, visibleComments).map((comment, idx) => (
+                    <article
+                      key={comment.id}
+                      className="p-2.5 hover:bg-slate-50 transition-colors"
+                      style={{ animation: `fadeInUp 0.3s ease-out ${idx * 0.05}s both` }}
+                    >
+                      <div className="flex items-start gap-2">
+                        <div className="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+                          <User size={12} className="text-slate-500" />
                         </div>
-                        <div className="min-w-0">
-                          <span className="text-sm font-semibold text-slate-900 block truncate">
-                            {comment.user?.full_name || 'Anonym'}
-                          </span>
-                          <span className="text-xs text-slate-500">
-                            {format(new Date(comment.created_at), 'dd.MM.yyyy HH:mm', {
-                              locale: de,
-                            })}
-                          </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-xs font-semibold text-slate-900 truncate">
+                              {comment.user?.full_name || 'Anonym'}
+                            </span>
+                            <time className="text-xs text-slate-400 flex-shrink-0 ml-2">
+                              {format(new Date(comment.created_at), 'dd.MM.yy', { locale: de })}
+                            </time>
+                          </div>
+                          <p className="text-sm text-slate-700 leading-relaxed">
+                            {comment.comment}
+                          </p>
                         </div>
+                        {user?.id === comment.user_id && (
+                          <Button
+                            onClick={() => handleDeleteComment(comment.id)}
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 hover:text-red-600 hover:bg-red-50 flex-shrink-0 p-1"
+                            aria-label="Kommentar löschen"
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        )}
                       </div>
-                      {user?.id === comment.user_id && (
-                        <Button
-                          onClick={() => handleDeleteComment(comment.id)}
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50 flex-shrink-0 touch-manipulation"
-                        >
-                          <Trash2 size={14} />
-                          <span className="hidden sm:inline ml-1">Löschen</span>
-                        </Button>
-                      )}
-                    </div>
-                    {/* Comment Content */}
-                    <p className="text-sm sm:text-base text-slate-700 leading-relaxed pl-10">
-                      {comment.comment}
-                    </p>
-                  </div>
-                ))
+                    </article>
+                  ))}
+                  {comments.length > visibleComments && (
+                    <button
+                      onClick={() => setVisibleComments((v) => v + 10)}
+                      className="w-full p-3 text-xs text-blue-600 hover:bg-slate-50 font-medium transition-colors active:scale-95"
+                    >
+                      Mehr laden ({comments.length - visibleComments} weitere)
+                    </button>
+                  )}
+                </>
               )}
             </div>
-          </div>
-        </Card>
+          </section>
+        </div>
+
+        {/* Clone Modal */}
+        {showCloneModal && plan && (
+          <ClonePlanModal
+            plan={plan}
+            onClose={() => setShowCloneModal(false)}
+            onSuccess={(newPlanId) => {
+              setShowCloneModal(false);
+              toast.success('Plan erfolgreich kopiert!');
+              navigate(`/plan/${newPlanId}`);
+            }}
+          />
+        )}
       </div>
 
-      {/* Clone Modal */}
-      {showCloneModal && plan && (
-        <ClonePlanModal
-          plan={plan}
-          onClose={() => setShowCloneModal(false)}
-          onSuccess={(newPlanId) => {
-            setShowCloneModal(false);
-            toast.success('Plan erfolgreich kopiert!');
-            navigate(`/plan/${newPlanId}`);
-          }}
-        />
-      )}
-      </div>{/* End Main Content Container */}
-    </div>
+      <PublicCTABanner />
+    </TooltipProvider>
   );
 }

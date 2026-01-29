@@ -31,6 +31,7 @@ interface CommandPaletteSearchProps {
   onFilterClick: () => void;
   activeCommand?: string;
   onClearCommand?: () => void;
+  isAuthenticated?: boolean;
 }
 
 export function CommandPaletteSearch({
@@ -41,6 +42,7 @@ export function CommandPaletteSearch({
   onFilterClick,
   activeCommand,
   onClearCommand,
+  isAuthenticated = true,
 }: CommandPaletteSearchProps) {
   const [showCommands, setShowCommands] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -74,7 +76,11 @@ export function CommandPaletteSearch({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredCommands = COMMANDS.filter((cmd) =>
+  const availableCommands = isAuthenticated
+    ? COMMANDS
+    : COMMANDS.filter((cmd) => cmd.value !== 'friends');
+
+  const filteredCommands = availableCommands.filter((cmd) =>
     cmd.label.toLowerCase().includes(searchValue.toLowerCase())
   );
 

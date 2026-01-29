@@ -60,6 +60,12 @@ export function LandingNavbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
+            <Link
+              to="/marketplace"
+              className="text-text-secondary hover:text-text-primary font-body font-medium transition-colors"
+            >
+              {t('navigation.marketplace')}
+            </Link>
             <button
               onClick={() => scrollToSection('features')}
               className="text-text-secondary hover:text-text-primary font-body font-medium transition-colors"
@@ -121,6 +127,13 @@ export function LandingNavbar() {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-border-light shadow-lg">
           <div className="px-4 py-4 space-y-3">
+            <Link
+              to="/marketplace"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="block px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-background-secondary rounded-lg font-body font-medium transition-colors"
+            >
+              {t('navigation.marketplace')}
+            </Link>
             <button
               onClick={() => scrollToSection('features')}
               className="block w-full text-left px-4 py-2 text-text-secondary hover:text-text-primary hover:bg-background-secondary rounded-lg font-body font-medium transition-colors"

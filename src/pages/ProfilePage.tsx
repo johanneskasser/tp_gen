@@ -99,12 +99,6 @@ export default function ProfilePage() {
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 max-w-4xl">
-      <header className="mb-6 sm:mb-8">
-        <h1 className={cn(typography.h1, 'mb-2')}>Profil</h1>
-        <p className={cn(typography.body, 'text-text-tertiary')}>
-          Verwalte deine persönlichen Informationen
-        </p>
-      </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Avatar Section */}

@@ -444,5 +444,33 @@
         "done": "Done!"
       }
     }
+  },
+  "seo": {
+    "marketplace": {
+      "title": "Training Plans for Runners",
+      "description": "Discover free training plans for 5K, 10K, half marathon, and marathon. Created by runners for runners.",
+      "planTitle": "{{name}} – {{distance}} Training Plan",
+      "planDescription": "{{weeks}} week training plan for {{distance}}. {{description}}"
+    },
+    "landing": {
+      "title": "Free Training Plans for Runners",
+      "description": "Create free, customized training plans for 5K, 10K, half marathon, and marathon."
+    }
+  },
+  "publicCta": {
+    "banner": {
+      "text": "Create a free account to save and use training plans",
+      "button": "Get Started Free"
+    },
+    "gate": {
+      "sessions": "Create a free account to see detailed training sessions",
+      "comments": "Sign in to comment",
+      "ratings": "Sign in to rate",
+      "clone": "Sign up free to use this plan",
+      "like": "Sign in to like plans",
+      "follow": "Sign in to follow creators"
+    },
+    "signUpFree": "Sign Up Free",
+    "alreadyHaveAccount": "Already have an account? Sign in"
   }
 }

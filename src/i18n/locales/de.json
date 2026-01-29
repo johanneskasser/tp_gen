@@ -443,5 +443,33 @@
         "done": "Fertig!"
       }
     }
+  },
+  "seo": {
+    "marketplace": {
+      "title": "Trainingspläne für Läufer",
+      "description": "Entdecke kostenlose Trainingspläne für 5K, 10K, Halbmarathon und Marathon. Von Läufern für Läufer erstellt.",
+      "planTitle": "{{name}} – {{distance}} Trainingsplan",
+      "planDescription": "{{weeks}} Wochen Trainingsplan für {{distance}}. {{description}}"
+    },
+    "landing": {
+      "title": "Kostenlose Trainingspläne für Läufer",
+      "description": "Erstelle kostenlose, maßgeschneiderte Trainingspläne für 5K, 10K, Halbmarathon und Marathon."
+    }
+  },
+  "publicCta": {
+    "banner": {
+      "text": "Erstelle ein kostenloses Konto, um Trainingspläne zu speichern und zu nutzen",
+      "button": "Kostenlos starten"
+    },
+    "gate": {
+      "sessions": "Erstelle ein kostenloses Konto, um detaillierte Trainingseinheiten zu sehen",
+      "comments": "Melde dich an, um zu kommentieren",
+      "ratings": "Melde dich an, um zu bewerten",
+      "clone": "Kostenlos registrieren, um diesen Plan zu nutzen",
+      "like": "Melde dich an, um Pläne zu liken",
+      "follow": "Melde dich an, um Erstellern zu folgen"
+    },
+    "signUpFree": "Kostenlos registrieren",
+    "alreadyHaveAccount": "Bereits registriert? Anmelden"
   }
 }

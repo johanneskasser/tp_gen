@@ -9,8 +9,11 @@ import { Search, Loader2 } from 'lucide-react';
 import { Button, Card, Pagination } from '../components/ui';
 import { cn, typography, flex } from '../lib/designSystem';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
+import { useAuth } from '../contexts/AuthContext';
 import { CommandPaletteSearch } from '../components/marketplace/CommandPaletteSearch';
 import { FilterOverlay } from '../components/marketplace/FilterOverlay';
+import { PublicCTABanner } from '../components/marketplace/PublicCTABanner';
+import { SEOHead } from '../components/seo/SEOHead';
 import { calculatePlanDifficulty } from '../utils/personalizedIntensity';
 import { useTranslation } from 'react-i18next';
 import { PlanCard } from '../components/marketplace/PlanCard';
@@ -34,7 +37,9 @@ export default function MarketplacePage() {
   const [showFilterOverlay, setShowFilterOverlay] = useState(false);
   const [activeCommand, setActiveCommand] = useState<string>();
   const { runnerProfile } = useRunnerProfile();
+  const { user } = useAuth();
   const { t } = useTranslation();
+  const isAuthenticated = !!user;
 
   useEffect(() => {
     loadPlans();
@@ -207,8 +212,27 @@ export default function MarketplacePage() {
 
   const filterChips = getFilterChips();
 
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: t('seo.marketplace.title'),
+    description: t('seo.marketplace.description'),
+    url: 'https://zenit-it.com/marketplace',
+    inLanguage: ['de', 'en'],
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background-secondary via-white to-background-primary flex flex-col">
+      <SEOHead
+        title={t('seo.marketplace.title')}
+        description={t('seo.marketplace.description')}
+        canonicalUrl="/marketplace"
+        structuredData={structuredData}
+        alternateUrls={[
+          { lang: 'de', url: '/marketplace' },
+          { lang: 'en', url: '/marketplace' },
+        ]}
+      />
       {/* Command Palette Header - Clean & Powerful */}
       <div className="sticky top-0 z-20 bg-white flex-shrink-0">
         <div className="container mx-auto px-4 sm:px-8 max-w-[1600px] py-4 sm:py-8">
@@ -219,6 +243,7 @@ export default function MarketplacePage() {
             activeFilters={filterChips}
             onFilterClick={() => setShowFilterOverlay(true)}
             activeCommand={activeCommand}
+            isAuthenticated={isAuthenticated}
             onClearCommand={() => {
               setActiveCommand(undefined);
               // Reset to default sort when clearing command
@@ -343,6 +368,7 @@ export default function MarketplacePage() {
           </div>
         </div>
       </div>
+      <PublicCTABanner />
     </div>
   );
 }

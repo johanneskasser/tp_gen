@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { LogIn, UserPlus, Mail, Lock, Calendar } from 'lucide-react';
 import { Button, Input, Alert } from '../components/ui';
 import { cn } from '../lib/designSystem';
@@ -31,7 +31,9 @@ export default function LoginPage() {
 
   const { signIn, signUp, signInWithMagicLink } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { t } = useTranslation();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100);
@@ -72,7 +74,7 @@ export default function LoginPage() {
         if (error) {
           setError(error.message);
         } else {
-          navigate('/dashboard');
+          navigate(redirectTo);
         }
       }
     } catch (err) {
