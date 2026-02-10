@@ -58,17 +58,17 @@ export function AppLayout({ children }: AppLayoutProps) {
         />
       </div>
 
-      {/* Mobile Sidebar - Overlay from right */}
+      {/* Mobile Sidebar - Overlay from left */}
       {isSidebarOpen && !isDesktop && (
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-fade-in"
             onClick={() => setIsSidebarOpen(false)}
           />
 
           {/* Sidebar */}
-          <div className="fixed inset-y-0 right-0 z-50 lg:hidden">
+          <div className="fixed inset-y-0 left-0 z-50 lg:hidden animate-slide-in-left">
             <Sidebar
               isCollapsed={false}
               isMobile={true}

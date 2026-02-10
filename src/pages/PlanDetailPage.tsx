@@ -366,8 +366,8 @@ export default function PlanDetailPage() {
         {/* Sticky Header */}
         <header
           className={cn(
-            "sticky z-10 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm relative",
-            user ? "top-[72px]" : "top-0"
+            "sticky z-30 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm",
+            user ? "top-[72px]" : "top-16 md:top-20"
           )}
         >
 
