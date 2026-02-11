@@ -371,6 +371,70 @@ export function formatPace(paceMinPerKm: number): string {
 }
 
 /**
+ * Calculate training zones with gender-specific adjustments
+ * Women may need slightly easier recovery paces due to physiological differences
+ */
+export function calculateTrainingZonesWithBiomarkers(
+  vdot: number,
+  gender?: 'male' | 'female' | 'other'
+): TrainingZones & { recommendations?: string[] } {
+  const zones = calculateTrainingZones(vdot);
+
+  // Gender-specific adjustments (subtle, based on research)
+  if (gender === 'female') {
+    // Women often benefit from slightly more conservative recovery paces
+    // and may need more recovery during luteal phase
+    return {
+      ...zones,
+      recovery: {
+        min: zones.recovery.min * 1.02, // Slightly slower recovery
+        max: zones.recovery.max * 1.05,
+      },
+      recommendations: [
+        'Berücksichtige deinen Menstruationszyklus bei der Trainingsplanung',
+        'In der Follikelphase (Tag 1-14) ist oft höhere Intensität möglich',
+        'In der Lutealphase (Tag 14-28) kann mehr Erholung sinnvoll sein',
+      ],
+    };
+  }
+
+  return zones;
+}
+
+/**
+ * Get VDOT category with gender-specific percentiles
+ * Women and men have different performance distributions
+ */
+export function getFitnessCategoryWithGender(
+  vdot: number,
+  gender?: 'male' | 'female' | 'other'
+): {
+  category: string;
+  description: string;
+  percentile: number;
+  genderNote?: string;
+} {
+  const baseCategory = getFitnessCategory(vdot);
+
+  if (gender === 'female') {
+    // Women with same VDOT are typically in higher percentile
+    // due to fewer female runners at elite level (statistical distribution)
+    return {
+      ...baseCategory,
+      percentile: Math.min(99, baseCategory.percentile + 5),
+      genderNote: 'Als Frau mit diesem VDOT bist du in der Spitzengruppe!',
+    };
+  } else if (gender === 'male') {
+    return {
+      ...baseCategory,
+      genderNote: 'Vergleichswert für männliche Läufer',
+    };
+  }
+
+  return baseCategory;
+}
+
+/**
  * Example usage:
  *
  * const pb: PersonalBest = {
@@ -379,8 +443,9 @@ export function formatPace(paceMinPerKm: number): string {
  * };
  *
  * const vdot = calculateVDOT(pb); // ~50
- * const zones = calculateTrainingZones(vdot);
+ * const zones = calculateTrainingZonesWithBiomarkers(vdot, 'female');
  *
  * console.log(`Easy pace: ${formatPace(zones.easy.min)} - ${formatPace(zones.easy.max)}`);
  * console.log(`Threshold pace: ${formatPace(zones.threshold)}`);
+ * console.log(`Recommendations:`, zones.recommendations);
  */

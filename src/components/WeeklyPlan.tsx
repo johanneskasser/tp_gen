@@ -272,55 +272,68 @@ export default function WeeklyPlan({
               return (
                 <div
                   key={dayOfWeek}
-                  className="border border-slate-200 bg-slate-50 rounded-lg p-3"
+                  className="group border border-slate-200 bg-slate-50 rounded-lg p-3 hover:border-slate-300 transition-colors"
                 >
-                  <div className="flex items-center justify-between mb-2">
+                  {/* Day Header with Icon Buttons */}
+                  <div className="flex items-center justify-between mb-3">
                     <span className="font-medium text-slate-700 text-sm">
                       {getDayName(dayOfWeek)}
                     </span>
+
+                    {/* Small Icon Buttons */}
+                    <div className="flex items-center gap-1">
+                      {/* Add Session Icon Button */}
+                      <button
+                        onClick={() => handleAddSession(dayOfWeek)}
+                        className="w-7 h-7 rounded-full bg-white border border-slate-300 text-slate-500 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow"
+                        aria-label="Training hinzufügen"
+                        title="Training hinzufügen"
+                      >
+                        <Plus size={16} strokeWidth={2} />
+                      </button>
+
+                      {/* AI Suggestion Icon Button - Only show if plan is available */}
+                      {plan && (
+                        <button
+                          onClick={() => handleShowSuggestions(dayOfWeek)}
+                          className="w-7 h-7 rounded-full bg-white border border-violet-300 text-violet-500 hover:border-violet-500 hover:text-violet-600 hover:bg-violet-50 transition-all duration-200 flex items-center justify-center hover:scale-110 active:scale-95 shadow-sm hover:shadow"
+                          aria-label="AI-Vorschlag"
+                          title="AI-Vorschlag"
+                        >
+                          <Sparkles size={14} strokeWidth={2} />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
+                  {/* Sessions List */}
                   <div className="space-y-2">
-                    {daySessions.map((session) => (
-                      <div key={session.id}>
-                        <button
-                          onClick={() => handleEditExistingSession(session)}
-                          className="w-full text-left p-2 bg-white rounded border border-slate-200 hover:border-blue-400 hover:shadow-sm transition-all"
-                        >
-                          <div className="font-medium text-sm text-slate-800">
-                            {session.title || generateSessionTitle(session)}
-                          </div>
-                          <div className="text-xs text-slate-600 mt-1">
-                            {calculateSessionDistance(session).toFixed(1)} km
-                          </div>
-                          {session.notes && (
-                            <div className="text-xs text-slate-500 mt-1 italic">
-                              {session.notes.substring(0, 30)}
-                              {session.notes.length > 30 ? '...' : ''}
+                    {daySessions.length > 0 ? (
+                      daySessions.map((session) => (
+                        <div key={session.id}>
+                          <button
+                            onClick={() => handleEditExistingSession(session)}
+                            className="w-full text-left p-2.5 bg-white rounded-lg border border-slate-200 hover:border-blue-400 hover:shadow-sm transition-all duration-200"
+                          >
+                            <div className="font-medium text-sm text-slate-800">
+                              {session.title || generateSessionTitle(session)}
                             </div>
-                          )}
-                        </button>
+                            <div className="text-xs text-slate-600 mt-1">
+                              {calculateSessionDistance(session).toFixed(1)} km
+                            </div>
+                            {session.notes && (
+                              <div className="text-xs text-slate-500 mt-1 italic">
+                                {session.notes.substring(0, 30)}
+                                {session.notes.length > 30 ? '...' : ''}
+                              </div>
+                            )}
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-6 text-center">
+                        <div className="text-slate-400 text-xs">Kein Training</div>
                       </div>
-                    ))}
-
-                    {/* Add Session Button */}
-                    <button
-                      onClick={() => handleAddSession(dayOfWeek)}
-                      className="w-full py-2 border-2 border-dashed border-slate-300 rounded hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center justify-center gap-1 text-slate-600 hover:text-blue-600 text-xs"
-                    >
-                      <Plus size={14} />
-                      <span>Hinzufügen</span>
-                    </button>
-
-                    {/* Suggestion Button - Only show if plan is available */}
-                    {plan && (
-                      <button
-                        onClick={() => handleShowSuggestions(dayOfWeek)}
-                        className="w-full py-2 border-2 border-dashed border-violet-300 rounded hover:border-violet-500 hover:bg-violet-50 transition-colors flex items-center justify-center gap-1 text-violet-600 hover:text-violet-700 text-xs font-medium"
-                      >
-                        <Lightbulb size={14} />
-                        <span>Vorschlag</span>
-                      </button>
                     )}
                   </div>
                 </div>

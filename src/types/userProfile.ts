@@ -16,12 +16,21 @@ export interface UserProfile {
   age?: number;
   gender?: 'male' | 'female' | 'other';
 
+  // Physical Metrics
+  heightCm?: number; // Height in cm (for BMI calculation)
+  weightKg?: number; // Weight in kg (for BMI calculation)
+
+  // Heart Rate Metrics
+  restingHeartRateBpm?: number; // Resting HR (for HR-based training zones)
+  maxHeartRateBpm?: number; // Max HR (for HR-based training zones)
+
   // Personal bests for different distances
   personalBests: PersonalBest[];
 
   // Training experience
   weeklyKmBase?: number; // Current weekly running volume
   yearsRunning?: number;
+  longestRunKm?: number; // Longest run distance (especially for beginners)
 
   // Calculated fitness metrics
   vdot?: number; // Jack Daniels' VDOT (calculated from best PB)
@@ -31,12 +40,16 @@ export interface UserProfile {
   preferredTrainingDays?: number[]; // 0-6, Monday-Sunday
   availableTimePerWeek?: number; // Hours per week
 
-  // Goals
+  // Goals & Motivation
+  motivationText?: string; // Free text describing motivation and goals
   targetRaces?: {
     distance: string;
     date: string;
     targetTime?: string;
   }[];
+
+  // Health & Safety
+  injuryHistory?: string[]; // Array of past injuries
 
   // Onboarding status
   onboarding_completed?: boolean;

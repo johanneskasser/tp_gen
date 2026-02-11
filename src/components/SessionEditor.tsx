@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   TrainingSession,
   SessionType,
@@ -7,7 +7,7 @@ import {
   FartlekSegment,
   Exercise,
 } from '../types';
-import { Save, X, Trash2, Plus, Activity, HelpCircle } from 'lucide-react';
+import { Save, X, Trash2, Plus, Activity, HelpCircle, Zap, Timer, Mountain, TrendingUp, Sparkles, Dumbbell, Target } from 'lucide-react';
 import { generateSessionTitle } from '../utils/titleGenerator';
 import { SESSION_TYPE_CONFIG, getSessionTypeLabel } from '../constants/sessionTypes';
 import { formatPace } from '../utils/paceCalculator';
@@ -25,6 +25,22 @@ interface SessionEditorProps {
   onCancel: () => void;
   onDelete: () => void;
 }
+
+// Session type icons mapping
+const SESSION_ICONS: Record<SessionType, any> = {
+  easy: Target,
+  long: TrendingUp,
+  intervals: Zap,
+  tempo: Timer,
+  recovery: Target,
+  race: Target,
+  strides: Sparkles,
+  hill_repeats: Mountain,
+  progression: TrendingUp,
+  fartlek: Sparkles,
+  strength: Dumbbell,
+  plyometrics: Zap,
+};
 
 export default function SessionEditor({
   session,
@@ -77,6 +93,7 @@ export default function SessionEditor({
     value: value as SessionType,
     label: getSessionTypeLabel(value as SessionType),
     color: config.color,
+    icon: SESSION_ICONS[value as SessionType],
   }));
 
   // Calculate pace for tempo runs
@@ -237,7 +254,7 @@ export default function SessionEditor({
     setExercises(exercises.filter((_, i) => i !== index));
   };
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     const updatedSession: TrainingSession = {
       ...session,
       title: '',
@@ -324,20 +341,48 @@ export default function SessionEditor({
 
     onSave(updatedSession);
     onCancel();
-  };
+  }, [
+    session, type, notes, title, distance, duration, intervals, warmUp, warmUpUnit,
+    coolDown, coolDownUnit, stridesCount, stridesDuration, stridesRecovery,
+    hillReps, hillDistance, hillDuration, hillRecovery, hillGrade,
+    progressionDistance, progressionStartPace, progressionEndPace,
+    fartlekSegments, exercises, onSave, onCancel
+  ]);
+
+  // Keyboard shortcuts - placed after handleSave to avoid forward reference
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // ESC to close
+      if (e.key === 'Escape') {
+        onCancel();
+        return;
+      }
+
+      // Alt+Enter or CMD+Enter to save
+      if (e.key === 'Enter' && (e.altKey || e.metaKey)) {
+        e.preventDefault();
+        handleSave();
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onCancel, handleSave]);
 
   // Render fields based on session type
   const renderSessionFields = () => {
     switch (type) {
       case 'strides':
         return (
-          <div className="space-y-4">
-            <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-3 text-sm text-cyan-800">
-              <strong>Steigerungen:</strong> 4-8 kurze Sprints (10-20s) zur Technik- und Geschwindigkeitspflege
+          <div className="space-y-4 animate-fade-in">
+            <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-4 text-sm text-cyan-900">
+              <div className="font-semibold mb-1">Steigerungen</div>
+              <div className="text-cyan-700">4-8 kurze Sprints (10-20s) zur Technik- und Geschwindigkeitspflege</div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Anzahl
                 </label>
                 <input
@@ -346,13 +391,13 @@ export default function SessionEditor({
                   max="8"
                   value={stridesCount}
                   onChange={(e) => setStridesCount(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="6"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Dauer (Sekunden)
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                  Dauer (s)
                 </label>
                 <input
                   type="number"
@@ -360,19 +405,19 @@ export default function SessionEditor({
                   max="20"
                   value={stridesDuration}
                   onChange={(e) => setStridesDuration(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="15"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Pause (Sekunden)
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                  Pause (s)
                 </label>
                 <input
                   type="number"
                   value={stridesRecovery}
                   onChange={(e) => setStridesRecovery(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="60"
                 />
               </div>
@@ -382,13 +427,14 @@ export default function SessionEditor({
 
       case 'hill_repeats':
         return (
-          <div className="space-y-4">
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-              <strong>Bergwiederholungen:</strong> Für Kraft, Technik und neuromuskuläre Qualität
+          <div className="space-y-4 animate-fade-in">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900">
+              <div className="font-semibold mb-1">Bergwiederholungen</div>
+              <div className="text-amber-700">Für Kraft, Technik und neuromuskuläre Qualität</div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Warm Up
                 </label>
                 <div className="flex gap-2">
@@ -397,13 +443,13 @@ export default function SessionEditor({
                     step="0.1"
                     value={warmUp}
                     onChange={(e) => setWarmUp(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     placeholder="2.0"
                   />
                   <select
                     value={warmUpUnit}
                     onChange={(e) => setWarmUpUnit(e.target.value as DistanceUnit)}
-                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
                   >
                     <option value="km">km</option>
                     <option value="min">min</option>
@@ -411,7 +457,7 @@ export default function SessionEditor({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Cool Down
                 </label>
                 <div className="flex gap-2">
@@ -420,13 +466,13 @@ export default function SessionEditor({
                     step="0.1"
                     value={coolDown}
                     onChange={(e) => setCoolDown(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     placeholder="2.0"
                   />
                   <select
                     value={coolDownUnit}
                     onChange={(e) => setCoolDownUnit(e.target.value as DistanceUnit)}
-                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
                   >
                     <option value="km">km</option>
                     <option value="min">min</option>
@@ -434,21 +480,21 @@ export default function SessionEditor({
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Wiederholungen
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                  Reps
                 </label>
                 <input
                   type="number"
                   value={hillReps}
                   onChange={(e) => setHillReps(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="6"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Distanz (km)
                 </label>
                 <input
@@ -456,12 +502,12 @@ export default function SessionEditor({
                   step="0.1"
                   value={hillDistance}
                   onChange={(e) => setHillDistance(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="0.4"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Dauer (min)
                 </label>
                 <input
@@ -469,12 +515,12 @@ export default function SessionEditor({
                   step="0.5"
                   value={hillDuration}
                   onChange={(e) => setHillDuration(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="2"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Pause (min)
                 </label>
                 <input
@@ -482,13 +528,13 @@ export default function SessionEditor({
                   step="0.5"
                   value={hillRecovery}
                   onChange={(e) => setHillRecovery(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="2"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                 Steigung (%) - optional
               </label>
               <input
@@ -496,7 +542,7 @@ export default function SessionEditor({
                 step="0.5"
                 value={hillGrade}
                 onChange={(e) => setHillGrade(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="5"
               />
             </div>
@@ -505,14 +551,15 @@ export default function SessionEditor({
 
       case 'progression':
         return (
-          <div className="space-y-4">
-            <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-3 text-sm text-cyan-800">
-              <strong>Progression Run:</strong> Starte locker und steigere das Tempo kontinuierlich
+          <div className="space-y-4 animate-fade-in">
+            <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-4 text-sm text-cyan-900">
+              <div className="font-semibold mb-1">Progression Run</div>
+              <div className="text-cyan-700">Starte locker und steigere das Tempo kontinuierlich</div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Warm Up (optional)
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                  Warm Up
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -520,13 +567,13 @@ export default function SessionEditor({
                     step="0.1"
                     value={warmUp}
                     onChange={(e) => setWarmUp(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     placeholder="2.0"
                   />
                   <select
                     value={warmUpUnit}
                     onChange={(e) => setWarmUpUnit(e.target.value as DistanceUnit)}
-                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
                   >
                     <option value="km">km</option>
                     <option value="min">min</option>
@@ -534,8 +581,8 @@ export default function SessionEditor({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Cool Down (optional)
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                  Cool Down
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -543,13 +590,13 @@ export default function SessionEditor({
                     step="0.1"
                     value={coolDown}
                     onChange={(e) => setCoolDown(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     placeholder="2.0"
                   />
                   <select
                     value={coolDownUnit}
                     onChange={(e) => setCoolDownUnit(e.target.value as DistanceUnit)}
-                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
                   >
                     <option value="km">km</option>
                     <option value="min">min</option>
@@ -557,9 +604,9 @@ export default function SessionEditor({
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Distanz (km)
                 </label>
                 <input
@@ -567,31 +614,31 @@ export default function SessionEditor({
                   step="0.1"
                   value={progressionDistance}
                   onChange={(e) => setProgressionDistance(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="10.0"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Start-Pace
                 </label>
                 <input
                   type="text"
                   value={progressionStartPace}
                   onChange={(e) => setProgressionStartPace(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="6:00"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   End-Pace
                 </label>
                 <input
                   type="text"
                   value={progressionEndPace}
                   onChange={(e) => setProgressionEndPace(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="4:30"
                 />
               </div>
@@ -610,13 +657,14 @@ export default function SessionEditor({
 
       case 'fartlek':
         return (
-          <div className="space-y-4">
-            <div className="bg-pink-50 border border-pink-200 rounded-lg p-3 text-sm text-pink-800">
-              <strong>Fartlek:</strong> Spielerische Tempowechsel für vielseitiges Training
+          <div className="space-y-4 animate-fade-in">
+            <div className="bg-pink-50 border border-pink-200 rounded-xl p-4 text-sm text-pink-900">
+              <div className="font-semibold mb-1">Fartlek</div>
+              <div className="text-pink-700">Spielerische Tempowechsel für vielseitiges Training</div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Warm Up
                 </label>
                 <div className="flex gap-2">
@@ -625,13 +673,13 @@ export default function SessionEditor({
                     step="0.1"
                     value={warmUp}
                     onChange={(e) => setWarmUp(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     placeholder="2.0"
                   />
                   <select
                     value={warmUpUnit}
                     onChange={(e) => setWarmUpUnit(e.target.value as DistanceUnit)}
-                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
                   >
                     <option value="km">km</option>
                     <option value="min">min</option>
@@ -639,7 +687,7 @@ export default function SessionEditor({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Cool Down
                 </label>
                 <div className="flex gap-2">
@@ -648,13 +696,13 @@ export default function SessionEditor({
                     step="0.1"
                     value={coolDown}
                     onChange={(e) => setCoolDown(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     placeholder="2.0"
                   />
                   <select
                     value={coolDownUnit}
                     onChange={(e) => setCoolDownUnit(e.target.value as DistanceUnit)}
-                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
                   >
                     <option value="km">km</option>
                     <option value="min">min</option>
@@ -663,10 +711,10 @@ export default function SessionEditor({
               </div>
             </div>
             <div className="flex justify-between items-center">
-              <label className="block text-sm font-medium text-slate-700">Segmente</label>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">Segmente</label>
               <button
                 onClick={handleAddFartlekSegment}
-                className="px-3 py-1 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors flex items-center gap-1 text-sm"
+                className="px-3 py-1.5 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-all flex items-center gap-1.5 text-sm font-medium shadow-sm hover:shadow"
               >
                 <Plus size={16} />
                 Segment
@@ -688,7 +736,7 @@ export default function SessionEditor({
                         onChange={(e) =>
                           handleUpdateFartlekSegment(index, 'type', e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
                       >
                         <option value="easy">Locker</option>
                         <option value="tempo">Tempo</option>
@@ -706,7 +754,7 @@ export default function SessionEditor({
                         onChange={(e) =>
                           handleUpdateFartlekSegment(index, 'duration', parseFloat(e.target.value))
                         }
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                         placeholder="5"
                       />
                     </div>
@@ -721,13 +769,13 @@ export default function SessionEditor({
                           onChange={(e) =>
                             handleUpdateFartlekSegment(index, 'pace', e.target.value)
                           }
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                           placeholder="4:30"
                         />
                       </div>
                       <button
                         onClick={() => handleDeleteFartlekSegment(index)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -736,7 +784,7 @@ export default function SessionEditor({
                 </div>
               ))}
               {fartlekSegments.length === 0 && (
-                <div className="text-center py-6 text-slate-500 text-sm">
+                <div className="text-center py-8 text-slate-500 text-sm">
                   Klicke auf "Segment" um Fartlek-Segmente hinzuzufügen
                 </div>
               )}
@@ -758,28 +806,30 @@ export default function SessionEditor({
       case 'strength':
       case 'plyometrics':
         return (
-          <div className="space-y-4">
-            <div className={`${type === 'strength' ? 'bg-gray-50 border-gray-200' : 'bg-indigo-50 border-indigo-200'} border rounded-lg p-3 text-sm ${type === 'strength' ? 'text-gray-800' : 'text-indigo-800'}`}>
-              <strong>{type === 'strength' ? 'Krafttraining:' : 'Plyometrie:'}</strong>{' '}
-              {type === 'strength' ? 'Schweres/explosives Krafttraining für Laufökonomie' : 'Sprünge, Hops, Bounds für Schnellkraft'}
+          <div className="space-y-4 animate-fade-in">
+            <div className={`${type === 'strength' ? 'bg-gray-50 border-gray-200' : 'bg-indigo-50 border-indigo-200'} border rounded-xl p-4 text-sm ${type === 'strength' ? 'text-gray-900' : 'text-indigo-900'}`}>
+              <div className="font-semibold mb-1">{type === 'strength' ? 'Krafttraining' : 'Plyometrie'}</div>
+              <div className={type === 'strength' ? 'text-gray-700' : 'text-indigo-700'}>
+                {type === 'strength' ? 'Schweres/explosives Krafttraining für Laufökonomie' : 'Sprünge, Hops, Bounds für Schnellkraft'}
+              </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                 Gesamtdauer (min) - optional
               </label>
               <input
                 type="number"
                 value={duration}
                 onChange={(e) => setDuration(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                 placeholder="45"
               />
             </div>
             <div className="flex justify-between items-center">
-              <label className="block text-sm font-medium text-slate-700">Übungen</label>
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">Übungen</label>
               <button
                 onClick={handleAddExercise}
-                className={`px-3 py-1 ${type === 'strength' ? 'bg-gray-600 hover:bg-gray-700' : 'bg-indigo-600 hover:bg-indigo-700'} text-white rounded-lg transition-colors flex items-center gap-1 text-sm`}
+                className={`px-3 py-1.5 ${type === 'strength' ? 'bg-gray-600 hover:bg-gray-700' : 'bg-indigo-600 hover:bg-indigo-700'} text-white rounded-lg transition-all flex items-center gap-1.5 text-sm font-medium shadow-sm hover:shadow`}
               >
                 <Plus size={16} />
                 Übung
@@ -802,7 +852,7 @@ export default function SessionEditor({
                         onChange={(e) =>
                           handleUpdateExercise(index, 'name', e.target.value)
                         }
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                         placeholder="z.B. Kniebeugen, Box Jumps, etc."
                       />
                     </div>
@@ -817,7 +867,7 @@ export default function SessionEditor({
                           onChange={(e) =>
                             handleUpdateExercise(index, 'sets', parseInt(e.target.value))
                           }
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                           placeholder="3"
                         />
                       </div>
@@ -831,7 +881,7 @@ export default function SessionEditor({
                           onChange={(e) =>
                             handleUpdateExercise(index, 'reps', parseInt(e.target.value))
                           }
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                           placeholder={exercise.isTime ? '30' : '10'}
                         />
                       </div>
@@ -845,7 +895,7 @@ export default function SessionEditor({
                           onChange={(e) =>
                             handleUpdateExercise(index, 'restTime', parseInt(e.target.value))
                           }
-                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                           placeholder="60"
                         />
                       </div>
@@ -863,7 +913,7 @@ export default function SessionEditor({
                         </label>
                         <button
                           onClick={() => handleDeleteExercise(index)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           <Trash2 size={16} />
                         </button>
@@ -873,7 +923,7 @@ export default function SessionEditor({
                 </div>
               ))}
               {exercises.length === 0 && (
-                <div className="text-center py-6 text-slate-500 text-sm">
+                <div className="text-center py-8 text-slate-500 text-sm">
                   Klicke auf "Übung" um Übungen hinzuzufügen
                 </div>
               )}
@@ -883,100 +933,14 @@ export default function SessionEditor({
 
       case 'tempo':
         return (
-          <div className="space-y-4">
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 text-sm text-purple-800">
-              <strong>Tempo-Lauf:</strong> Zügiges, aber kontrolliertes Tempo für Ausdauer und Laktattoleranz
+          <div className="space-y-4 animate-fade-in">
+            <div className="bg-purple-50 border border-purple-200 rounded-xl p-4 text-sm text-purple-900">
+              <div className="font-semibold mb-1">Tempo-Lauf</div>
+              <div className="text-purple-700">Zügiges, aber kontrolliertes Tempo für Ausdauer und Laktattoleranz</div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Warm Up (optional)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={warmUp}
-                    onChange={(e) => setWarmUp(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="2.0"
-                  />
-                  <select
-                    value={warmUpUnit}
-                    onChange={(e) => setWarmUpUnit(e.target.value as DistanceUnit)}
-                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-                  >
-                    <option value="km">km</option>
-                    <option value="min">min</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Cool Down (optional)
-                </label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={coolDown}
-                    onChange={(e) => setCoolDown(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="2.0"
-                  />
-                  <select
-                    value={coolDownUnit}
-                    onChange={(e) => setCoolDownUnit(e.target.value as DistanceUnit)}
-                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
-                  >
-                    <option value="km">km</option>
-                    <option value="min">min</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Distanz (km)
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={distance}
-                  onChange={(e) => setDistance(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                  placeholder="10.0"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Dauer (min) - optional
-                </label>
-                <input
-                  type="number"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
-                  placeholder="60"
-                />
-              </div>
-            </div>
-            {calculatedPace && (
-              <div className="mt-2 text-sm text-slate-600 bg-blue-50 px-3 py-2 rounded-lg">
-                <strong>Pace:</strong> {formatPace(calculatedPace)}
-              </div>
-            )}
-          </div>
-        );
-
-      case 'intervals':
-        return (
-          <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Warm Up
                 </label>
                 <div className="flex gap-2">
@@ -985,22 +949,21 @@ export default function SessionEditor({
                     step="0.1"
                     value={warmUp}
                     onChange={(e) => setWarmUp(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     placeholder="2.0"
                   />
                   <select
                     value={warmUpUnit}
                     onChange={(e) => setWarmUpUnit(e.target.value as DistanceUnit)}
-                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
                   >
                     <option value="km">km</option>
                     <option value="min">min</option>
                   </select>
                 </div>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Cool Down
                 </label>
                 <div className="flex gap-2">
@@ -1009,13 +972,102 @@ export default function SessionEditor({
                     step="0.1"
                     value={coolDown}
                     onChange={(e) => setCoolDown(e.target.value)}
-                    className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                     placeholder="2.0"
                   />
                   <select
                     value={coolDownUnit}
                     onChange={(e) => setCoolDownUnit(e.target.value as DistanceUnit)}
-                    className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white"
+                    className="px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
+                  >
+                    <option value="km">km</option>
+                    <option value="min">min</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                  Distanz (km)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={distance}
+                  onChange={(e) => setDistance(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  placeholder="10.0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                  Dauer (min)
+                </label>
+                <input
+                  type="number"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  placeholder="60"
+                />
+              </div>
+            </div>
+            {calculatedPace && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm">
+                <span className="font-semibold text-blue-900">Pace:</span>{' '}
+                <span className="text-blue-700">{formatPace(calculatedPace)}</span>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'intervals':
+        return (
+          <div className="space-y-4 animate-fade-in">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                  Warm Up
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={warmUp}
+                    onChange={(e) => setWarmUp(e.target.value)}
+                    className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    placeholder="2.0"
+                  />
+                  <select
+                    value={warmUpUnit}
+                    onChange={(e) => setWarmUpUnit(e.target.value as DistanceUnit)}
+                    className="px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
+                  >
+                    <option value="km">km</option>
+                    <option value="min">min</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                  Cool Down
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={coolDown}
+                    onChange={(e) => setCoolDown(e.target.value)}
+                    className="flex-1 px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    placeholder="2.0"
+                  />
+                  <select
+                    value={coolDownUnit}
+                    onChange={(e) => setCoolDownUnit(e.target.value as DistanceUnit)}
+                    className="px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
                   >
                     <option value="km">km</option>
                     <option value="min">min</option>
@@ -1024,13 +1076,13 @@ export default function SessionEditor({
               </div>
             </div>
 
-            <div className="flex justify-between items-center mb-3">
-              <label className="block text-sm font-medium text-slate-700">
+            <div className="flex justify-between items-center">
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
                 Intervalle
               </label>
               <button
                 onClick={handleAddInterval}
-                className="px-3 py-1 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1 text-sm"
+                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all flex items-center gap-1.5 text-sm font-medium shadow-sm hover:shadow"
               >
                 <Plus size={16} />
                 Intervall
@@ -1044,7 +1096,7 @@ export default function SessionEditor({
                   className="bg-slate-50 p-4 rounded-lg border border-slate-200"
                 >
                   <div className="space-y-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                       <div>
                         <label className="block text-xs font-medium text-slate-600 mb-1">
                           Distanz (km)
@@ -1060,7 +1112,7 @@ export default function SessionEditor({
                               parseFloat(e.target.value)
                             )
                           }
-                          className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                         />
                       </div>
 
@@ -1078,7 +1130,7 @@ export default function SessionEditor({
                               parseInt(e.target.value)
                             )
                           }
-                          className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                         />
                       </div>
 
@@ -1092,7 +1144,7 @@ export default function SessionEditor({
                           onChange={(e) =>
                             handleUpdateInterval(index, 'pace', e.target.value)
                           }
-                          className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                           placeholder="4:30"
                         />
                       </div>
@@ -1114,7 +1166,7 @@ export default function SessionEditor({
                                 e.target.value
                               )
                             }
-                            className="flex-1 px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500"
+                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                             placeholder="0.2"
                           />
                           <select
@@ -1126,7 +1178,7 @@ export default function SessionEditor({
                                 e.target.value as DistanceUnit
                               )
                             }
-                            className="px-2 py-1 text-sm border border-slate-300 rounded focus:ring-2 focus:ring-blue-500 bg-white"
+                            className="px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-all"
                           >
                             <option value="km">km</option>
                             <option value="min">min</option>
@@ -1135,7 +1187,7 @@ export default function SessionEditor({
                       </div>
                       <button
                         onClick={() => handleDeleteInterval(index)}
-                        className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -1145,7 +1197,7 @@ export default function SessionEditor({
               ))}
 
               {intervals.length === 0 && (
-                <div className="text-center py-6 text-slate-500 text-sm">
+                <div className="text-center py-8 text-slate-500 text-sm">
                   Klicke auf "Intervall" um Intervalle hinzuzufügen
                 </div>
               )}
@@ -1167,10 +1219,10 @@ export default function SessionEditor({
       default:
         // easy, long, recovery, race
         return (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+          <div className="space-y-4 animate-fade-in">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
                   Distanz (km)
                 </label>
                 <input
@@ -1178,274 +1230,282 @@ export default function SessionEditor({
                   step="0.1"
                   value={distance}
                   onChange={(e) => setDistance(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="10.0"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Dauer (min) - optional
+                <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                  Dauer (min)
                 </label>
                 <input
                   type="number"
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base"
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                   placeholder="60"
                 />
               </div>
             </div>
             {calculatedPace && (
-              <div className="mt-2 text-sm text-slate-600 bg-blue-50 px-3 py-2 rounded-lg">
-                <strong>Pace:</strong> {formatPace(calculatedPace)}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm">
+                <span className="font-semibold text-blue-900">Pace:</span>{' '}
+                <span className="text-blue-700">{formatPace(calculatedPace)}</span>
               </div>
             )}
-          </>
+          </div>
         );
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-sm sm:max-w-md md:max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-slate-200 px-3 sm:px-6 py-3 sm:py-4 flex justify-between items-center z-10">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-800">Training bearbeiten</h3>
-          <button
-            onClick={onCancel}
-            className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-full transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Titel (optional)
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Wird automatisch generiert wenn leer gelassen"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Typ
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {sessionTypes.map((st) => (
-                <button
-                  key={st.value}
-                  type="button"
-                  onClick={() => setType(st.value)}
-                  className={`px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg font-medium transition-all text-xs sm:text-sm ${
-                    type === st.value
-                      ? st.color + ' ring-2 ring-offset-2 ring-blue-500'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {st.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Intensity Level Display - Dynamic RPE */}
-          <div className={`border rounded-lg p-4 ${intensityInfo.color}`}>
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Activity size={20} />
-                <span className="font-semibold">Intensitätslevel:</span>
-                <span className="text-2xl">{intensityInfo.emoji}</span>
-                <span className="font-bold">{intensityInfo.label}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-right">
-                  <div className="text-sm font-medium">Score: {intensityInfo.rpe}/10</div>
-                  {intensityInfo.recoveryDays > 0 && (
-                    <div className="text-xs">
-                      {intensityInfo.recoveryDays} Tag{intensityInfo.recoveryDays > 1 ? 'e' : ''} Erholung
-                    </div>
-                  )}
-                </div>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setShowRPEInfo(!showRPEInfo)}
-                    className="p-1 hover:bg-white/50 rounded-full transition-colors"
-                  >
-                    <HelpCircle size={18} />
-                  </button>
-                  {showRPEInfo && (
-                    <>
-                      <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setShowRPEInfo(false)}
-                      />
-                      <div className="absolute right-0 top-8 z-50 w-80 max-h-[70vh] bg-white border-2 border-slate-300 rounded-lg shadow-xl text-slate-800 overflow-hidden flex flex-col">
-                        <div className="overflow-y-auto p-4 space-y-3 text-xs">
-                          <div>
-                            <h4 className="font-bold text-sm mb-2">Wie wird die RPE berechnet?</h4>
-                            <p className="mb-2">
-                              Der RPE-Score (Rate of Perceived Exertion) wird dynamisch basierend auf mehreren Faktoren berechnet:
-                            </p>
-                          </div>
-
-                          <div>
-                            <h5 className="font-semibold mb-1">📊 VDOT-basierte Personalisierung</h5>
-                            <p>
-                              Deine Pace wird mit deinen persönlichen Trainingszonen verglichen (aus deinem VDOT-Wert).
-                              Die gleiche Pace hat unterschiedliche RPE-Werte je nach Fitnesslevel.
-                            </p>
-                          </div>
-
-                          <div>
-                            <h5 className="font-semibold mb-1">🏃 Intervall-Faktoren</h5>
-                            <p>
-                              • <strong>Pace:</strong> Vergleich mit deinen persönlichen Zonen (Easy, Marathon, Threshold, Interval)<br/>
-                              • <strong>Wiederholungen:</strong> Mehr Reps = höhere kumulative Ermüdung<br/>
-                              • <strong>Recovery:</strong> Kürzere Pausen = höhere RPE<br/>
-                              • <strong>Gesamtvolumen:</strong> Mehr Intervall-km = härter
-                            </p>
-                          </div>
-
-                          <div>
-                            <h5 className="font-semibold mb-1">📏 Distanz & Dauer</h5>
-                            <p>
-                              Längere Läufe erhöhen die RPE exponentiell durch Glykogenverbrauch und kumulative Ermüdung.
-                            </p>
-                          </div>
-
-                          <div>
-                            <h5 className="font-semibold mb-1">📚 Wissenschaftliche Grundlagen</h5>
-                            <ul className="list-disc list-inside space-y-1 ml-2">
-                              <li>
-                                <a
-                                  href="https://marathonhandbook.com/rate-of-perceived-exertion/"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline"
-                                >
-                                  Borg RPE Scale (1-10)
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://vdoto2.com/calculator"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline"
-                                >
-                                  Jack Daniels' VDOT System
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://www.veohtu.com/trimp.html"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline"
-                                >
-                                  Bannister's TRIMP
-                                </a>
-                              </li>
-                              <li>
-                                <a
-                                  href="https://www.veohtu.com/runningspeed.html"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-blue-600 hover:underline"
-                                >
-                                  VDOT Training Zones
-                                </a>
-                              </li>
-                            </ul>
-                          </div>
-
-                          <div className="pt-2 border-t border-slate-200">
-                            <p className="text-[10px] text-slate-600">
-                              💡 Tipp: Trage deine Bestzeiten im Profil ein für präzisere RPE-Berechnungen!
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Intensity Bar */}
-            <div className="relative">
-              <div className="flex gap-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                {[...Array(10)].map((_, i) => (
-                  <div
-                    key={i}
-                    className={`flex-1 ${
-                      i < Math.round(intensityInfo.rpe) ? intensityInfo.barColor : 'bg-gray-200'
-                    }`}
-                  />
-                ))}
-              </div>
-              <div className="flex justify-between text-xs text-gray-600 mt-1">
-                <span>Locker</span>
-                <span>Sehr Hart</span>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="mt-2 text-xs opacity-80">
-              {intensityInfo.description}
-            </div>
-          </div>
-
-          {renderSessionFields()}
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Notizen
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              placeholder="Zusätzliche Notizen zum Training..."
-            />
-          </div>
-        </div>
-
-        <div className="sticky bottom-0 bg-slate-50 border-t border-slate-200 px-3 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row gap-2 sm:justify-between">
-          <button
-            onClick={onDelete}
-            className="px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base order-last sm:order-first"
-          >
-            <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
-            Löschen
-          </button>
-
-          <div className="flex gap-2">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[95vh] flex flex-col animate-scale-in">
+        {/* Header */}
+        <div className="flex-shrink-0 px-4 sm:px-6 py-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-blue-50">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900">Training bearbeiten</h2>
             <button
               onClick={onCancel}
-              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors text-sm sm:text-base"
+              className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+              aria-label="Schließen"
             >
-              Abbrechen
+              <X size={20} />
             </button>
+          </div>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 sm:p-6 space-y-6">
+            {/* Title Input */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                Titel (optional)
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                placeholder="Wird automatisch generiert"
+              />
+            </div>
+
+            {/* Session Type Selector - Compact Grid */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                Trainingstyp
+              </label>
+              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-1.5">
+                {sessionTypes.map((st) => {
+                  const Icon = st.icon;
+                  const isSelected = type === st.value;
+                  return (
+                    <button
+                      key={st.value}
+                      type="button"
+                      onClick={() => setType(st.value)}
+                      className={`
+                        group relative px-2 py-2 rounded-lg font-medium transition-all text-xs
+                        ${isSelected
+                          ? st.color + ' ring-2 ring-blue-500 shadow-sm scale-105'
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                        }
+                      `}
+                    >
+                      <div className="flex flex-col items-center gap-1">
+                        <Icon size={16} className={`${isSelected ? '' : 'text-slate-500'}`} />
+                        <span className="text-[10px] leading-tight text-center">{st.label}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* RPE Display - Compact */}
+            <div className={`border rounded-lg p-3 ${intensityInfo.color} transition-all`}>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <Activity size={14} className="flex-shrink-0" />
+                  <span className="font-semibold text-xs whitespace-nowrap">Intensität:</span>
+                  <span className="text-sm">{intensityInfo.emoji}</span>
+                  <span className="font-semibold text-xs truncate">{intensityInfo.label}</span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="text-right">
+                    <div className="text-sm font-bold">{intensityInfo.rpe}/10</div>
+                    {intensityInfo.recoveryDays > 0 && (
+                      <div className="text-[10px] opacity-75">
+                        {intensityInfo.recoveryDays}d
+                      </div>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowRPEInfo(!showRPEInfo)}
+                      className="p-1 hover:bg-white/50 rounded-full transition-colors"
+                    >
+                      <HelpCircle size={14} />
+                    </button>
+                    {showRPEInfo && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setShowRPEInfo(false)}
+                        />
+                        <div className="absolute right-0 top-8 z-50 w-80 max-h-[70vh] bg-white border-2 border-slate-300 rounded-xl shadow-2xl text-slate-800 overflow-hidden flex flex-col">
+                          <div className="overflow-y-auto p-4 space-y-3 text-xs">
+                            <div>
+                              <h4 className="font-bold text-sm mb-2">Wie wird die RPE berechnet?</h4>
+                              <p className="mb-2">
+                                Der RPE-Score (Rate of Perceived Exertion) wird dynamisch basierend auf mehreren Faktoren berechnet:
+                              </p>
+                            </div>
+
+                            <div>
+                              <h5 className="font-semibold mb-1">📊 VDOT-basierte Personalisierung</h5>
+                              <p>
+                                Deine Pace wird mit deinen persönlichen Trainingszonen verglichen (aus deinem VDOT-Wert).
+                                Die gleiche Pace hat unterschiedliche RPE-Werte je nach Fitnesslevel.
+                              </p>
+                            </div>
+
+                            <div>
+                              <h5 className="font-semibold mb-1">🏃 Intervall-Faktoren</h5>
+                              <p>
+                                • <strong>Pace:</strong> Vergleich mit deinen persönlichen Zonen (Easy, Marathon, Threshold, Interval)<br/>
+                                • <strong>Wiederholungen:</strong> Mehr Reps = höhere kumulative Ermüdung<br/>
+                                • <strong>Recovery:</strong> Kürzere Pausen = höhere RPE<br/>
+                                • <strong>Gesamtvolumen:</strong> Mehr Intervall-km = härter
+                              </p>
+                            </div>
+
+                            <div>
+                              <h5 className="font-semibold mb-1">📏 Distanz & Dauer</h5>
+                              <p>
+                                Längere Läufe erhöhen die RPE exponentiell durch Glykogenverbrauch und kumulative Ermüdung.
+                              </p>
+                            </div>
+
+                            <div className="pt-2 border-t border-slate-200">
+                              <p className="text-[10px] text-slate-600">
+                                💡 Tipp: Trage deine Bestzeiten im Profil ein für präzisere RPE-Berechnungen!
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Compact Intensity Bar */}
+              <div className="mt-2">
+                <div className="flex gap-0.5 h-1.5 bg-white/50 rounded-full overflow-hidden">
+                  {[...Array(10)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`flex-1 transition-all ${
+                        i < Math.round(intensityInfo.rpe) ? intensityInfo.barColor : 'bg-white/30'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Dynamic Session Fields */}
+            {renderSessionFields()}
+
+            {/* Notes */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wide">
+                Notizen
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all"
+                placeholder="Zusätzliche Notizen zum Training..."
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="flex-shrink-0 bg-slate-50 border-t border-slate-200 px-4 sm:px-6 py-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
             <button
-              onClick={handleSave}
-              className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
+              onClick={onDelete}
+              className="order-last sm:order-first px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all flex items-center justify-center gap-2 font-medium shadow-sm hover:shadow text-sm"
             >
-              <Save size={16} className="sm:w-[18px] sm:h-[18px]" />
-              Speichern
+              <Trash2 size={16} />
+              Löschen
             </button>
+
+            <div className="flex gap-2">
+              <button
+                onClick={onCancel}
+                className="flex-1 sm:flex-none px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-all font-medium text-sm"
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={handleSave}
+                className="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2 font-medium shadow-sm hover:shadow text-sm"
+              >
+                <Save size={16} />
+                <span>Speichern</span>
+                <span className="hidden sm:inline text-[10px] opacity-70 ml-1">⌘+↵</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      <style>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+
+        .animate-scale-in {
+          animation: scale-in 0.2s ease-out;
+        }
+
+        .hover\\:scale-102:hover {
+          transform: scale(1.02);
+        }
+
+        .scale-105 {
+          transform: scale(1.05);
+        }
+
+        kbd {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+      `}</style>
     </div>
   );
 }

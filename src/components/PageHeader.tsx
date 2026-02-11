@@ -1,7 +1,8 @@
-import { useLocation } from 'react-router-dom';
-import { Menu } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Menu, Plus } from 'lucide-react';
 import { cn, typography } from '../lib/designSystem';
 import { useTranslation } from 'react-i18next';
+import { Button } from './ui';
 
 interface PageHeaderProps {
   onMenuClick: () => void;
@@ -15,6 +16,7 @@ interface PageInfo {
 
 export function PageHeader({ onMenuClick, isMobileMenuOpen }: PageHeaderProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useTranslation();
 
   const getPageInfo = (): PageInfo => {
@@ -107,6 +109,20 @@ export function PageHeader({ onMenuClick, isMobileMenuOpen }: PageHeaderProps) {
             {pageInfo.description}
           </p>
         </div>
+
+        {/* "Neuen Plan erstellen" Button - only on Dashboard */}
+        {location.pathname === '/dashboard' && (
+          <Button
+            onClick={() => navigate('/plan/new')}
+            className="bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/20 rounded-xl px-4 sm:px-6 py-2 sm:py-2.5 font-semibold flex items-center gap-2 flex-shrink-0"
+          >
+            <Plus size={18} className="sm:w-5 sm:h-5" />
+            <span className="hidden sm:inline">
+              {t('dashboard.createNewPlan')}
+            </span>
+            <span className="sm:hidden">Neu</span>
+          </Button>
+        )}
       </div>
     </header>
   );

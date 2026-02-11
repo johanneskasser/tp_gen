@@ -63,12 +63,12 @@ export function AppLayout({ children }: AppLayoutProps) {
         <>
           {/* Overlay */}
           <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden animate-fade-in"
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
 
           {/* Sidebar */}
-          <div className="fixed inset-y-0 left-0 z-50 lg:hidden animate-slide-in-left">
+          <div className="fixed inset-y-0 left-0 z-50 lg:hidden">
             <Sidebar
               isCollapsed={false}
               isMobile={true}

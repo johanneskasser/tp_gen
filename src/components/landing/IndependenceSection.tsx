@@ -60,8 +60,8 @@ export function IndependenceSection() {
       className="relative py-0 overflow-hidden"
       id="independence"
     >
-      {/* Diagonal Split Background */}
-      <div className="absolute inset-0">
+      {/* Desktop: Diagonal Split Background */}
+      <div className="absolute inset-0 hidden lg:block">
         {/* Dark side - left */}
         <div
           className="absolute inset-0 bg-gradient-to-br from-slate-900 via-primary-900 to-slate-900"
@@ -89,53 +89,61 @@ export function IndependenceSection() {
         />
       </div>
 
-      {/* Diagonal divider line with glow */}
+      {/* Mobile: Horizontal Split Background */}
+      <div className="absolute inset-0 lg:hidden">
+        {/* Dark side - top */}
+        <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-br from-slate-900 via-primary-900 to-slate-900" />
+        {/* Light side - bottom */}
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-br from-slate-50 via-white to-blue-50" />
+      </div>
+
+      {/* Desktop: Diagonal divider line with glow */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 pointer-events-none hidden lg:block"
         style={{
           background: 'linear-gradient(to bottom right, transparent 49.5%, rgba(59, 130, 246, 0.3) 49.5%, rgba(59, 130, 246, 0.3) 50.5%, transparent 50.5%)',
         }}
       />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20 lg:py-28">
         <div className="grid lg:grid-cols-2 gap-0 lg:gap-24">
           {/* Left: What we reject (Dark side) */}
-          <div className="py-12 lg:py-16 lg:pr-12">
+          <div className="py-8 lg:py-16 lg:pr-12">
             <div
               className={`transition-all duration-700 ${
                 isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
               }`}
             >
-              <span className="inline-block font-display text-xs uppercase tracking-[0.2em] text-white/50 mb-6">
+              <span className="inline-block font-display text-xs uppercase tracking-[0.2em] text-white/70 lg:text-white/50 mb-4 lg:mb-6">
                 {t('landing.independence.reject')}
               </span>
 
-              <div className="space-y-5">
+              <div className="space-y-3 lg:space-y-5">
                 {rejectItems.map((item, index) => (
                   <div
                     key={item.labelKey}
-                    className={`group relative flex items-center gap-4 transition-all duration-500 ${
+                    className={`group relative flex items-center gap-3 lg:gap-4 transition-all duration-500 ${
                       isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
                     }`}
                     style={{ transitionDelay: `${200 + index * 100}ms` }}
                   >
-                    {/* Animated X mark */}
+                    {/* Animated X mark - hidden on mobile for space */}
                     <div
-                      className={`absolute -left-8 transition-all duration-500 ${
+                      className={`absolute -left-6 lg:-left-8 transition-all duration-500 hidden sm:block ${
                         isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-0'
                       }`}
                       style={{ transitionDelay: `${400 + index * 150}ms` }}
                     >
-                      <X className="text-red-500" size={20} strokeWidth={3} />
+                      <X className="text-red-500" size={18} strokeWidth={3} />
                     </div>
 
                     {/* Icon container */}
-                    <div className="p-3 rounded-xl bg-white/5 border border-white/10 group-hover:bg-white/10 transition-colors">
-                      <item.icon className="text-white/40" size={22} />
+                    <div className="p-2.5 lg:p-3 rounded-xl bg-white/5 border border-white/10 group-hover:bg-white/10 transition-colors flex-shrink-0">
+                      <item.icon className="text-white/40" size={20} />
                     </div>
 
                     {/* Text with strikethrough */}
-                    <span className="font-body text-lg text-white/40 line-through decoration-red-500/70 decoration-2">
+                    <span className="font-body text-base lg:text-lg text-white/60 lg:text-white/40 line-through decoration-red-500/70 decoration-2">
                       {t(item.labelKey)}
                     </span>
                   </div>
@@ -145,28 +153,28 @@ export function IndependenceSection() {
           </div>
 
           {/* Right: What we stand for (Light side) */}
-          <div className="py-12 lg:py-16 lg:pl-12">
+          <div className="py-8 lg:py-16 lg:pl-12">
             <div
               className={`transition-all duration-700 delay-200 ${
                 isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
               }`}
             >
-              <span className="inline-block font-display text-xs uppercase tracking-[0.2em] text-primary-600 mb-6">
+              <span className="inline-block font-display text-xs uppercase tracking-[0.2em] text-primary-600 mb-4 lg:mb-6">
                 {t('landing.independence.standFor')}
               </span>
 
-              <div className="space-y-5">
+              <div className="space-y-3 lg:space-y-5">
                 {valueItems.map((item, index) => (
                   <div
                     key={item.labelKey}
-                    className={`group flex items-center gap-4 transition-all duration-500 ${
+                    className={`group flex items-center gap-3 lg:gap-4 transition-all duration-500 ${
                       isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4'
                     }`}
                     style={{ transitionDelay: `${400 + index * 100}ms` }}
                   >
                     {/* Icon container with color */}
                     <div
-                      className={`p-3 rounded-xl transition-all duration-300 group-hover:scale-110 ${
+                      className={`p-2.5 lg:p-3 rounded-xl transition-all duration-300 group-hover:scale-110 flex-shrink-0 ${
                         index === 0
                           ? 'bg-green-100 text-green-600'
                           : index === 1
@@ -176,17 +184,17 @@ export function IndependenceSection() {
                           : 'bg-primary-100 text-primary-700'
                       }`}
                     >
-                      <item.icon size={22} />
+                      <item.icon size={20} />
                     </div>
 
                     {/* Text */}
-                    <span className="font-body text-lg font-medium text-primary-900 group-hover:text-primary-700 transition-colors">
+                    <span className="font-body text-base lg:text-lg font-medium text-primary-900 group-hover:text-primary-700 transition-colors flex-1">
                       {t(item.labelKey)}
                     </span>
 
                     {/* Animated check */}
                     <Check
-                      className={`text-green-500 transition-all duration-300 ${
+                      className={`text-green-500 transition-all duration-300 flex-shrink-0 ${
                         isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
                       }`}
                       style={{ transitionDelay: `${700 + index * 100}ms` }}
@@ -198,13 +206,13 @@ export function IndependenceSection() {
 
               {/* Signature badge */}
               <div
-                className={`mt-10 inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-green-50 via-white to-blue-50 rounded-full border border-green-200 shadow-sm transition-all duration-700 ${
+                className={`mt-6 lg:mt-10 inline-flex items-center gap-2 lg:gap-3 px-4 lg:px-6 py-2 lg:py-3 bg-gradient-to-r from-green-50 via-white to-blue-50 rounded-full border border-green-200 shadow-sm transition-all duration-700 ${
                   isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 }`}
                 style={{ transitionDelay: '1000ms' }}
               >
-                <Heart className="text-red-500 animate-pulse" size={18} fill="currentColor" />
-                <span className="font-display font-semibold text-primary-900">
+                <Heart className="text-red-500 animate-pulse" size={16} fill="currentColor" />
+                <span className="font-display text-sm lg:text-base font-semibold text-primary-900">
                   {t('landing.independence.badge')}
                 </span>
               </div>
@@ -215,8 +223,8 @@ export function IndependenceSection() {
 
       {/* Mobile-optimized version indicator */}
       <div className="lg:hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-800 to-blue-100 border-4 border-white shadow-xl flex items-center justify-center">
-          <span className="text-lg">VS</span>
+        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-slate-800 to-blue-100 border-4 border-white shadow-2xl flex items-center justify-center">
+          <span className="text-xl font-bold text-white">VS</span>
         </div>
       </div>
     </section>

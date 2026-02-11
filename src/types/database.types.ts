@@ -332,11 +332,18 @@ export type Database = {
           following_count: number
           full_name: string | null
           gender: string | null
+          height_cm: number | null
           id: string
+          injury_history: string[] | null
+          longest_run_km: number | null
+          max_heart_rate_bpm: number | null
+          motivation_text: string | null
           onboarding_completed: boolean | null
           preferred_training_days: number[] | null
+          resting_heart_rate_bpm: number | null
           updated_at: string
           vdot: number | null
+          weight_kg: number | null
           weekly_km_base: number | null
           years_running: number | null
         }
@@ -351,11 +358,18 @@ export type Database = {
           following_count?: number
           full_name?: string | null
           gender?: string | null
+          height_cm?: number | null
           id: string
+          injury_history?: string[] | null
+          longest_run_km?: number | null
+          max_heart_rate_bpm?: number | null
+          motivation_text?: string | null
           onboarding_completed?: boolean | null
           preferred_training_days?: number[] | null
+          resting_heart_rate_bpm?: number | null
           updated_at?: string
           vdot?: number | null
+          weight_kg?: number | null
           weekly_km_base?: number | null
           years_running?: number | null
         }
@@ -370,11 +384,18 @@ export type Database = {
           following_count?: number
           full_name?: string | null
           gender?: string | null
+          height_cm?: number | null
           id?: string
+          injury_history?: string[] | null
+          longest_run_km?: number | null
+          max_heart_rate_bpm?: number | null
+          motivation_text?: string | null
           onboarding_completed?: boolean | null
           preferred_training_days?: number[] | null
+          resting_heart_rate_bpm?: number | null
           updated_at?: string
           vdot?: number | null
+          weight_kg?: number | null
           weekly_km_base?: number | null
           years_running?: number | null
         }

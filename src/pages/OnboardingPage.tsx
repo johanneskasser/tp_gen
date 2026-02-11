@@ -26,9 +26,14 @@ export default function OnboardingPage() {
   // Step 1: Runner Level
   const [selectedLevel, setSelectedLevel] = useState<RunnerLevel | null>(null);
 
-  // Step 2: Personal Info
+  // Step 2: Personal Info & Biomarkers
   const [fullName, setFullName] = useState('');
   const [bio, setBio] = useState('');
+  const [age, setAge] = useState<number | ''>('');
+  const [gender, setGender] = useState<'male' | 'female' | 'other' | ''>('');
+  const [heightCm, setHeightCm] = useState<number | ''>('');
+  const [weightKg, setWeightKg] = useState<number | ''>('');
+  const [restingHR, setRestingHR] = useState<number | ''>('');
 
   // Step 3a: For Experienced Runners - Personal Bests
   const [personalBests, setPersonalBests] = useState<PersonalBest[]>([]);
@@ -41,7 +46,11 @@ export default function OnboardingPage() {
   const [maxDistance, setMaxDistance] = useState<number>(5);
   const [maxTime, setMaxTime] = useState('');
 
-  const totalSteps = 3;
+  // Step 4: Motivation
+  const [motivationCategories, setMotivationCategories] = useState<string[]>([]);
+  const [motivationText, setMotivationText] = useState('');
+
+  const totalSteps = 4;
 
   const handleLevelSelect = (level: RunnerLevel) => {
     setSelectedLevel(level);
@@ -78,12 +87,12 @@ export default function OnboardingPage() {
       return fullName.trim().length > 0;
     }
     if (currentStep === 3) {
-      if (runnerLevel === 'beginner') {
-        const timeValidation = validateTimeInput(maxTime);
-        return timeValidation.isValid && weeklyKm > 0;
-      } else {
-        return personalBests.length > 0 && weeklyKm > 0;
-      }
+      // PBs are now optional for everyone
+      return weeklyKm > 0;
+    }
+    if (currentStep === 4) {
+      // Motivation is optional
+      return true;
     }
     return false;
   };
@@ -108,10 +117,16 @@ export default function OnboardingPage() {
     setLoading(true);
 
     try {
-      // Update user profile (name, bio)
+      // Update user profile (name, bio, biomarkers)
       await profileService.updateProfile(user.id, {
         full_name: fullName,
         bio: bio || null,
+        age: age || null,
+        gender: gender || null,
+        height_cm: heightCm || null,
+        weight_kg: weightKg || null,
+        resting_heart_rate_bpm: restingHR || null,
+        motivation_text: motivationText || null,
       });
 
       // Create runner profile
@@ -119,10 +134,16 @@ export default function OnboardingPage() {
         id: user.id,
         name: fullName,
         personalBests: [],
+        age: age || undefined,
+        gender: gender || undefined,
+        heightCm: heightCm || undefined,
+        weightKg: weightKg || undefined,
+        restingHeartRateBpm: restingHR || undefined,
+        motivationText: motivationText || undefined,
       };
 
       if (runnerLevel === 'beginner') {
-        // For beginners, create a synthetic PB based on max distance
+        // For beginners, create a synthetic PB based on max distance (if provided)
         if (maxTime) {
           const timeValidation = validateTimeInput(maxTime);
           const syntheticPB: PersonalBest = {
@@ -141,10 +162,11 @@ export default function OnboardingPage() {
           }
         }
         profile.weeklyKmBase = weeklyKm;
+        profile.longestRunKm = maxDistance;
         profile.yearsRunning = 0.5; // Assume beginner has been running for ~6 months
       } else {
-        // For experienced runners
-        profile.personalBests = personalBests;
+        // For experienced runners, use PBs if provided
+        profile.personalBests = personalBests.length > 0 ? personalBests : [];
         profile.weeklyKmBase = weeklyKm;
         profile.yearsRunning = runnerLevel === 'intermediate' ? 2 : 5;
       }
@@ -266,7 +288,7 @@ export default function OnboardingPage() {
             <div className="text-center mb-8">
               <h2 className={cn(typography.h2, 'mb-2')}>Über dich</h2>
               <p className={cn(typography.body, 'text-text-tertiary')}>
-                Erzähle uns ein bisschen über dich
+                Diese Informationen helfen uns, dein Training optimal anzupassen
               </p>
             </div>
 
@@ -289,10 +311,105 @@ export default function OnboardingPage() {
                 className={cn(
                   'block w-full rounded-lg border px-4 py-2.5 text-base text-text-primary placeholder:text-text-tertiary bg-white transition-all duration-fast focus:outline-none focus:ring-2',
                   'border-border-medium focus:border-primary-400 focus:ring-primary-400',
-                  'min-h-[100px]'
+                  'min-h-[80px]'
                 )}
-                placeholder="Erzähle etwas über deine Laufziele und Motivation..."
+                placeholder="Erzähle kurz über dich..."
               />
+            </div>
+
+            {/* Biomarkers Section */}
+            <div className="pt-4 border-t border-border-light">
+              <h3 className="text-base font-semibold text-text-secondary mb-4">
+                Gesundheitsdaten (optional, aber empfohlen)
+              </h3>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
+                    Alter
+                  </label>
+                  <input
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value ? Number(e.target.value) : '')}
+                    className="w-full px-4 py-2.5 rounded-lg border-2 border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all"
+                    placeholder="z.B. 30"
+                    min="10"
+                    max="100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
+                    Geschlecht
+                  </label>
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value as any)}
+                    className="w-full px-4 py-2.5 rounded-lg border-2 border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all"
+                  >
+                    <option value="">Nicht angeben</option>
+                    <option value="male">Männlich</option>
+                    <option value="female">Weiblich</option>
+                    <option value="other">Divers</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
+                    Größe (cm)
+                  </label>
+                  <input
+                    type="number"
+                    value={heightCm}
+                    onChange={(e) => setHeightCm(e.target.value ? Number(e.target.value) : '')}
+                    className="w-full px-4 py-2.5 rounded-lg border-2 border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all"
+                    placeholder="z.B. 175"
+                    min="100"
+                    max="250"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text-secondary mb-2">
+                    Gewicht (kg)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={weightKg}
+                    onChange={(e) => setWeightKg(e.target.value ? Number(e.target.value) : '')}
+                    className="w-full px-4 py-2.5 rounded-lg border-2 border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all"
+                    placeholder="z.B. 70"
+                    min="30"
+                    max="200"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
+                  Ruhepuls (Schläge/Min)
+                </label>
+                <input
+                  type="number"
+                  value={restingHR}
+                  onChange={(e) => setRestingHR(e.target.value ? Number(e.target.value) : '')}
+                  className="w-full px-4 py-2.5 rounded-lg border-2 border-slate-200 focus:border-primary-400 focus:ring-2 focus:ring-primary-400 focus:outline-none transition-all"
+                  placeholder="z.B. 60"
+                  min="30"
+                  max="120"
+                />
+                <p className="text-xs text-text-tertiary mt-1.5">
+                  💡 Miss deinen Puls morgens direkt nach dem Aufwachen
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+              <p className="text-sm text-blue-900">
+                💡 <strong>Warum fragen wir das?</strong> Diese Daten helfen uns, deine Trainingszonen präziser zu berechnen und geschlechtsspezifische Empfehlungen zu geben.
+              </p>
             </div>
           </div>
         );
@@ -410,7 +527,7 @@ export default function OnboardingPage() {
               <div className="text-center mb-8">
                 <h2 className={cn(typography.h2, 'mb-2')}>Deine Bestzeiten</h2>
                 <p className={cn(typography.body, 'text-text-tertiary')}>
-                  Füge deine persönlichen Bestzeiten hinzu
+                  Füge deine persönlichen Bestzeiten hinzu (optional)
                 </p>
               </div>
 
@@ -444,7 +561,7 @@ export default function OnboardingPage() {
                     Noch keine Bestzeiten hinzugefügt
                   </p>
                   <p className="text-xs text-slate-500 mb-4">
-                    Füge mindestens eine Bestzeit hinzu, um fortzufahren
+                    Du kannst Bestzeiten auch später im Profil hinzufügen
                   </p>
                 </div>
               )}
@@ -456,14 +573,22 @@ export default function OnboardingPage() {
                   className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-all hover:shadow-md active:scale-[0.98]"
                 >
                   <Trophy size={18} />
-                  {personalBests.length > 0 ? 'Weitere Bestzeit hinzufügen' : 'Erste Bestzeit hinzufügen'}
+                  {personalBests.length > 0 ? 'Weitere Bestzeit hinzufügen' : 'Bestzeit hinzufügen'}
                 </button>
+              )}
+
+              {personalBests.length === 0 && (
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                  <p className="text-sm text-blue-900">
+                    💡 <strong>Keine Bestzeiten?</strong> Kein Problem! Du kannst trotzdem fortfahren. Wir schätzen dein Fitnesslevel dann basierend auf deiner wöchentlichen Laufleistung.
+                  </p>
+                </div>
               )}
 
               {/* Weekly KM for experienced runners */}
               <div>
                 <label className="block text-sm font-semibold text-text-secondary mb-2">
-                  Wie viele Kilometer läufst du aktuell pro Woche?
+                  Wie viele Kilometer läufst du aktuell pro Woche? *
                 </label>
                 <input
                   type="number"
@@ -481,6 +606,84 @@ export default function OnboardingPage() {
             </div>
           );
         }
+
+      case 4:
+        const motivationOptions = [
+          { id: 'health', label: 'Gesundheit & Fitness', emoji: '💪' },
+          { id: 'race', label: 'Wettkampfziele', emoji: '🏆' },
+          { id: 'stress', label: 'Stressabbau', emoji: '🧘' },
+          { id: 'weight', label: 'Gewichtsmanagement', emoji: '⚖️' },
+          { id: 'community', label: 'Spaß & Community', emoji: '👥' },
+          { id: 'challenge', label: 'Persönliche Herausforderung', emoji: '🎯' },
+        ];
+
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className={cn(typography.h2, 'mb-2')}>Was motiviert dich?</h2>
+              <p className={cn(typography.body, 'text-text-tertiary')}>
+                Wähle aus, was dich zum Laufen motiviert (Mehrfachauswahl möglich)
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {motivationOptions.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => {
+                    setMotivationCategories((prev) =>
+                      prev.includes(option.id)
+                        ? prev.filter((id) => id !== option.id)
+                        : [...prev, option.id]
+                    );
+                  }}
+                  className={cn(
+                    'p-4 rounded-xl border-2 transition-all text-left',
+                    'hover:scale-[1.02] active:scale-[0.98]',
+                    motivationCategories.includes(option.id)
+                      ? 'border-primary-600 bg-primary-50'
+                      : 'border-slate-200 bg-white hover:border-primary-300'
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{option.emoji}</span>
+                    <span className={cn(
+                      'font-medium',
+                      motivationCategories.includes(option.id)
+                        ? 'text-primary-700'
+                        : 'text-slate-700'
+                    )}>
+                      {option.label}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-2">
+                Weitere Gedanken (optional)
+              </label>
+              <textarea
+                value={motivationText}
+                onChange={(e) => setMotivationText(e.target.value)}
+                className={cn(
+                  'block w-full rounded-lg border px-4 py-2.5 text-base text-text-primary placeholder:text-text-tertiary bg-white transition-all duration-fast focus:outline-none focus:ring-2',
+                  'border-border-medium focus:border-primary-400 focus:ring-primary-400',
+                  'min-h-[100px]'
+                )}
+                placeholder="Erzähle mehr über deine Ziele und was dich antreibt..."
+              />
+            </div>
+
+            <div className="bg-gradient-to-br from-green-50 to-blue-50 border-2 border-green-200 rounded-xl p-4">
+              <p className="text-sm text-green-900">
+                🎉 <strong>Fast geschafft!</strong> Deine Antworten helfen uns, dir passende Trainingspläne und Motivationstipps zu geben.
+              </p>
+            </div>
+          </div>
+        );
 
       default:
         return null;
