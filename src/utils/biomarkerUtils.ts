@@ -3,7 +3,7 @@
  * For personalized training based on health metrics
  */
 
-import { UserProfile, TrainingZones } from '../types/userProfile';
+import { UserProfile } from '../types/userProfile';
 
 /**
  * Calculate BMI (Body Mass Index) from height and weight

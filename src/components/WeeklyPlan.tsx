@@ -3,7 +3,7 @@ import { TrainingWeek, TrainingSession, TrainingPlan } from '../types';
 import { TrainingSuggestion } from '../types/suggestions';
 import { formatDate, getDayName } from '../utils/dateUtils';
 import SessionEditor from './SessionEditor';
-import { Plus, ChevronDown, ChevronUp, Lightbulb, Sparkles } from 'lucide-react';
+import { Plus, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { calculateSessionDistance } from '../utils/calculationUtils';
 import { generateSessionTitle } from '../utils/titleGenerator';
 import { CoachingPanel, WeekCoachBadge } from './coaching';
