@@ -26,11 +26,11 @@ export function LanguageSwitcher({ variant = 'inline', showLabel = true }: Langu
           value={i18n.language}
           onChange={(e) => changeLanguage(e.target.value)}
           className={cn(
-            'px-3 py-2 rounded-lg border border-border-light',
+            'px-4 py-2.5 rounded-lg border border-border-light min-w-[140px]',
             'bg-white text-text-primary',
             'focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent',
-            'transition-colors duration-fast',
-            typography.body
+            'transition-colors duration-fast cursor-pointer',
+            'text-sm sm:text-base font-medium'
           )}
         >
           <option value="de">🇩🇪 Deutsch</option>

@@ -267,7 +267,14 @@
   },
   "settings": {
     "title": "Einstellungen",
+    "subtitle": "Personalisiere deine Erfahrung und unterstütze die Weiterentwicklung",
+    "sections": {
+      "preferences": "Einstellungen",
+      "community": "Support & Community",
+      "footer": "Gemacht mit ❤️ für die Lauf-Community"
+    },
     "language": "Sprache",
+    "languageDescription": "Wähle deine bevorzugte Sprache für die Benutzeroberfläche",
     "german": "Deutsch",
     "english": "English",
     "theme": "Design",
@@ -283,7 +290,16 @@
     "confirmDeleteAccount": "Möchtest du dein Konto wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     "saveSettings": "Einstellungen speichern",
     "saveSuccess": "Einstellungen erfolgreich gespeichert",
-    "saveError": "Fehler beim Speichern der Einstellungen"
+    "saveError": "Fehler beim Speichern der Einstellungen",
+    "support": {
+      "title": "Support & Community",
+      "description": "Unterstütze die Weiterentwicklung der App oder folge uns auf GitHub",
+      "github": "GitHub ansehen",
+      "githubDescription": "Quellcode, Issues und Beiträge",
+      "coffee": "Buy me a coffee",
+      "coffeeDescription": "Unterstütze die Entwicklung mit einer kleinen Spende",
+      "coffeeMessage": "Diese App ist zu 100% kostenlos und werbefrei. Falls sie dir hilft, freue ich mich über eine kleine Spende – jeder Betrag unterstützt die Weiterentwicklung!"
+    }
   },
   "errors": {
     "generic": "Ein Fehler ist aufgetreten",
@@ -395,6 +411,12 @@
         "privacy": "Datenschutz",
         "terms": "Nutzungsbedingungen",
         "contact": "Kontakt"
+      },
+      "support": {
+        "title": "Support",
+        "github": "GitHub",
+        "coffeeMessage": "Diese App ist kostenlos. Falls sie dir hilft, freue ich mich über eine kleine Spende – jeder Betrag unterstützt die Weiterentwicklung!",
+        "buyMeCoffee": "Buy me a coffee"
       }
     },
     "ical": {

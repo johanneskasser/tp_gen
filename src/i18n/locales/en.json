@@ -268,7 +268,14 @@
   },
   "settings": {
     "title": "Settings",
+    "subtitle": "Personalize your experience and support further development",
+    "sections": {
+      "preferences": "Preferences",
+      "community": "Support & Community",
+      "footer": "Made with ❤️ for the running community"
+    },
     "language": "Language",
+    "languageDescription": "Choose your preferred language for the user interface",
     "german": "Deutsch",
     "english": "English",
     "theme": "Theme",
@@ -284,7 +291,16 @@
     "confirmDeleteAccount": "Do you really want to delete your account? This action cannot be undone.",
     "saveSettings": "Save Settings",
     "saveSuccess": "Settings successfully saved",
-    "saveError": "Error saving settings"
+    "saveError": "Error saving settings",
+    "support": {
+      "title": "Support & Community",
+      "description": "Support the app's development or follow us on GitHub",
+      "github": "View on GitHub",
+      "githubDescription": "Source code, issues, and contributions",
+      "coffee": "Buy me a coffee",
+      "coffeeDescription": "Support development with a small donation",
+      "coffeeMessage": "This app is 100% free and ad-free. If it helps you, I'd appreciate a small donation – every amount supports further development!"
+    }
   },
   "errors": {
     "generic": "An error occurred",
@@ -396,6 +412,12 @@
         "privacy": "Privacy",
         "terms": "Terms",
         "contact": "Contact"
+      },
+      "support": {
+        "title": "Support",
+        "github": "GitHub",
+        "coffeeMessage": "This app is free. If it helps you, I'd appreciate a small donation – every amount supports further development!",
+        "buyMeCoffee": "Buy me a coffee"
       }
     },
     "ical": {
