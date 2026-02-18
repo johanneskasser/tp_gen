@@ -6,6 +6,7 @@ import {
   LogOut,
   User,
   Store,
+  MessageSquare,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn, typography, flex } from '../lib/designSystem';
@@ -111,7 +112,7 @@ export function Sidebar({ isCollapsed, isMobile = false }: SidebarProps) {
       </nav>
 
       {/* Settings Section */}
-      <div className="p-4 border-t border-border-light">
+      <div className="p-4 border-t border-border-light space-y-1">
         <Link
           to="/settings"
           className={cn(
@@ -125,6 +126,21 @@ export function Sidebar({ isCollapsed, isMobile = false }: SidebarProps) {
           <Settings className={cn('w-5 h-5 flex-shrink-0')} />
           {!isCollapsed && (
             <span className={cn(typography.body)}>{t('navigation.settings')}</span>
+          )}
+        </Link>
+        <Link
+          to="/feedback"
+          className={cn(
+            'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150',
+            isActive('/feedback')
+              ? 'bg-primary-100 text-primary-800 font-medium'
+              : 'text-text-secondary hover:bg-background-tertiary hover:text-text-primary',
+            isCollapsed && 'justify-center'
+          )}
+        >
+          <MessageSquare className={cn('w-5 h-5 flex-shrink-0')} />
+          {!isCollapsed && (
+            <span className={cn(typography.body)}>{t('navigation.feedback')}</span>
           )}
         </Link>
       </div>

@@ -54,6 +54,7 @@
     "dashboard": "Dashboard",
     "marketplace": "Marktplatz",
     "profile": "Profil",
+    "feedback": "Feedback",
     "settings": "Einstellungen"
   },
   "dashboard": {
@@ -493,5 +494,52 @@
     },
     "signUpFree": "Kostenlos registrieren",
     "alreadyHaveAccount": "Bereits registriert? Anmelden"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "Hilf uns, die App zu verbessern",
+    "hero": {
+      "title": "Deine Meinung zählt!",
+      "description": "Wir bauen diese App für Läufer wie dich. Dein ehrliches Feedback hilft uns, die beste kostenlose Trainingsplan-App zu werden.",
+      "thankYou": "Vielen Dank für deine Zeit!"
+    },
+    "ratings": {
+      "title": "Wie zufrieden bist du?",
+      "description": "Bewerte verschiedene Bereiche der App (optional)",
+      "overall": "Gesamt-Erlebnis",
+      "overallDesc": "Wie gefällt dir die App insgesamt?",
+      "features": "Features & Tools",
+      "featuresDesc": "VDOT-Berechnung, Export-Funktionen, etc.",
+      "editor": "Trainingsplan-Editor",
+      "editorDesc": "Bedienbarkeit und Funktionen",
+      "marketplace": "Marktplatz",
+      "marketplaceDesc": "Pläne entdecken und teilen",
+      "clearRating": "Bewertung zurücksetzen"
+    },
+    "freeform": {
+      "title": "Dein individuelles Feedback",
+      "placeholder": "Was funktioniert gut? Was könnte besser sein? Teile uns deine Gedanken mit...",
+      "helperText": "Sei so ehrlich wie möglich – konstruktive Kritik hilft uns am meisten!"
+    },
+    "suggestions": {
+      "title": "Feature-Wünsche",
+      "placeholder": "Welche Features würdest du dir wünschen? Was fehlt dir?",
+      "helperText": "Träume groß! Wir wollen wissen, was die App für dich perfekt machen würde."
+    },
+    "submit": "Feedback absenden",
+    "submitting": "Wird gesendet...",
+    "success": {
+      "title": "Vielen Dank!",
+      "message": "Dein Feedback wurde erfolgreich übermittelt. Wir schätzen deine Meinung sehr!",
+      "backToDashboard": "Zurück zum Dashboard"
+    },
+    "errors": {
+      "rateLimit": "Du hast heute bereits Feedback eingereicht. Bitte versuche es morgen erneut.",
+      "generic": "Ein Fehler ist aufgetreten. Bitte versuche es erneut.",
+      "emptyFeedback": "Bitte fülle mindestens ein Feld aus."
+    },
+    "validation": {
+      "atLeastOne": "Bitte fülle mindestens ein Feld aus (Bewertung oder Text)."
+    }
   }
 }

@@ -1,0 +1,8 @@
+<clickhouse>
+    <logger>
+        <level>warning</level>
+        <console>true</console>
+    </logger>
+    <!-- Reduce memory usage -->
+    <max_concurrent_queries>20</max_concurrent_queries>
+</clickhouse>

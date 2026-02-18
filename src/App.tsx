@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard';
 import PlanEditor from './pages/PlanEditor';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
+import FeedbackPage from './pages/FeedbackPage';
 import MarketplacePage from './pages/MarketplacePage';
 import PlanDetailPage from './pages/PlanDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
@@ -19,7 +20,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { OnboardingGuard } from './components/OnboardingGuard';
 import { AppLayout } from './components/AppLayout';
 import { MarketplaceLayout } from './components/MarketplaceLayout';
-import { Analytics } from '@vercel/analytics/react';
 import './i18n/config'; // Initialize i18n
 import { useTranslation } from 'react-i18next';
 
@@ -111,6 +111,18 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/feedback"
+        element={
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <AppLayout>
+                <FeedbackPage />
+              </AppLayout>
+            </OnboardingGuard>
+          </ProtectedRoute>
+        }
+      />
       {/* Marketplace routes - public with conditional layout */}
       <Route
         path="/marketplace"
@@ -156,7 +168,6 @@ function App() {
             <ToastProvider>
               <AppRoutes />
               <ToastContainer />
-              <Analytics />
             </ToastProvider>
           </RunnerProfileProvider>
         </AuthProvider>

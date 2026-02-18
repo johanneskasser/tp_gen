@@ -57,3 +57,6 @@ enable_confirmations = false
 
 [functions.ical-subscription]
 verify_jwt = false
+
+[functions.send-auth-email]
+verify_jwt = false

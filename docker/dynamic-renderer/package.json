@@ -1,0 +1,11 @@
+{
+  "name": "dynamic-renderer",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Puppeteer pre-rendering service for search engine bots",
+  "main": "server.mjs",
+  "dependencies": {
+    "express": "^4.21.0",
+    "puppeteer-core": "^23.0.0"
+  }
+}

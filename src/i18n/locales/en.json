@@ -55,7 +55,8 @@
     "dashboard": "Dashboard",
     "marketplace": "Marketplace",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "feedback": "Feedback"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -494,5 +495,52 @@
     },
     "signUpFree": "Sign Up Free",
     "alreadyHaveAccount": "Already have an account? Sign in"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "Help us improve the app",
+    "hero": {
+      "title": "Your Opinion Matters!",
+      "description": "We build this app for runners like you. Your honest feedback helps us become the best free training plan app.",
+      "thankYou": "Thank you for your time!"
+    },
+    "ratings": {
+      "title": "How satisfied are you?",
+      "description": "Rate different areas of the app (optional)",
+      "overall": "Overall Experience",
+      "overallDesc": "How do you like the app overall?",
+      "features": "Features & Tools",
+      "featuresDesc": "VDOT calculation, export features, etc.",
+      "editor": "Training Plan Editor",
+      "editorDesc": "Usability and features",
+      "marketplace": "Marketplace",
+      "marketplaceDesc": "Discover and share plans",
+      "clearRating": "Clear rating"
+    },
+    "freeform": {
+      "title": "Your Individual Feedback",
+      "placeholder": "What works well? What could be better? Share your thoughts...",
+      "helperText": "Be as honest as possible – constructive criticism helps us most!"
+    },
+    "suggestions": {
+      "title": "Feature Requests",
+      "placeholder": "Which features would you like to see? What's missing?",
+      "helperText": "Dream big! We want to know what would make the app perfect for you."
+    },
+    "submit": "Submit Feedback",
+    "submitting": "Submitting...",
+    "success": {
+      "title": "Thank You!",
+      "message": "Your feedback has been successfully submitted. We truly appreciate your input!",
+      "backToDashboard": "Back to Dashboard"
+    },
+    "errors": {
+      "rateLimit": "You've already submitted feedback today. Please try again tomorrow.",
+      "generic": "An error occurred. Please try again.",
+      "emptyFeedback": "Please fill out at least one field."
+    },
+    "validation": {
+      "atLeastOne": "Please fill out at least one field (rating or text)."
+    }
   }
 }
