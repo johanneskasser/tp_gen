@@ -11,6 +11,7 @@ import { calculateVDOT } from '../utils/vdotCalculator';
 import { PersonalBestInput } from '../components/PersonalBestInput';
 import { PersonalBestCard } from '../components/PersonalBestCard';
 import { validateTimeInput } from '../utils/timeValidator';
+import { analytics } from '../utils/analytics';
 
 type RunnerLevel = 'beginner' | 'intermediate' | 'advanced';
 
@@ -180,6 +181,8 @@ export default function OnboardingPage() {
       });
 
       await refreshProfile();
+
+      analytics.trackOnboardingCompleted(runnerLevel || 'beginner');
 
       // Navigate to home
       navigate('/');
