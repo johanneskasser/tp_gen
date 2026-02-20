@@ -6,8 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { feedbackService } from '../services/feedbackService';
 import { useToast } from '../contexts/ToastContext';
 import StarRating from '../components/feedback/StarRating';
-import { Card } from '../components/ui/card';
-import { Button } from '../components/ui/button';
+import { Card, Button } from '../components/ui';
 
 const STORAGE_KEY = 'feedback_draft';
 

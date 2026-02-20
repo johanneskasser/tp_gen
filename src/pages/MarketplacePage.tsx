@@ -217,7 +217,7 @@ export default function MarketplacePage() {
     '@type': 'CollectionPage',
     name: t('seo.marketplace.title'),
     description: t('seo.marketplace.description'),
-    url: 'https://zenit-it.com/marketplace',
+    url: 'https://zenit-it.fit/marketplace',
     inLanguage: ['de', 'en'],
   };
 

@@ -14,7 +14,7 @@ interface SEOHeadProps {
 
 const SITE_NAME = 'zenit-it';
 const DEFAULT_OG_IMAGE = '/og-image.png';
-const BASE_URL = 'https://zenit-it.com';
+const BASE_URL = 'https://zenit-it.fit';
 
 export function SEOHead({
   title,

@@ -57,9 +57,6 @@ alter table public.user_profiles
     max_heart_rate_bpm > resting_heart_rate_bpm
   );
 
--- Create index on gender for filtering (if it exists)
-create index if not exists idx_user_profiles_gender on public.user_profiles(gender);
-
 -- Comment on new columns for documentation
 comment on column public.user_profiles.height_cm is 'User height in centimeters (optional, for BMI calculation)';
 comment on column public.user_profiles.weight_kg is 'User weight in kilograms (optional, for BMI calculation)';

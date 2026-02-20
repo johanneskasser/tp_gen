@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /login
+Allow: /marketplace
+Allow: /marketplace/
+
+Disallow: /dashboard
+Disallow: /plan/
+Disallow: /profile/
+Disallow: /settings
+Disallow: /onboarding
+Disallow: /auth/
+Disallow: /feedback
+
+Sitemap: https://zenit-it.fit/sitemap.xml

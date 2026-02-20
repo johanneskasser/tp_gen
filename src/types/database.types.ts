@@ -320,6 +320,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_feedback: {
+        Row: {
+          id: string
+          user_id: string
+          overall_rating: number | null
+          features_rating: number | null
+          editor_rating: number | null
+          marketplace_rating: number | null
+          individual_feedback: string | null
+          feature_suggestion: string | null
+          email_sent: boolean
+          email_sent_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          overall_rating?: number | null
+          features_rating?: number | null
+          editor_rating?: number | null
+          marketplace_rating?: number | null
+          individual_feedback?: string | null
+          feature_suggestion?: string | null
+          email_sent?: boolean
+          email_sent_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          overall_rating?: number | null
+          features_rating?: number | null
+          editor_rating?: number | null
+          marketplace_rating?: number | null
+          individual_feedback?: string | null
+          feature_suggestion?: string | null
+          email_sent?: boolean
+          email_sent_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           age: number | null
@@ -420,6 +462,7 @@ export type Database = {
       }
     }
     Functions: {
+      check_feedback_rate_limit: { Args: { user_uuid: string }; Returns: boolean }
       generate_automatic_tags: { Args: { plan_data: Json }; Returns: string[] }
       get_follower_count: { Args: { user_uuid: string }; Returns: number }
       get_following_count: { Args: { user_uuid: string }; Returns: number }

@@ -344,7 +344,7 @@ export default function PlanDetailPage() {
             '@type': 'CreativeWork',
             name: plan.name,
             description: plan.description || '',
-            url: `https://zenit-it.com/marketplace/${planId}`,
+            url: `https://zenit-it.fit/marketplace/${planId}`,
             author: plan.creator ? { '@type': 'Person', name: plan.creator.full_name || 'Anonymous' } : undefined,
             datePublished: plan.published_at || plan.created_at,
             ...(plan.stats?.rating_avg ? {

@@ -5,12 +5,9 @@ import {
   type CardVariant,
 } from '../../lib/designSystem';
 
-export interface CardProps {
+export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: CardVariant;
   clickable?: boolean;
-  onClick?: () => void;
-  children: React.ReactNode;
-  className?: string;
 }
 
 export function Card({
@@ -18,7 +15,8 @@ export function Card({
   clickable = false,
   onClick,
   children,
-  className
+  className,
+  ...rest
 }: CardProps) {
   const Component = clickable || onClick ? 'button' : 'div';
 
@@ -29,6 +27,7 @@ export function Card({
         getCardClasses(variant, clickable || !!onClick),
         className
       )}
+      {...(rest as React.HTMLAttributes<HTMLElement>)}
     >
       {children}
     </Component>
