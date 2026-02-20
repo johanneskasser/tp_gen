@@ -3,6 +3,7 @@ import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { UserProfile } from '../types/profile';
 import { profileService } from '../services/profileService';
+import { analytics } from '../utils/analytics';
 
 interface AuthContextType {
   user: User | null;
@@ -55,11 +56,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         loadProfile(session.user.id);
+        // Track return login for retention analysis
+        if (event === 'SIGNED_IN' && session.user.created_at) {
+          const signupDate = new Date(session.user.created_at);
+          const today = new Date();
+          const daysSinceSignup = Math.floor(
+            (today.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24)
+          );
+          analytics.trackReturnLogin(daysSinceSignup);
+        }
       } else {
         setProfile(null);
       }
