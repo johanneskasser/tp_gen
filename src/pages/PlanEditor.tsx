@@ -19,6 +19,7 @@ import { TrainingSession } from '../types';
 import { typography, cn, flex } from '../lib/designSystem';
 import { useToast } from '../contexts/ToastContext';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
+import { analytics } from '../utils/analytics';
 
 export default function PlanEditor() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +38,7 @@ export default function PlanEditor() {
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const planCreationTrackedRef = useRef(false);
 
   // Load existing plan
   useEffect(() => {
@@ -97,6 +99,11 @@ export default function PlanEditor() {
         const saved = await trainingPlanService.createPlan(plan);
         setSavedPlan(saved);
         setIsNewPlan(false); // Mark as no longer new
+        // Track Day Zero Activation (only once per plan creation)
+        if (!planCreationTrackedRef.current) {
+          planCreationTrackedRef.current = true;
+          analytics.trackPlanCreated(plan.event.distance);
+        }
         // Navigate to edit mode with the new ID (without replacing history)
         navigate(`/plan/${saved.id}`, { replace: true });
       } else if (id) {
@@ -188,6 +195,7 @@ export default function PlanEditor() {
   const handleExportPDF = async () => {
     if (plan) {
       await exportToPDF(plan);
+      analytics.trackPlanExported('pdf');
     }
   };
 
@@ -198,6 +206,7 @@ export default function PlanEditor() {
   const handleExportJSON = () => {
     if (plan) {
       exportToJSON(plan);
+      analytics.trackPlanExported('json');
       toast.success('Plan als JSON exportiert');
     }
   };
@@ -205,6 +214,7 @@ export default function PlanEditor() {
   const handleExportFIT = () => {
     if (plan) {
       exportToFIT(plan);
+      analytics.trackPlanExported('fit');
       toast.success('Plan als FIT exportiert');
     }
   };
@@ -212,6 +222,7 @@ export default function PlanEditor() {
   const handleExportICal = () => {
     if (plan) {
       exportToICal(plan);
+      analytics.trackPlanExported('ical');
       toast.success('Plan als iCal exportiert');
     }
   };
