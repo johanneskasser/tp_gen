@@ -21,7 +21,7 @@ export default function PrivacyPage() {
             </p>
             <div className="mt-3 p-4 bg-slate-50 rounded-lg border border-slate-200 text-sm">
               <p>zenit-it</p>
-              <p>[Vollständige Adresse]</p>
+              <p>Johannes Kasser</p>
               <p>E-Mail: <a href="mailto:datenschutz@zenit-it.fit" className="text-blue-600 hover:underline">datenschutz@zenit-it.fit</a></p>
             </div>
           </section>
