@@ -9,6 +9,7 @@ import { calculateWeeklyKm } from '../utils/calculationUtils';
 import { typography, cn } from '../lib/designSystem';
 import { Calendar, Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { analytics } from '../utils/analytics';
 
 interface ClonePlanModalProps {
   plan: MarketplacePlan;
@@ -79,6 +80,7 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
       // Clone via service
       const newPlanId = await marketplaceService.clonePlan(plan.id, newPlan);
 
+      analytics.trackPlanCloned(plan.plan_data.event.distance);
       onSuccess(newPlanId);
     } catch (err) {
       console.error('Error cloning plan:', err);
