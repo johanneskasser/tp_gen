@@ -6,6 +6,7 @@ import { Button, Input, Alert } from '../components/ui';
 import { cn } from '../lib/designSystem';
 import { useTranslation } from 'react-i18next';
 import { OAuthButtons } from '../components/OAuthButtons';
+import { analytics } from '../utils/analytics';
 
 // Training session types for the animated visualization
 const sessionTypes = [
@@ -25,6 +26,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [isVisible, setIsVisible] = useState(false);
   const [barsAnimated, setBarsAnimated] = useState(false);
@@ -64,10 +66,12 @@ export default function LoginPage() {
         if (error) {
           setError(error.message);
         } else {
+          analytics.trackSignup('email');
           setSuccessMessage(t('auth.accountCreatedSuccess'));
           setEmail('');
           setPassword('');
           setIsSignUp(false);
+          setPrivacyAccepted(false);
         }
       } else {
         const { error } = await signIn(email, password);
@@ -364,12 +368,40 @@ export default function LoginPage() {
                   )}
                 </div>
 
+                {/* Privacy Policy Checkbox - only shown during signup */}
+                {isSignUp && (
+                  <div className="flex items-start gap-3 pt-1">
+                    <input
+                      type="checkbox"
+                      id="privacy-accept"
+                      checked={privacyAccepted}
+                      onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+                    />
+                    <label htmlFor="privacy-accept" className="text-sm text-slate-600 leading-relaxed cursor-pointer">
+                      Ich habe die{' '}
+                      <a
+                        href="/privacy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 hover:text-primary-700 underline underline-offset-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Datenschutzerklärung
+                      </a>{' '}
+                      gelesen und stimme zu. Meine Daten werden auf EU-Servern gespeichert
+                      und nicht an Dritte weitergegeben.
+                    </label>
+                  </div>
+                )}
+
                 {/* Submit Button */}
                 <Button
                   type="submit"
                   fullWidth
                   loading={loading}
                   size="lg"
+                  disabled={isSignUp && !privacyAccepted}
                   className="mt-4 sm:mt-6 shadow-lg hover:shadow-xl transition-all duration-300 active:scale-[0.98] sm:hover:-translate-y-0.5"
                 >
                   <span className="flex items-center justify-center gap-2">
@@ -406,6 +438,7 @@ export default function LoginPage() {
                     setUseMagicLink(false);
                     setError('');
                     setSuccessMessage('');
+                    setPrivacyAccepted(false);
                   }}
                   className={cn(
                     'text-primary-600 hover:text-primary-700 font-semibold font-body text-sm sm:text-base',
