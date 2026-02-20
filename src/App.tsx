@@ -16,6 +16,7 @@ import MarketplacePage from './pages/MarketplacePage';
 import PlanDetailPage from './pages/PlanDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
 import OnboardingPage from './pages/OnboardingPage';
+import PrivacyPage from './pages/PrivacyPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { OnboardingGuard } from './components/OnboardingGuard';
 import { AppLayout } from './components/AppLayout';
@@ -152,6 +153,9 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+
+      {/* Privacy policy - public route */}
+      <Route path="/privacy" element={<PrivacyPage />} />
 
       {/* Fallback - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
