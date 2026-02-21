@@ -1,0 +1,21 @@
+# Deploy Key — Private Repo Access
+# ===================================
+# This file is a placeholder. The actual deploy key is managed via the
+# Coolify UI and stored in the coolify-data Docker volume.
+#
+# Setup steps:
+#
+# 1. Generate a key pair (if you don't have one):
+#      ssh-keygen -t ed25519 -C "coolify-deploy@tp-gen" -f ./id_ed25519 -N ""
+#
+# 2. Add the PUBLIC key to GitHub:
+#      Repo → Settings → Deploy keys → Add deploy key
+#      Title: coolify-tp-gen  |  Key: contents of id_ed25519.pub  |  Allow write: no
+#
+# 3. Add the PRIVATE key to Coolify:
+#      Coolify UI → Keys & Tokens → SSH Keys → Add SSH Key
+#      Paste contents of id_ed25519 (private key)
+#
+# 4. When creating the GitHub source in Coolify, select this SSH key.
+#
+# IMPORTANT: Never commit the actual private key to this repository.

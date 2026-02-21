@@ -452,6 +452,65 @@ services:
     networks:
       - tp-network
 
+  # ===========================================================================
+  # COOLIFY — Self-hosted CI/CD Platform
+  # Watches GitHub repo (prod branch), rebuilds React app, notifies Discord.
+  # UI access ONLY via SSH tunnel:
+  #   ssh -L 8000:localhost:8000 -L 6001:localhost:6001 user@server
+  # ===========================================================================
+  coolify:
+    image: ghcr.io/coollabsio/coolify:latest
+    container_name: tp-gen-coolify
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"  # UI (SSH tunnel only)
+      - "127.0.0.1:6001:6001"  # WebSocket for real-time UI (SSH tunnel only)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - coolify-data:/data/coolify
+    environment:
+      APP_ENV: production
+      APP_KEY: ${COOLIFY_APP_KEY}
+      APP_DEBUG: "false"
+      APP_URL: "http://localhost:8000"
+      DB_CONNECTION: sqlite
+      REDIS_HOST: coolify-redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+      SESSION_LIFETIME: 120
+      BROADCAST_CONNECTION: reverb
+      REVERB_APP_ID: tp-gen-coolify
+      REVERB_APP_KEY: ${COOLIFY_REVERB_APP_KEY}
+      REVERB_APP_SECRET: ${COOLIFY_REVERB_APP_SECRET}
+      PUSHER_HOST: localhost
+      PUSHER_BACKEND_HOST: localhost
+      PUSHER_PORT: 6001
+      PUSHER_BACKEND_PORT: 6001
+      PUSHER_SCHEME: http
+      PUSHER_BACKEND_SCHEME: http
+      PUSHER_APP_ID: tp-gen-coolify
+      PUSHER_APP_KEY: ${COOLIFY_REVERB_APP_KEY}
+      PUSHER_APP_SECRET: ${COOLIFY_REVERB_APP_SECRET}
+      AUTOUPDATE: "false"
+      TRUST_PROXIES: "*"
+      HORIZON_BALANCE_MAX_PROCESSES: 10
+      TELESCOPE_ENABLED: "false"
+    depends_on:
+      - coolify-redis
+    networks:
+      - tp-network
+
+  coolify-redis:
+    image: redis:7-alpine
+    container_name: tp-gen-coolify-redis
+    restart: unless-stopped
+    volumes:
+      - coolify-redis-data:/data
+    networks:
+      - tp-network
+
 ###############################################################################
 # Volumes
 ###############################################################################
@@ -461,6 +520,8 @@ volumes:
   plausible-db-data:
   events-db-data:
   nginx-webroot:
+  coolify-data:
+  coolify-redis-data:
 
 ###############################################################################
 # Networks

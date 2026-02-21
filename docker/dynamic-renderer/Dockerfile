@@ -9,7 +9,7 @@ FROM node:20-slim
 # Install Chromium and required system dependencies
 RUN apt-get update && apt-get install -y \
     chromium \
-    fonts-freefont-ttf \
+fonts-freefont-ttf \
     fonts-noto \
     fonts-noto-cjk \
     ca-certificates \
