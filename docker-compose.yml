@@ -104,7 +104,9 @@ services:
 
   # Kong API Gateway
   kong:
-    image: kong:2.8.1
+    build:
+      context: ./docker/kong
+      dockerfile: Dockerfile
     container_name: tp-gen-kong
     restart: unless-stopped
     expose:
@@ -112,17 +114,17 @@ services:
       - "8443"
     environment:
       KONG_DATABASE: "off"
-      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
       KONG_DNS_ORDER: LAST,A,CNAME
       KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
       KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
       KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
-      SUPABASE_ANON_KEY: ${ANON_KEY}
-      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      # Credentials injected at runtime into kong.yml.template via envsubst
       DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:-supabase}
       DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
     volumes:
-      - ./docker/kong/kong.yml:/var/lib/kong/kong.yml:ro
+      - ./docker/kong/kong.yml:/var/lib/kong/kong.yml.template:ro
     depends_on:
       db:
         condition: service_healthy

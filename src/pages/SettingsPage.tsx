@@ -80,7 +80,7 @@ export default function SettingsPage() {
 
             {/* GitHub Card */}
             <a
-              href="https://github.com/johanneskasser"
+              href="https://github.com/johanneskasser/tp_gen"
               target="_blank"
               rel="noopener noreferrer"
               onMouseEnter={() => setHoveredCard('github')}

@@ -77,7 +77,7 @@ export function Footer() {
               {/* GitHub */}
               <div>
                 <a
-                  href="https://github.com/johanneskasser"
+                  href="https://github.com/johanneskasser/tp_gen"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 hover:text-white transition-colors"

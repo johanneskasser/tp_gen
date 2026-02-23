@@ -1,25 +1,25 @@
 ## Kong declarative configuration
 ## Based on: https://github.com/supabase/supabase/blob/master/docker/volumes/api/kong.yml
 ##
-## ANON_KEY and SERVICE_KEY are injected via environment variables at runtime.
-## The eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzcxNDU1NjAwLCJleHAiOjE5MjkyMjIwMDB9.WiqY1o2aUrvtIA1fWxPMFWgRIZHF3__xU7hgrPQfXy8 and eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3NzE0NTU2MDAsImV4cCI6MTkyOTIyMjAwMH0.e31SaRPVTqlgfus9M5bqoWxcYIuDxAiWLgUig4jPrrQ references are resolved
-## from Kong's environment (set in docker-compose.yml).
+## This file is a template — ${VARIABLE} placeholders are substituted at
+## container startup via envsubst (see docker/kong/docker-entrypoint.sh).
+## NEVER hardcode credentials here. Set all values in .env.
 
 _format_version: "2.1"
 
 consumers:
   - username: DASHBOARD
     basicauth_credentials:
-      - username: supabase
-        password: GZMFI/vhcFOzS5ceWok6LHQ5kq4=
+      - username: ${DASHBOARD_USERNAME}
+        password: ${DASHBOARD_PASSWORD}
 
   - username: anon
     keyauth_credentials:
-      - key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzcxNDU1NjAwLCJleHAiOjE5MjkyMjIwMDB9.WiqY1o2aUrvtIA1fWxPMFWgRIZHF3__xU7hgrPQfXy8
+      - key: ${ANON_KEY}
 
   - username: service_role
     keyauth_credentials:
-      - key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UiLCJpYXQiOjE3NzE0NTU2MDAsImV4cCI6MTkyOTIyMjAwMH0.e31SaRPVTqlgfus9M5bqoWxcYIuDxAiWLgUig4jPrrQ
+      - key: ${SERVICE_ROLE_KEY}
 
 acls:
   - consumer: anon
