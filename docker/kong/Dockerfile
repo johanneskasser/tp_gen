@@ -4,8 +4,8 @@ FROM kong:2.8.1
 USER root
 RUN apk add --no-cache gettext
 
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+COPY docker-entrypoint.sh /kong-init.sh
+RUN chmod +x /kong-init.sh
 
 USER kong
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/kong-init.sh"]

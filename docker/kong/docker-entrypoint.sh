@@ -11,4 +11,4 @@ RESOLVED=/tmp/kong.yml
 envsubst < "$TEMPLATE" > "$RESOLVED"
 
 export KONG_DECLARATIVE_CONFIG="$RESOLVED"
-exec kong start --vv
+exec /docker-entrypoint.sh kong docker-start
