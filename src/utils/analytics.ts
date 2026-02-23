@@ -1,3 +1,5 @@
+import type { SessionType } from '../types';
+
 /**
  * Central analytics utility.
  * Wraps Plausible custom events and Meta Pixel standard events.
@@ -81,5 +83,43 @@ export const analytics = {
     if (daysSinceSignup > 0) {
       plausible('Return Login', { days: String(daysSinceSignup) });
     }
+  },
+
+  /**
+   * User triggered the suggestion panel (clicked "Vorschläge erhalten").
+   */
+  trackSuggestionPanelOpened: () => {
+    plausible('Suggestion Panel Opened');
+  },
+
+  /**
+   * User expanded the week analysis inside the suggestion panel.
+   */
+  trackSuggestionAnalysisViewed: () => {
+    plausible('Suggestion Analysis Viewed');
+  },
+
+  /**
+   * Suggestions were generated and shown to the user.
+   * count: how many suggestions appeared in the list.
+   */
+  trackSuggestionsShown: (count: number) => {
+    plausible('Suggestions Shown', { count: String(count) });
+  },
+
+  /**
+   * User accepted a suggestion.
+   * type: the SessionType of the accepted suggestion (e.g. 'easy', 'intervals').
+   */
+  trackSuggestionAccepted: (type: SessionType) => {
+    plausible('Suggestion Accepted', { type });
+  },
+
+  /**
+   * User rejected a suggestion.
+   * type: the SessionType of the rejected suggestion.
+   */
+  trackSuggestionRejected: (type: SessionType) => {
+    plausible('Suggestion Rejected', { type });
   },
 };

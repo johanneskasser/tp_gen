@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Menu, X, Globe } from 'lucide-react';
 import { Button } from '../ui';
+import { BetaAnnouncementBar } from './BetaAnnouncementBar';
 
 export function LandingNavbar() {
   const { t, i18n } = useTranslation();
@@ -44,18 +45,22 @@ export function LandingNavbar() {
           : 'bg-transparent'
       }`}
     >
+      <BetaAnnouncementBar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-20">
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center"
+            className="flex items-center gap-3"
           >
             <img
               src="/zenit-it_long_black.png"
               alt="zenit-it"
               className="h-8 md:h-10 w-auto"
             />
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md bg-yellow-100 border border-yellow-300 text-yellow-800 text-xs font-body font-semibold tracking-wide">
+              Beta
+            </span>
           </Link>
 
           {/* Desktop Navigation */}

@@ -11,6 +11,7 @@ import { TrainingPlansGrid } from '../components/TrainingPlansGrid';
 import { DashboardFilters } from '../components/DashboardFilters';
 import { useAuth } from '../contexts/AuthContext';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
+import { BetaAnnouncementBar } from '../components/landing/BetaAnnouncementBar';
 
 export default function Dashboard() {
   const [plans, setPlans] = useState<SavedTrainingPlan[]>([]);
@@ -221,6 +222,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 flex flex-col">
+      <BetaAnnouncementBar />
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         <div className="container mx-auto px-4 sm:px-6 max-w-[1600px] flex-1">

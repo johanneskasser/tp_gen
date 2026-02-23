@@ -175,21 +175,16 @@ export function HeroSection() {
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
-              <div className="flex items-center gap-2">
-                <div className="flex -space-x-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white"></div>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-green-600 border-2 border-white"></div>
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 border-2 border-white"></div>
-                </div>
-                <span className="font-body font-medium">500+ runners</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-50 border border-yellow-200">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                <span className="font-body font-semibold text-yellow-800 text-sm">Öffentliche Beta</span>
               </div>
-              <div className="flex items-center gap-1">
-                <span className="text-yellow-500">★★★★★</span>
-                <span className="font-body font-medium ml-1">4.8/5</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 border border-green-200">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="font-body font-semibold text-green-800 text-sm">100% kostenlos</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="font-body font-medium">100% kostenlos</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200">
+                <span className="font-body font-semibold text-blue-800 text-sm">Made in AT 🇦🇹</span>
               </div>
             </div>
           </div>

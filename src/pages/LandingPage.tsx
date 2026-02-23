@@ -7,8 +7,7 @@ import { CalendarOrbitSection } from '../components/landing/CalendarOrbitSection
 import { InteractiveDemoSection } from '../components/landing/InteractiveDemoSection';
 import { ICalDemoSection } from '../components/landing/ICalDemoSection';
 import { IndependenceSection } from '../components/landing/IndependenceSection';
-import { VideosSection } from '../components/landing/VideosSection';
-import { StatsSection } from '../components/landing/StatsSection';
+import { BetaCommunitySection } from '../components/landing/BetaCommunitySection';
 import { RoadmapSection } from '../components/landing/RoadmapSection';
 import { CTASection } from '../components/landing/CTASection';
 import { Footer } from '../components/landing/Footer';
@@ -26,7 +25,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
+      {/* Navigation — BetaAnnouncementBar is rendered inside LandingNavbar */}
       <LandingNavbar />
 
       {/* Main Content */}
@@ -38,8 +37,7 @@ export default function LandingPage() {
         <ICalDemoSection />
         <InteractiveDemoSection />
         <IndependenceSection />
-        <VideosSection />
-        <StatsSection />
+        <BetaCommunitySection />
         <RoadmapSection />
         <CTASection />
       </main>

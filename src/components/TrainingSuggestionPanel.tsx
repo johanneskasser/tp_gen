@@ -6,6 +6,7 @@ import { detectTrainingPhase } from '../utils/phaseDetection';
 import { getVolumeRecommendation } from '../utils/volumeProgression';
 import { analyzeWeekIntensity } from '../utils/intensityAnalyzer';
 import { TrainingDataCollector } from '../utils/trainingDataCollector';
+import { analytics } from '../utils/analytics';
 import { Lightbulb, TrendingUp, Target, AlertCircle, CheckCircle, X } from 'lucide-react';
 import { getSessionTypeLabel } from '../constants/sessionTypes';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
@@ -35,6 +36,7 @@ export function TrainingSuggestionPanel({
 
   // Generate suggestions
   const handleGetSuggestions = () => {
+    analytics.trackSuggestionPanelOpened(); // fires on every request (including re-requests) — intentional
     // Get training zones for dynamic RPE-based suggestions
     let zones;
     if (runnerProfile) {
@@ -50,6 +52,7 @@ export function TrainingSuggestionPanel({
       // Suggestions for specific day
       const daySuggestions = engine.getSuggestionsForDay(dayOfWeek);
       setSuggestions(daySuggestions);
+      analytics.trackSuggestionsShown(daySuggestions.length);
     } else {
       // Suggestions for entire week
       const weekSuggestions = engine.getSuggestionsForWeek();
@@ -59,6 +62,7 @@ export function TrainingSuggestionPanel({
         allSuggestions.push(...suggestions);
       });
       setSuggestions(allSuggestions);
+      analytics.trackSuggestionsShown(allSuggestions.length);
     }
 
     setShowSuggestions(true);
@@ -72,6 +76,7 @@ export function TrainingSuggestionPanel({
       suggestion,
       'accepted'
     );
+    analytics.trackSuggestionAccepted(suggestion.type);
 
     onAcceptSuggestion(suggestion);
     setShowSuggestions(false);
@@ -84,6 +89,7 @@ export function TrainingSuggestionPanel({
       suggestion,
       'rejected'
     );
+    analytics.trackSuggestionRejected(suggestion.type);
 
     // Remove from list
     setSuggestions(suggestions.filter((s) => s !== suggestion));
@@ -130,7 +136,11 @@ export function TrainingSuggestionPanel({
 
       {/* Analysis Toggle */}
       <button
-        onClick={() => setShowAnalysis(!showAnalysis)}
+        onClick={() => {
+          const newVal = !showAnalysis;
+          setShowAnalysis(newVal);
+          if (newVal) analytics.trackSuggestionAnalysisViewed();
+        }}
         className="text-sm text-blue-600 hover:text-blue-800 mb-3 flex items-center gap-1"
       >
         <TrendingUp size={14} />
