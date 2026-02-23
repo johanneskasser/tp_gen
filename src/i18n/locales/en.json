@@ -1,0 +1,546 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "import": "Import",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "welcomeBack": "Welcome Back",
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "noAccountYet": "Don't have an account?",
+    "signInNow": "Sign in now",
+    "signUpFree": "Sign up for free",
+    "emailPlaceholder": "your@email.com",
+    "passwordPlaceholder": "Your password",
+    "passwordPlaceholderSignUp": "At least 6 characters",
+    "passwordHelperText": "At least 6 characters required",
+    
+    "loginToStart": "Sign in to continue",
+    "startTrainingJourney": "Start your training journey now",
+    "accountCreatedSuccess": "Account created! Please check your email for confirmation.",
+    "errorOccurred": "An error occurred. Please try again.",
+    "personalTrainingPlan": "Your personal training plan for running events",
+    "orContinueWith": "Or continue with"
+  },
+  "app": {
+    "title": "zenit-it",
+    "subtitle": "Your personal path to running success. Create customized training plans for your goals."
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "marketplace": "Marketplace",
+    "profile": "Profile",
+    "settings": "Settings",
+    "feedback": "Feedback"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {{name}}!",
+    "subtitle": "Manage and create your training plans",
+    "runner": "Runner",
+    "yourPlans": "Your Training Plans",
+    "createNewPlan": "Create New Plan",
+    "createFirstPlan": "Create First Plan",
+    "noPlanYet": "No Training Plans Yet",
+    "noPlanDescription": "Create your first training plan and start your training!",
+    "noPlanFound": "No training plans found",
+    "searchPlans": "Search training plans...",
+    "loadingPlans": "Loading training plans...",
+    "confirmDelete": "Really delete training plan \"{{name}}\"?",
+    "deleteSuccess": "Training plan \"{{name}}\" successfully deleted",
+    "deleteError": "Error deleting plan",
+    "loadError": "Error loading training plans",
+    "showingResults": "{{count}} of {{total}} plans",
+    "openMenu": "Open menu",
+    "weeks": "{{count}} weeks of training",
+    "weeks_one": "{{count}} week of training",
+    "weeks_other": "{{count}} weeks of training",
+    "updatedAt": "Updated: {{date}}",
+    "road": "Road",
+    "trail": "Trail",
+    "publish": "Publish",
+    "managePublication": "Manage Publication",
+    "planUpdated": "Plan status updated!",
+    "planSetAsActive": "Plan marked as active",
+    "planRemovedAsActive": "Plan activation removed",
+    "setActiveError": "Error setting active plan",
+    "visibility": {
+      "private": "Private",
+      "public": "Public",
+      "publicAnonymous": "Anonymous",
+      "publicWithProfile": "Public with Profile",
+      "publicAnonymousDesc": "Public (Anonymous)"
+    },
+    "stats": {
+      "vdot": "VDOT",
+      "vdotDescription": "Your current running fitness",
+      "activePlan": "Active Plan",
+      "noActivePlan": "No active plan",
+      "planProgress": "Plan Progress",
+      "daysUntilStart": "Days until start: {{days}}",
+      "daysAfterEnd": "Plan ended {{days}} days ago",
+      "weeklyKm": "Weekly Kilometers",
+      "thisWeek": "This week",
+      "nextSession": "Next Session",
+      "upcoming": "Upcoming",
+      "noUpcomingSession": "No upcoming session",
+      "views": "Views",
+      "clones": "Clones",
+      "setAsActive": "Set as active",
+      "removeActive": "Remove active"
+    },
+    "table": {
+      "name": "Name",
+      "distance": "Distance",
+      "eventDate": "Event Date",
+      "weeks": "Weeks",
+      "visibility": "Visibility",
+      "stats": "Stats",
+      "updated": "Updated",
+      "actions": "Actions"
+    },
+    "filter": {
+      "distance": "Distance",
+      "visibility": "Visibility",
+      "allDistances": "All Distances",
+      "halfMarathon": "Half Marathon",
+      "marathon": "Marathon",
+      "custom": "Custom",
+      "allVisibility": "All"
+    }
+  },
+  "sessionTypes": {
+    "easy": "Easy",
+    "long": "Long",
+    "intervals": "Intervals",
+    "tempo": "Tempo",
+    "recovery": "Recovery",
+    "race": "Race",
+    "strides": "Strides",
+    "hill_repeats": "Hill Repeats",
+    "progression": "Progression Run",
+    "fartlek": "Fartlek",
+    "strength": "Strength Training",
+    "plyometrics": "Plyometrics"
+  },
+  "plan": {
+    "trainingPlan": "Training Plan",
+    "eventConfiguration": "Event Configuration",
+    "eventName": "Event Name",
+    "eventDate": "Event Date",
+    "distance": "Distance",
+    "terrain": "Terrain",
+    "targetTime": "Target Time",
+    "startDate": "Start Date",
+    "customDistance": "Custom Distance",
+    "week": "Week",
+    "weeks": "Weeks",
+    "session": "Session",
+    "sessions": "Sessions",
+    "totalKm": "Total km",
+    "notes": "Notes",
+    "addSession": "Add Session",
+    "editSession": "Edit Session",
+    "deleteSession": "Delete Session",
+    "confirmDeleteSession": "Do you really want to delete this training session?",
+    "exportPDF": "Export as PDF",
+    "exportJSON": "Export as JSON",
+    "importJSON": "Import JSON",
+    "savePlan": "Save Plan",
+    "unsavedChanges": "You have unsaved changes",
+    "unsavedChangesMessage": "Do you want to save the changes before leaving the page?",
+    "saveChanges": "Save Changes",
+    "discardChanges": "Discard Changes"
+  },
+  "session": {
+    "type": "Type",
+    "distance": "Distance",
+    "duration": "Duration",
+    "pace": "Pace",
+    "warmUp": "Warm Up",
+    "coolDown": "Cool Down",
+    "intervals": "Intervals",
+    "repetitions": "Repetitions",
+    "recovery": "Recovery",
+    "dayOfWeek": "Day of Week",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  "marketplace": {
+    "title": "Marketplace",
+    "subtitle": "Discover training plans from other runners",
+    "searchPlaceholder": "Search training plans...",
+    "noResults": "No training plans found",
+    "noResultsDescription": "Try different search terms or filters",
+    "loadingPlans": "Loading training plans...",
+    "loadError": "Error loading plans",
+    "clonePlan": "Clone Plan",
+    "viewDetails": "View Details",
+    "by": "by",
+    "anonymous": "Anonymous",
+    "cloneSuccess": "Plan successfully cloned!",
+    "cloneError": "Error cloning plan",
+    "table": {
+      "name": "Name",
+      "creator": "Creator",
+      "distance": "Distance",
+      "duration": "Duration",
+      "targetTime": "Target Time",
+      "difficulty": "Difficulty",
+      "tags": "Tags",
+      "stats": "Stats"
+    },
+    "sortBy": {
+      "recent": "Recent",
+      "popular": "Popular",
+      "rating": "Rating",
+      "clones": "Most Cloned"
+    },
+    "filters": {
+      "apply": "Apply",
+      "reset": "Reset",
+      "resetFilters": "Reset Filters",
+      "fromFollowing": "From Friends"
+    },
+    "resultsCount": "{{count}} training plan found",
+    "resultsCount_other": "{{count}} training plans found",
+    "page": "Page {{current}} of {{total}}",
+    "pagination": {
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "distance": {
+      "halfMarathon": "Half Marathon",
+      "marathon": "Marathon"
+    },
+    "targetTime": "Goal: {{time}} min",
+    "weeks": "{{count}} weeks",
+    "tags": {
+      "more": "+{{count}}"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "fullName": "Full Name",
+    "bio": "Bio",
+    "avatar": "Avatar",
+    "uploadAvatar": "Upload Avatar",
+    "changeAvatar": "Change Avatar",
+    "saveProfile": "Save Profile",
+    "saveSuccess": "Profile successfully saved",
+    "saveError": "Error saving profile",
+    "unnamed": "Unnamed",
+    "myPlans": "My Plans",
+    "followers": "Followers",
+    "following": "Following",
+    "follow": "Follow",
+    "unfollow": "Unfollow"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Personalize your experience and support further development",
+    "sections": {
+      "preferences": "Preferences",
+      "community": "Support & Community",
+      "footer": "Made with ❤️ for the running community"
+    },
+    "language": "Language",
+    "languageDescription": "Choose your preferred language for the user interface",
+    "german": "Deutsch",
+    "english": "English",
+    "theme": "Theme",
+    "lightMode": "Light",
+    "darkMode": "Dark",
+    "systemMode": "System",
+    "notifications": "Notifications",
+    "emailNotifications": "Email Notifications",
+    "pushNotifications": "Push Notifications",
+    "account": "Account",
+    "changePassword": "Change Password",
+    "deleteAccount": "Delete Account",
+    "confirmDeleteAccount": "Do you really want to delete your account? This action cannot be undone.",
+    "saveSettings": "Save Settings",
+    "saveSuccess": "Settings successfully saved",
+    "saveError": "Error saving settings",
+    "support": {
+      "title": "Support & Community",
+      "description": "Support the app's development or follow us on GitHub",
+      "github": "View on GitHub",
+      "githubDescription": "Source code, issues, and contributions",
+      "coffee": "Buy me a coffee",
+      "coffeeDescription": "Support development with a small donation",
+      "coffeeMessage": "This app is 100% free and ad-free. If it helps you, I'd appreciate a small donation – every amount supports further development!"
+    }
+  },
+  "errors": {
+    "generic": "An error occurred",
+    "networkError": "Network error. Please check your internet connection.",
+    "notFound": "Not found",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Access denied",
+    "serverError": "Server error. Please try again later."
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "roadmap": "Roadmap",
+      "login": "Sign In",
+      "getStarted": "Get Started Free"
+    },
+    "hero": {
+      "headline": "Create your personal training plan.",
+      "headlineAccent": "Free. Forever.",
+      "subheadline": "From 5K to marathon – plan, share, and export your training sessions. No paywall, no premium features, no commercialization.",
+      "ctaPrimary": "Start Free",
+      "ctaSecondary": "Watch Demo"
+    },
+    "features": {
+      "title": "Everything You Need",
+      "subtitle": "Professional training planning that's actually free",
+      "smartPlanning": {
+        "title": "Smart Planning",
+        "description": "VDOT-based training zones and personalized intensity calculations for optimal progress"
+      },
+      "exportAnywhere": {
+        "title": "Export Anywhere",
+        "description": "Export as PDF, JSON & FIT files for Garmin and other sports watches"
+      },
+      "marketplace": {
+        "title": "Community Marketplace",
+        "description": "Share and discover training plans with ratings, likes, and comments"
+      },
+      "autoSync": {
+        "title": "Always Synced",
+        "description": "Auto-save every 2 seconds and cloud storage – your plans are always safe"
+      }
+    },
+    "usp": {
+      "headline": "Running belongs to everyone.",
+      "headlineAccent": "Not just paying customers.",
+      "body": "We don't believe in gatekeeping and commercialization in running. This app was built by runners for runners – no hidden costs, no premium features, no data sales.",
+      "points": {
+        "noPaywall": "No paywall, no premium features",
+        "noAds": "No data sales, no advertising",
+        "openSource": "Open-source mindset, community-driven",
+        "forRunners": "Built by runners for runners"
+      }
+    },
+    "roadmap": {
+      "title": "What's Next",
+      "subtitle": "We're working on even more features for the community",
+      "comingSoon": "Coming Soon",
+      "smartwatchIntegration": {
+        "title": "Smartwatch Integration",
+        "description": "Direct sync with Garmin, Coros, Suunto, and Polar"
+      },
+      "aiPlanning": {
+        "title": "AI-Powered Planning",
+        "description": "Automatic plan generation based on your goals and fitness level"
+      },
+      "coaching": {
+        "title": "Coaching Features",
+        "description": "Coach-athlete system and group management for running clubs"
+      },
+      "mobileApps": {
+        "title": "Mobile Apps",
+        "description": "Native iOS & Android apps on the go"
+      }
+    },
+    "videos": {
+      "title": "See the App in Action",
+      "subtitle": "Learn how easy it is to create your perfect training plan",
+      "createPlan": {
+        "title": "Create a Plan",
+        "description": "From event configuration to weekly planning",
+        "duration": "2:30"
+      },
+      "browseMarketplace": {
+        "title": "Browse Marketplace",
+        "description": "Discover and clone plans from the community",
+        "duration": "1:45"
+      },
+      "watchVideo": "Watch Video"
+    },
+    "stats": {
+      "title": "Loved by the Community",
+      "plansCreated": "Plans Created",
+      "runners": "Runners",
+      "downloads": "Downloads",
+      "avgRating": "⭐ Average"
+    },
+    "finalCta": {
+      "headline": "Ready for your next running goal?",
+      "subheadline": "Start free and create your first training plan in minutes",
+      "cta": "Get Started Free",
+      "secondary": "Or browse marketplace"
+    },
+    "footer": {
+      "tagline": "Free training planning for all runners",
+      "madeWith": "Made with ❤️ for the running community",
+      "links": {
+        "about": "About",
+        "privacy": "Privacy",
+        "terms": "Terms",
+        "contact": "Contact"
+      },
+      "support": {
+        "title": "Support",
+        "github": "GitHub",
+        "coffeeMessage": "This app is free. If it helps you, I'd appreciate a small donation – every amount supports further development!",
+        "buyMeCoffee": "Buy me a coffee"
+      }
+    },
+    "ical": {
+      "title": "Your training plan, everywhere you need it",
+      "subtitle": "Subscribe once, sync forever. Your training sessions appear automatically in Google Calendar, Apple Calendar, Outlook, or any iCal-compatible app.",
+      "features": {
+        "realtime": "Real-time updates",
+        "noManual": "No manual export",
+        "offline": "Works offline"
+      },
+      "cta": "Subscribe to Calendar",
+      "subscribed": "Subscribed – Sessions syncing..."
+    },
+    "icalDemo": {
+      "title": "One link. Automatic sync.",
+      "subtitle": "Click subscribe and watch your training appear instantly",
+      "cta": "Subscribe to Calendar",
+      "subscribed": "Subscribed – Sessions syncing...",
+      "hint": "In your real calendar, sessions appear instantly after subscribing"
+    },
+    "independence": {
+      "reject": "What we reject",
+      "standFor": "What we stand for",
+      "problems": {
+        "paywall": "Paywalled features",
+        "data": "Data harvesting & sales",
+        "premium": "Premium tiers",
+        "corporate": "Corporate interests"
+      },
+      "values": {
+        "free": "Everything free, forever",
+        "privacy": "Your data stays yours",
+        "runners": "Built by runners",
+        "open": "Open-source mindset"
+      },
+      "badge": "For the running community"
+    },
+    "ease": {
+      "badge": "Super Easy",
+      "title": "Create your plan in seconds",
+      "tagline": "3 clicks. That's it.",
+      "description": "No complicated setup, no registration required. Pick your race, set the date – your personalized training plan is ready.",
+      "steps": {
+        "race": "Pick your race",
+        "date": "Set the date",
+        "done": "Done!"
+      }
+    }
+  },
+  "seo": {
+    "marketplace": {
+      "title": "Training Plans for Runners",
+      "description": "Discover free training plans for 5K, 10K, half marathon, and marathon. Created by runners for runners.",
+      "planTitle": "{{name}} – {{distance}} Training Plan",
+      "planDescription": "{{weeks}} week training plan for {{distance}}. {{description}}"
+    },
+    "landing": {
+      "title": "Free Training Plans for Runners",
+      "description": "Create free, customized training plans for 5K, 10K, half marathon, and marathon."
+    }
+  },
+  "publicCta": {
+    "banner": {
+      "text": "Create a free account to save and use training plans",
+      "button": "Get Started Free"
+    },
+    "gate": {
+      "sessions": "Create a free account to see detailed training sessions",
+      "comments": "Sign in to comment",
+      "ratings": "Sign in to rate",
+      "clone": "Sign up free to use this plan",
+      "like": "Sign in to like plans",
+      "follow": "Sign in to follow creators"
+    },
+    "signUpFree": "Sign Up Free",
+    "alreadyHaveAccount": "Already have an account? Sign in"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "Help us improve the app",
+    "hero": {
+      "title": "Your Opinion Matters!",
+      "description": "We build this app for runners like you. Your honest feedback helps us become the best free training plan app.",
+      "thankYou": "Thank you for your time!"
+    },
+    "ratings": {
+      "title": "How satisfied are you?",
+      "description": "Rate different areas of the app (optional)",
+      "overall": "Overall Experience",
+      "overallDesc": "How do you like the app overall?",
+      "features": "Features & Tools",
+      "featuresDesc": "VDOT calculation, export features, etc.",
+      "editor": "Training Plan Editor",
+      "editorDesc": "Usability and features",
+      "marketplace": "Marketplace",
+      "marketplaceDesc": "Discover and share plans",
+      "clearRating": "Clear rating"
+    },
+    "freeform": {
+      "title": "Your Individual Feedback",
+      "placeholder": "What works well? What could be better? Share your thoughts...",
+      "helperText": "Be as honest as possible – constructive criticism helps us most!"
+    },
+    "suggestions": {
+      "title": "Feature Requests",
+      "placeholder": "Which features would you like to see? What's missing?",
+      "helperText": "Dream big! We want to know what would make the app perfect for you."
+    },
+    "submit": "Submit Feedback",
+    "submitting": "Submitting...",
+    "success": {
+      "title": "Thank You!",
+      "message": "Your feedback has been successfully submitted. We truly appreciate your input!",
+      "backToDashboard": "Back to Dashboard"
+    },
+    "errors": {
+      "rateLimit": "You've already submitted feedback today. Please try again tomorrow.",
+      "generic": "An error occurred. Please try again.",
+      "emptyFeedback": "Please fill out at least one field."
+    },
+    "validation": {
+      "atLeastOne": "Please fill out at least one field (rating or text)."
+    }
+  }
+}

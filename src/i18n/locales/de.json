@@ -1,0 +1,545 @@
+{
+  "common": {
+    "loading": "Lädt...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "create": "Erstellen",
+    "close": "Schließen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "search": "Suchen",
+    "filter": "Filter",
+    "export": "Exportieren",
+    "import": "Importieren",
+    "confirm": "Bestätigen",
+    "yes": "Ja",
+    "no": "Nein",
+    "ok": "OK",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "warning": "Warnung",
+    "info": "Info"
+  },
+  "auth": {
+    "signIn": "Anmelden",
+    "signUp": "Registrieren",
+    "signOut": "Abmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "welcomeBack": "Willkommen zurück",
+    "createAccount": "Account erstellen",
+    "alreadyHaveAccount": "Bereits registriert?",
+    "noAccountYet": "Noch kein Account?",
+    "signInNow": "Jetzt anmelden",
+    "signUpFree": "Kostenlos registrieren",
+    "emailPlaceholder": "deine@email.de",
+    "passwordPlaceholder": "Dein Passwort",
+    "passwordPlaceholderSignUp": "Mindestens 6 Zeichen",
+    "passwordHelperText": "Mindestens 6 Zeichen erforderlich",
+    "loginToStart": "Melde dich an, um fortzufahren",
+    "startTrainingJourney": "Starte jetzt deine Trainingsreise",
+    "accountCreatedSuccess": "Account erstellt! Bitte überprüfe deine E-Mail zur Bestätigung.",
+    "errorOccurred": "Ein Fehler ist aufgetreten. Bitte versuche es erneut.",
+    "personalTrainingPlan": "Dein persönlicher Trainingsplan für Laufevents",
+    "orContinueWith": "Oder fortfahren mit"
+  },
+  "app": {
+    "title": "zenit-it",
+    "subtitle": "Dein persönlicher Weg zum Lauferfolg. Erstelle maßgeschneiderte Trainingspläne für deine Ziele."
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "marketplace": "Marktplatz",
+    "profile": "Profil",
+    "feedback": "Feedback",
+    "settings": "Einstellungen"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Willkommen zurück, {{name}}!",
+    "subtitle": "Verwalte und erstelle deine Trainingspläne",
+    "runner": "Läufer",
+    "yourPlans": "Deine Trainingspläne",
+    "createNewPlan": "Neuen Plan erstellen",
+    "createFirstPlan": "Ersten Plan erstellen",
+    "noPlanYet": "Noch keine Trainingspläne",
+    "noPlanDescription": "Erstelle deinen ersten Trainingsplan und starte dein Training!",
+    "noPlanFound": "Keine Trainingspläne gefunden",
+    "searchPlans": "Trainingspläne durchsuchen...",
+    "loadingPlans": "Lade Trainingspläne...",
+    "confirmDelete": "Trainingsplan \"{{name}}\" wirklich löschen?",
+    "deleteSuccess": "Trainingsplan \"{{name}}\" erfolgreich gelöscht",
+    "deleteError": "Fehler beim Löschen des Plans",
+    "loadError": "Fehler beim Laden der Trainingspläne",
+    "showingResults": "{{count}} von {{total}} Plänen",
+    "openMenu": "Menü öffnen",
+    "weeks": "{{count}} Wochen Training",
+    "weeks_one": "{{count}} Woche Training",
+    "weeks_other": "{{count}} Wochen Training",
+    "updatedAt": "Aktualisiert: {{date}}",
+    "road": "Straße",
+    "trail": "Trail",
+    "publish": "Veröffentlichen",
+    "managePublication": "Veröffentlichung verwalten",
+    "planUpdated": "Plan-Status aktualisiert!",
+    "planSetAsActive": "Plan als aktiv markiert",
+    "planRemovedAsActive": "Plan-Aktivierung entfernt",
+    "setActiveError": "Fehler beim Setzen des aktiven Plans",
+    "visibility": {
+      "private": "Privat",
+      "public": "Öffentlich",
+      "publicAnonymous": "Anonym",
+      "publicWithProfile": "Öffentlich mit Profil",
+      "publicAnonymousDesc": "Öffentlich (Anonym)"
+    },
+    "stats": {
+      "vdot": "VDOT",
+      "vdotDescription": "Deine aktuelle Laufleistung",
+      "activePlan": "Aktiver Plan",
+      "noActivePlan": "Kein aktiver Plan",
+      "planProgress": "Plan-Fortschritt",
+      "daysUntilStart": "Tage bis Start: {{days}}",
+      "daysAfterEnd": "Plan beendet vor {{days}} Tagen",
+      "weeklyKm": "Wöchentliche Kilometer",
+      "thisWeek": "Diese Woche",
+      "nextSession": "Nächste Einheit",
+      "upcoming": "Anstehend",
+      "noUpcomingSession": "Keine anstehende Einheit",
+      "views": "Ansichten",
+      "clones": "Kopiert",
+      "setAsActive": "Als aktiv markieren",
+      "removeActive": "Aktivierung entfernen"
+    },
+    "table": {
+      "name": "Name",
+      "distance": "Distanz",
+      "eventDate": "Wettkampfdatum",
+      "weeks": "Wochen",
+      "visibility": "Sichtbarkeit",
+      "stats": "Statistiken",
+      "updated": "Aktualisiert",
+      "actions": "Aktionen"
+    },
+    "filter": {
+      "distance": "Distanz",
+      "visibility": "Sichtbarkeit",
+      "allDistances": "Alle Distanzen",
+      "halfMarathon": "Halbmarathon",
+      "marathon": "Marathon",
+      "custom": "Individuell",
+      "allVisibility": "Alle"
+    }
+  },
+  "sessionTypes": {
+    "easy": "Locker",
+    "long": "Lang",
+    "intervals": "Intervall",
+    "tempo": "Tempo",
+    "recovery": "Regeneration",
+    "race": "Wettkampf",
+    "strides": "Steigerungen",
+    "hill_repeats": "Bergwiederholungen",
+    "progression": "Progression Run",
+    "fartlek": "Fartlek",
+    "strength": "Krafttraining",
+    "plyometrics": "Plyometrie"
+  },
+  "plan": {
+    "trainingPlan": "Trainingsplan",
+    "eventConfiguration": "Wettkampf-Konfiguration",
+    "eventName": "Wettkampfname",
+    "eventDate": "Wettkampfdatum",
+    "distance": "Distanz",
+    "terrain": "Gelände",
+    "targetTime": "Zielzeit",
+    "startDate": "Startdatum",
+    "customDistance": "Individuelle Distanz",
+    "week": "Woche",
+    "weeks": "Wochen",
+    "session": "Einheit",
+    "sessions": "Einheiten",
+    "totalKm": "Gesamt-km",
+    "notes": "Notizen",
+    "addSession": "Einheit hinzufügen",
+    "editSession": "Einheit bearbeiten",
+    "deleteSession": "Einheit löschen",
+    "confirmDeleteSession": "Möchtest du diese Trainingseinheit wirklich löschen?",
+    "exportPDF": "Als PDF exportieren",
+    "exportJSON": "Als JSON exportieren",
+    "importJSON": "JSON importieren",
+    "savePlan": "Plan speichern",
+    "unsavedChanges": "Du hast ungespeicherte Änderungen",
+    "unsavedChangesMessage": "Möchtest du die Änderungen speichern, bevor du die Seite verlässt?",
+    "saveChanges": "Änderungen speichern",
+    "discardChanges": "Änderungen verwerfen"
+  },
+  "session": {
+    "type": "Typ",
+    "distance": "Distanz",
+    "duration": "Dauer",
+    "pace": "Tempo",
+    "warmUp": "Aufwärmen",
+    "coolDown": "Abkühlen",
+    "intervals": "Intervalle",
+    "repetitions": "Wiederholungen",
+    "recovery": "Pause",
+    "dayOfWeek": "Wochentag",
+    "monday": "Montag",
+    "tuesday": "Dienstag",
+    "wednesday": "Mittwoch",
+    "thursday": "Donnerstag",
+    "friday": "Freitag",
+    "saturday": "Samstag",
+    "sunday": "Sonntag"
+  },
+  "marketplace": {
+    "title": "Marktplatz",
+    "subtitle": "Entdecke Trainingspläne von anderen Läufern",
+    "searchPlaceholder": "Trainingspläne durchsuchen...",
+    "noResults": "Keine Trainingspläne gefunden",
+    "noResultsDescription": "Versuche es mit anderen Suchbegriffen oder Filtern",
+    "loadingPlans": "Lade Trainingspläne...",
+    "loadError": "Fehler beim Laden der Pläne",
+    "clonePlan": "Plan kopieren",
+    "viewDetails": "Details anzeigen",
+    "by": "von",
+    "anonymous": "Anonym",
+    "cloneSuccess": "Plan erfolgreich kopiert!",
+    "cloneError": "Fehler beim Kopieren des Plans",
+    "table": {
+      "name": "Name",
+      "creator": "Ersteller",
+      "distance": "Distanz",
+      "duration": "Dauer",
+      "targetTime": "Zielzeit",
+      "difficulty": "Schwierigkeit",
+      "tags": "Tags",
+      "stats": "Statistiken"
+    },
+    "sortBy": {
+      "recent": "Neueste",
+      "popular": "Beliebt",
+      "rating": "Bewertung",
+      "clones": "Meist kopiert"
+    },
+    "filters": {
+      "apply": "Anwenden",
+      "reset": "Zurücksetzen",
+      "resetFilters": "Filter zurücksetzen",
+      "fromFollowing": "Von Freunden"
+    },
+    "resultsCount": "{{count}} Trainingsplan gefunden",
+    "resultsCount_other": "{{count}} Trainingspläne gefunden",
+    "page": "Seite {{current}} von {{total}}",
+    "pagination": {
+      "previous": "Vorherige",
+      "next": "Nächste"
+    },
+    "distance": {
+      "halfMarathon": "Halbmarathon",
+      "marathon": "Marathon"
+    },
+    "targetTime": "Ziel: {{time}} min",
+    "weeks": "{{count}} Wochen",
+    "tags": {
+      "more": "+{{count}}"
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "editProfile": "Profil bearbeiten",
+    "fullName": "Vollständiger Name",
+    "bio": "Biografie",
+    "avatar": "Profilbild",
+    "uploadAvatar": "Profilbild hochladen",
+    "changeAvatar": "Profilbild ändern",
+    "saveProfile": "Profil speichern",
+    "saveSuccess": "Profil erfolgreich gespeichert",
+    "saveError": "Fehler beim Speichern des Profils",
+    "unnamed": "Unbenannt",
+    "myPlans": "Meine Pläne",
+    "followers": "Follower",
+    "following": "Folge ich",
+    "follow": "Folgen",
+    "unfollow": "Nicht mehr folgen"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "subtitle": "Personalisiere deine Erfahrung und unterstütze die Weiterentwicklung",
+    "sections": {
+      "preferences": "Einstellungen",
+      "community": "Support & Community",
+      "footer": "Gemacht mit ❤️ für die Lauf-Community"
+    },
+    "language": "Sprache",
+    "languageDescription": "Wähle deine bevorzugte Sprache für die Benutzeroberfläche",
+    "german": "Deutsch",
+    "english": "English",
+    "theme": "Design",
+    "lightMode": "Hell",
+    "darkMode": "Dunkel",
+    "systemMode": "System",
+    "notifications": "Benachrichtigungen",
+    "emailNotifications": "E-Mail-Benachrichtigungen",
+    "pushNotifications": "Push-Benachrichtigungen",
+    "account": "Konto",
+    "changePassword": "Passwort ändern",
+    "deleteAccount": "Konto löschen",
+    "confirmDeleteAccount": "Möchtest du dein Konto wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "saveSettings": "Einstellungen speichern",
+    "saveSuccess": "Einstellungen erfolgreich gespeichert",
+    "saveError": "Fehler beim Speichern der Einstellungen",
+    "support": {
+      "title": "Support & Community",
+      "description": "Unterstütze die Weiterentwicklung der App oder folge uns auf GitHub",
+      "github": "GitHub ansehen",
+      "githubDescription": "Quellcode, Issues und Beiträge",
+      "coffee": "Buy me a coffee",
+      "coffeeDescription": "Unterstütze die Entwicklung mit einer kleinen Spende",
+      "coffeeMessage": "Diese App ist zu 100% kostenlos und werbefrei. Falls sie dir hilft, freue ich mich über eine kleine Spende – jeder Betrag unterstützt die Weiterentwicklung!"
+    }
+  },
+  "errors": {
+    "generic": "Ein Fehler ist aufgetreten",
+    "networkError": "Netzwerkfehler. Bitte überprüfe deine Internetverbindung.",
+    "notFound": "Nicht gefunden",
+    "unauthorized": "Nicht autorisiert",
+    "forbidden": "Zugriff verweigert",
+    "serverError": "Serverfehler. Bitte versuche es später erneut."
+  },
+  "landing": {
+    "nav": {
+      "features": "Funktionen",
+      "roadmap": "Roadmap",
+      "login": "Anmelden",
+      "getStarted": "Kostenlos starten"
+    },
+    "hero": {
+      "headline": "Erstelle deinen persönlichen Trainingsplan.",
+      "headlineAccent": "Kostenlos. Für immer.",
+      "subheadline": "Von 5K bis Marathon – plane, teile und exportiere deine Trainingseinheiten. Ohne Paywall, ohne Premium-Features, ohne Kommerzialisierung.",
+      "ctaPrimary": "Kostenlos starten",
+      "ctaSecondary": "Demo ansehen"
+    },
+    "features": {
+      "title": "Alles, was du brauchst",
+      "subtitle": "Professionelle Trainingsplanung, die wirklich kostenlos ist",
+      "smartPlanning": {
+        "title": "Intelligente Planung",
+        "description": "VDOT-basierte Trainingszonen und personalisierte Intensitätsberechnungen für optimale Fortschritte"
+      },
+      "exportAnywhere": {
+        "title": "Export überall hin",
+        "description": "Export als PDF, JSON & FIT-Dateien für Garmin und andere Sportuhren"
+      },
+      "marketplace": {
+        "title": "Community-Marktplatz",
+        "description": "Teile und entdecke Trainingspläne mit Bewertungen, Likes und Kommentaren"
+      },
+      "autoSync": {
+        "title": "Immer synchronisiert",
+        "description": "Auto-Save alle 2 Sekunden und Cloud-Speicher – deine Pläne sind immer sicher"
+      }
+    },
+    "usp": {
+      "headline": "Laufen gehört allen.",
+      "headlineAccent": "Nicht nur zahlenden Kunden.",
+      "body": "Wir glauben nicht an Gatekeeping und Kommerzialisierung im Laufsport. Diese App wurde von Läufern für Läufer gebaut – ohne versteckte Kosten, ohne Premium-Features, ohne Datenverkäufe.",
+      "points": {
+        "noPaywall": "Keine Paywall, keine Premium-Features",
+        "noAds": "Keine Datenverkäufe, keine Werbung",
+        "openSource": "Open-Source-Gedanke, Community-getrieben",
+        "forRunners": "Von Läufern für Läufer gebaut"
+      }
+    },
+    "roadmap": {
+      "title": "Was kommt als Nächstes",
+      "subtitle": "Wir arbeiten an noch mehr Features für die Community",
+      "comingSoon": "Demnächst",
+      "smartwatchIntegration": {
+        "title": "Smartwatch-Integration",
+        "description": "Direkte Synchronisation mit Garmin, Coros, Suunto und Polar"
+      },
+      "aiPlanning": {
+        "title": "KI-gestützte Planung",
+        "description": "Automatische Plan-Generierung basierend auf deinen Zielen und deiner Fitness"
+      },
+      "coaching": {
+        "title": "Coaching-Features",
+        "description": "Trainer-Athleten-System und Gruppen-Management für Laufgruppen"
+      },
+      "mobileApps": {
+        "title": "Mobile Apps",
+        "description": "Native iOS & Android Apps für unterwegs"
+      }
+    },
+    "videos": {
+      "title": "Sieh die App in Aktion",
+      "subtitle": "Erfahre, wie einfach es ist, deinen perfekten Trainingsplan zu erstellen",
+      "createPlan": {
+        "title": "Plan erstellen",
+        "description": "Von der Event-Konfiguration bis zur wöchentlichen Planung",
+        "duration": "2:30"
+      },
+      "browseMarketplace": {
+        "title": "Marketplace durchsuchen",
+        "description": "Entdecke und klone Pläne aus der Community",
+        "duration": "1:45"
+      },
+      "watchVideo": "Video ansehen"
+    },
+    "stats": {
+      "title": "Von der Community geliebt",
+      "plansCreated": "Pläne erstellt",
+      "runners": "Läufer",
+      "downloads": "Downloads",
+      "avgRating": "⭐ Durchschnitt"
+    },
+    "finalCta": {
+      "headline": "Bereit für dein nächstes Laufziel?",
+      "subheadline": "Starte kostenlos und erstelle deinen ersten Trainingsplan in wenigen Minuten",
+      "cta": "Kostenlos loslegen",
+      "secondary": "Oder Marketplace durchsuchen"
+    },
+    "footer": {
+      "tagline": "Kostenlose Trainingsplanung für alle Läufer",
+      "madeWith": "Gemacht mit ❤️ für die Lauf-Community",
+      "links": {
+        "about": "Über uns",
+        "privacy": "Datenschutz",
+        "terms": "Nutzungsbedingungen",
+        "contact": "Kontakt"
+      },
+      "support": {
+        "title": "Support",
+        "github": "GitHub",
+        "coffeeMessage": "Diese App ist kostenlos. Falls sie dir hilft, freue ich mich über eine kleine Spende – jeder Betrag unterstützt die Weiterentwicklung!",
+        "buyMeCoffee": "Buy me a coffee"
+      }
+    },
+    "ical": {
+      "title": "Dein Trainingsplan, überall wo du ihn brauchst",
+      "subtitle": "Einmal abonnieren, für immer synchron. Deine Trainingseinheiten erscheinen automatisch in Google Calendar, Apple Calendar, Outlook oder jeder anderen iCal-kompatiblen App.",
+      "features": {
+        "realtime": "Echtzeit-Updates",
+        "noManual": "Kein manueller Export",
+        "offline": "Funktioniert offline"
+      },
+      "cta": "Kalender abonnieren",
+      "subscribed": "Abonniert – Sessions werden synchronisiert..."
+    },
+    "icalDemo": {
+      "title": "Ein Link. Automatische Synchronisation.",
+      "subtitle": "Klicke auf Abonnieren und beobachte, wie dein Training sofort erscheint",
+      "cta": "Kalender abonnieren",
+      "subscribed": "Abonniert – Sessions synchronisieren...",
+      "hint": "In deinem echten Kalender erscheinen die Sessions sofort nach dem Abonnieren"
+    },
+    "independence": {
+      "reject": "Was wir ablehnen",
+      "standFor": "Wofür wir stehen",
+      "problems": {
+        "paywall": "Bezahlschranken für Features",
+        "data": "Datensammlung & -verkauf",
+        "premium": "Premium-Stufen",
+        "corporate": "Unternehmensinteressen"
+      },
+      "values": {
+        "free": "Alles kostenlos, für immer",
+        "privacy": "Deine Daten bleiben deine",
+        "runners": "Von Läufern gebaut",
+        "open": "Open-Source-Gedanke"
+      },
+      "badge": "Für die Lauf-Community"
+    },
+    "ease": {
+      "badge": "Kinderleicht",
+      "title": "Erstelle deinen Plan in Sekunden",
+      "tagline": "3 Klicks. Das war's.",
+      "description": "Kein kompliziertes Setup, keine Registrierung nötig. Wähle dein Rennen, setze das Datum – fertig ist dein personalisierter Trainingsplan.",
+      "steps": {
+        "race": "Rennen auswählen",
+        "date": "Datum festlegen",
+        "done": "Fertig!"
+      }
+    }
+  },
+  "seo": {
+    "marketplace": {
+      "title": "Trainingspläne für Läufer",
+      "description": "Entdecke kostenlose Trainingspläne für 5K, 10K, Halbmarathon und Marathon. Von Läufern für Läufer erstellt.",
+      "planTitle": "{{name}} – {{distance}} Trainingsplan",
+      "planDescription": "{{weeks}} Wochen Trainingsplan für {{distance}}. {{description}}"
+    },
+    "landing": {
+      "title": "Kostenlose Trainingspläne für Läufer",
+      "description": "Erstelle kostenlose, maßgeschneiderte Trainingspläne für 5K, 10K, Halbmarathon und Marathon."
+    }
+  },
+  "publicCta": {
+    "banner": {
+      "text": "Erstelle ein kostenloses Konto, um Trainingspläne zu speichern und zu nutzen",
+      "button": "Kostenlos starten"
+    },
+    "gate": {
+      "sessions": "Erstelle ein kostenloses Konto, um detaillierte Trainingseinheiten zu sehen",
+      "comments": "Melde dich an, um zu kommentieren",
+      "ratings": "Melde dich an, um zu bewerten",
+      "clone": "Kostenlos registrieren, um diesen Plan zu nutzen",
+      "like": "Melde dich an, um Pläne zu liken",
+      "follow": "Melde dich an, um Erstellern zu folgen"
+    },
+    "signUpFree": "Kostenlos registrieren",
+    "alreadyHaveAccount": "Bereits registriert? Anmelden"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "subtitle": "Hilf uns, die App zu verbessern",
+    "hero": {
+      "title": "Deine Meinung zählt!",
+      "description": "Wir bauen diese App für Läufer wie dich. Dein ehrliches Feedback hilft uns, die beste kostenlose Trainingsplan-App zu werden.",
+      "thankYou": "Vielen Dank für deine Zeit!"
+    },
+    "ratings": {
+      "title": "Wie zufrieden bist du?",
+      "description": "Bewerte verschiedene Bereiche der App (optional)",
+      "overall": "Gesamt-Erlebnis",
+      "overallDesc": "Wie gefällt dir die App insgesamt?",
+      "features": "Features & Tools",
+      "featuresDesc": "VDOT-Berechnung, Export-Funktionen, etc.",
+      "editor": "Trainingsplan-Editor",
+      "editorDesc": "Bedienbarkeit und Funktionen",
+      "marketplace": "Marktplatz",
+      "marketplaceDesc": "Pläne entdecken und teilen",
+      "clearRating": "Bewertung zurücksetzen"
+    },
+    "freeform": {
+      "title": "Dein individuelles Feedback",
+      "placeholder": "Was funktioniert gut? Was könnte besser sein? Teile uns deine Gedanken mit...",
+      "helperText": "Sei so ehrlich wie möglich – konstruktive Kritik hilft uns am meisten!"
+    },
+    "suggestions": {
+      "title": "Feature-Wünsche",
+      "placeholder": "Welche Features würdest du dir wünschen? Was fehlt dir?",
+      "helperText": "Träume groß! Wir wollen wissen, was die App für dich perfekt machen würde."
+    },
+    "submit": "Feedback absenden",
+    "submitting": "Wird gesendet...",
+    "success": {
+      "title": "Vielen Dank!",
+      "message": "Dein Feedback wurde erfolgreich übermittelt. Wir schätzen deine Meinung sehr!",
+      "backToDashboard": "Zurück zum Dashboard"
+    },
+    "errors": {
+      "rateLimit": "Du hast heute bereits Feedback eingereicht. Bitte versuche es morgen erneut.",
+      "generic": "Ein Fehler ist aufgetreten. Bitte versuche es erneut.",
+      "emptyFeedback": "Bitte fülle mindestens ein Feld aus."
+    },
+    "validation": {
+      "atLeastOne": "Bitte fülle mindestens ein Feld aus (Bewertung oder Text)."
+    }
+  }
+}
