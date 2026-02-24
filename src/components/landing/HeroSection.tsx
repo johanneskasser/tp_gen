@@ -1,10 +1,11 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Play, Calendar, Zap, Clock, MapPin, Trophy, TrendingUp } from 'lucide-react';
+import { ArrowRight, Calendar, Zap, Clock, MapPin, Trophy, TrendingUp, Pencil, Github, Shield } from 'lucide-react';
 import { Button } from '../ui';
 import WeeklyChart from '../WeeklyChart';
 import { sampleWeeks } from '../../data/sampleData';
+import { analytics } from '../../utils/analytics';
 
 interface TrainingDay {
   day: string;
@@ -90,18 +91,6 @@ export function HeroSection() {
     };
   }, [isVisible]);
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      const offset = 80;
-      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
-      window.scrollTo({
-        top: elementPosition - offset,
-        behavior: 'smooth'
-      });
-    }
-  };
-
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
       {/* Animated Background Pattern */}
@@ -151,40 +140,46 @@ export function HeroSection() {
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
-              <Link to="/login">
+              {/* Primary CTA — no login needed */}
+              <Link to="/editor" onClick={() => analytics.trackHeroCTAClicked('editor')}>
                 <Button
                   variant="default"
                   size="lg"
                   className="group w-full sm:w-auto text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
                 >
-                  {t('landing.hero.ctaPrimary')}
-                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={20} />
+                  <Pencil className="mr-2" size={18} />
+                  Editor öffnen
+                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
                 </Button>
               </Link>
-              <button
-                onClick={() => scrollToSection('features')}
-                className="group w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-lg font-semibold font-body text-primary-700 bg-white border-2 border-primary-200 rounded-lg hover:border-primary-300 hover:bg-primary-50/50 transition-all duration-300 hover:-translate-y-0.5 shadow-sm hover:shadow-md"
-              >
-                <Play className="mr-2 group-hover:scale-110 transition-transform" size={20} />
-                {t('landing.hero.ctaSecondary')}
-              </button>
+              <Link to="/marketplace" onClick={() => analytics.trackHeroCTAClicked('marketplace')}>
+                <button className="group w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-lg font-semibold font-body text-primary-700 bg-white border-2 border-primary-200 rounded-lg hover:border-primary-300 hover:bg-primary-50/50 transition-all duration-300 hover:-translate-y-0.5 shadow-sm hover:shadow-md">
+                  Pläne entdecken
+                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform opacity-50" size={18} />
+                </button>
+              </Link>
             </div>
 
+            {/* Trust badges */}
             <div
-              className={`flex flex-wrap items-center gap-6 text-sm text-text-tertiary transition-all duration-700 delay-300 ${
+              className={`flex flex-wrap items-center gap-3 text-sm text-text-tertiary transition-all duration-700 delay-300 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-50 border border-yellow-200">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                <span className="font-body font-semibold text-yellow-800 text-sm">Öffentliche Beta</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200">
+                <Pencil size={12} className="text-slate-500" />
+                <span className="font-body font-semibold text-slate-700 text-xs">Kein Login nötig</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 border border-green-200">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="font-body font-semibold text-green-800 text-sm">100% kostenlos</span>
+                <Shield size={12} className="text-green-600" />
+                <span className="font-body font-semibold text-green-800 text-xs">Datenschutz-First</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700">
+                <Github size={12} className="text-white" />
+                <span className="font-body font-semibold text-white text-xs">Open Source</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200">
-                <span className="font-body font-semibold text-blue-800 text-sm">Made in AT 🇦🇹</span>
+                <span className="font-body font-semibold text-blue-800 text-xs">Made in AT 🇦🇹</span>
               </div>
             </div>
           </div>

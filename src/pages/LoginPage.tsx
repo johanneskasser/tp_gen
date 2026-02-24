@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { LogIn, UserPlus, Mail, Lock, Calendar } from 'lucide-react';
+import { LogIn, UserPlus, Mail, Lock, Calendar, HardDrive } from 'lucide-react';
 import { Button, Input, Alert } from '../components/ui';
 import { cn } from '../lib/designSystem';
 import { useTranslation } from 'react-i18next';
 import { OAuthButtons } from '../components/OAuthButtons';
 import { analytics } from '../utils/analytics';
+import { hasGuestPlan, getGuestPlanName } from '../hooks/useGuestPlanMigration';
 
 // Training session types for the animated visualization
 const sessionTypes = [
@@ -248,6 +249,20 @@ export default function LoginPage() {
                 className="h-7 sm:h-8 w-auto"
               />
             </div>
+
+            {/* Guest plan notice — shown when a local plan is pending */}
+            {hasGuestPlan() && (
+              <div className="mx-5 sm:mx-6 lg:mx-8 mt-4 flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+                <HardDrive size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-blue-800 leading-snug">
+                  <span className="font-semibold">Gast-Plan wird gespeichert:</span>{' '}
+                  {getGuestPlanName()
+                    ? <><em>„{getGuestPlanName()}"</em> wird nach dem Anmelden automatisch in deinen Account übernommen.</>
+                    : 'Dein Plan wird nach dem Anmelden automatisch in deinen Account übernommen.'
+                  }
+                </p>
+              </div>
+            )}
 
             {/* Form Content */}
             <div className="p-5 sm:p-6 lg:p-8">

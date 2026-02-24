@@ -122,4 +122,62 @@ export const analytics = {
   trackSuggestionRejected: (type: SessionType) => {
     plausible('Suggestion Rejected', { type });
   },
+
+  // ─── Guest / Public Editor ────────────────────────────────────────────────
+
+  /**
+   * Unauthenticated user opened the public /editor route.
+   * Key top-of-funnel goal: measures how many visitors actually start editing.
+   */
+  trackGuestEditorOpened: () => {
+    plausible('Guest Editor Opened');
+  },
+
+  /**
+   * Guest user completed event configuration and has a live plan.
+   * Signals intent — they got past the blank-slate setup.
+   */
+  trackGuestPlanCreated: (distance: string) => {
+    plausible('Guest Plan Created', { distance });
+  },
+
+  /**
+   * Guest user exported their plan (PDF or JSON).
+   * Strong activation signal — they got value without signing up.
+   */
+  trackGuestPlanExported: (format: 'pdf' | 'json') => {
+    plausible('Guest Plan Exported', { format });
+  },
+
+  /**
+   * Guest user clicked any "Anmelden" / "Registrieren" CTA inside the editor.
+   * source: which CTA was clicked (e.g. 'banner', 'header', 'bottom_cta').
+   */
+  trackGuestSignupCTAClicked: (source: 'banner' | 'header' | 'bottom_cta') => {
+    plausible('Guest Signup CTA Clicked', { source });
+  },
+
+  // ─── Landing Page ─────────────────────────────────────────────────────────
+
+  /**
+   * User clicked the primary hero CTA ("Editor öffnen").
+   */
+  trackHeroCTAClicked: (cta: 'editor' | 'marketplace') => {
+    plausible('Hero CTA Clicked', { cta });
+  },
+
+  /**
+   * User clicked the CTA inside the EditorManifestoSection.
+   */
+  trackManifestoCTAClicked: () => {
+    plausible('Manifesto CTA Clicked');
+  },
+
+  /**
+   * User clicked the CTA inside the final CTASection.
+   * cta: which button was clicked ('editor' or 'marketplace').
+   */
+  trackFinalCTAClicked: (cta: 'editor' | 'marketplace') => {
+    plausible('Final CTA Clicked', { cta });
+  },
 };

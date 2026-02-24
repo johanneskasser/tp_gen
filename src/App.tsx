@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import Dashboard from './pages/Dashboard';
 import PlanEditor from './pages/PlanEditor';
+import PublicPlanEditor from './pages/PublicPlanEditor';
 import ProfilePage from './pages/ProfilePage';
 import SettingsPage from './pages/SettingsPage';
 import FeedbackPage from './pages/FeedbackPage';
@@ -24,12 +25,16 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { OnboardingGuard } from './components/OnboardingGuard';
 import { AppLayout } from './components/AppLayout';
 import { MarketplaceLayout } from './components/MarketplaceLayout';
+import { useGuestPlanMigration } from './hooks/useGuestPlanMigration';
 import './i18n/config'; // Initialize i18n
 import { useTranslation } from 'react-i18next';
 
 function AppRoutes() {
   const { user, loading } = useAuth();
   const { t } = useTranslation();
+
+  // Automatically migrate guest plan to account after login
+  useGuestPlanMigration();
 
   if (loading) {
     return (
@@ -51,6 +56,12 @@ function AppRoutes() {
       <Route
         path="/login"
         element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
+      />
+
+      {/* Public editor - redirect to /plan/new if already logged in */}
+      <Route
+        path="/editor"
+        element={user ? <Navigate to="/plan/new" replace /> : <PublicPlanEditor />}
       />
 
       {/* Auth callback route - public */}
