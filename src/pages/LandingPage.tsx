@@ -6,7 +6,6 @@ import { EaseOfUseShowcase } from '../components/landing/EaseOfUseShowcase';
 import { CalendarOrbitSection } from '../components/landing/CalendarOrbitSection';
 import { InteractiveDemoSection } from '../components/landing/InteractiveDemoSection';
 import { ICalDemoSection } from '../components/landing/ICalDemoSection';
-import { IndependenceSection } from '../components/landing/IndependenceSection';
 import { EditorManifestoSection } from '../components/landing/EditorManifestoSection';
 import { BetaCommunitySection } from '../components/landing/BetaCommunitySection';
 import { RoadmapSection } from '../components/landing/RoadmapSection';
@@ -38,7 +37,6 @@ export default function LandingPage() {
         <ICalDemoSection />
         <InteractiveDemoSection />
         <EditorManifestoSection />
-        <IndependenceSection />
         <BetaCommunitySection />
         <RoadmapSection />
         <CTASection />

@@ -64,37 +64,37 @@ const features = [
   {
     icon: <PenLine size={22} strokeWidth={2} />,
     label: 'Editor',
-    title: 'Du baust den Plan — nicht die KI',
+    title: 'Dein Plan, deine Struktur',
     description:
-      'Wochen, Einheiten, Intervalle — alles per Hand. Du kennst deinen Körper besser als jeder Algorithmus. Der Editor gibt dir die Werkzeuge, nicht die Antworten.',
+      'Wochen anlegen, Einheiten eintragen, Intervalle definieren. Kein Zauberer, kein Generator — einfach ein gutes Werkzeug das aus dem Weg geht.',
     detail: 'Intervalle · Tempo · Langläufe',
     accentColor: 'text-blue-600',
   },
   {
     icon: <BarChart2 size={22} strokeWidth={2} />,
     label: 'Berechnungen',
-    title: 'VDOT, Pace & Intensität',
+    title: 'Pace & VDOT als Orientierung',
     description:
-      'Wissenschaftlich fundierte Berechnungen nach Jack Daniels. VDOT aus Wettkampfzeiten, optimale Trainingsbereiche und Pace-Zonen — als Unterstützung, nicht als Befehl.',
-    detail: 'VDOT · min/km · Herzfrequenzzonen',
+      'VDOT aus deiner letzten Wettkampfzeit, Trainingspaces für verschiedene Einheiten — als Anhaltspunkt. Du entscheidest ob das zu dir passt, nicht der Algorithmus.',
+    detail: 'VDOT · min/km · Trainingszonen',
     accentColor: 'text-emerald-600',
   },
   {
     icon: <Shield size={22} strokeWidth={2} />,
-    label: 'Datenschutz & Open Source',
-    title: 'Deine Daten gehören dir',
+    label: 'Open Source',
+    title: 'Kein Account nötig, keine Tricks',
     description:
-      'Open Source, kein Tracking, kein KI-Training auf deinen Daten. Export als PDF oder JSON jederzeit — auch ohne Account. Keine versteckten Kosten, nie.',
+      'Der Editor läuft im Browser, der Plan bleibt bei dir. PDF und JSON Export ohne Anmeldung. Open Source auf GitHub — du kannst reinschauen was hier passiert.',
     detail: 'Kein Tracking · DSGVO · GitHub',
     accentColor: 'text-orange-600',
   },
   {
     icon: <Users size={22} strokeWidth={2} />,
-    label: 'Community',
-    title: 'Echte Pläne von echten Läufern',
+    label: 'Marktplatz',
+    title: 'Pläne die wirklich gelaufen wurden',
     description:
-      'Kein ChatGPT-Output, sondern Pläne die Menschen wirklich gelaufen sind. Im Marktplatz findest du Pläne von erfahrenen Läufern — zum Inspirieren, Klonen und Anpassen.',
-    detail: 'Marktplatz · Klonen · Teilen',
+      'Andere Läufer teilen ihre Pläne — mit Kontext, nicht als PDF-Anhang. Anschauen, klonen, für sich anpassen. Keine KI-generierten Vorlagen.',
+    detail: 'Marktplatz · Klonen · Anpassen',
     accentColor: 'text-purple-600',
   },
 ];
