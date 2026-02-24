@@ -323,39 +323,51 @@ export type Database = {
       user_feedback: {
         Row: {
           id: string
-          user_id: string
+          user_id: string | null
           overall_rating: number | null
           features_rating: number | null
           editor_rating: number | null
           marketplace_rating: number | null
           individual_feedback: string | null
           feature_suggestion: string | null
+          is_anonymous: boolean
+          anonymous_name: string | null
+          anonymous_email: string | null
+          ip_address: string | null
           email_sent: boolean
           email_sent_at: string | null
           created_at: string
         }
         Insert: {
           id?: string
-          user_id: string
+          user_id?: string | null
           overall_rating?: number | null
           features_rating?: number | null
           editor_rating?: number | null
           marketplace_rating?: number | null
           individual_feedback?: string | null
           feature_suggestion?: string | null
+          is_anonymous?: boolean
+          anonymous_name?: string | null
+          anonymous_email?: string | null
+          ip_address?: string | null
           email_sent?: boolean
           email_sent_at?: string | null
           created_at?: string
         }
         Update: {
           id?: string
-          user_id?: string
+          user_id?: string | null
           overall_rating?: number | null
           features_rating?: number | null
           editor_rating?: number | null
           marketplace_rating?: number | null
           individual_feedback?: string | null
           feature_suggestion?: string | null
+          is_anonymous?: boolean
+          anonymous_name?: string | null
+          anonymous_email?: string | null
+          ip_address?: string | null
           email_sent?: boolean
           email_sent_at?: string | null
           created_at?: string
@@ -463,6 +475,7 @@ export type Database = {
     }
     Functions: {
       check_feedback_rate_limit: { Args: { user_uuid: string }; Returns: boolean }
+      check_feedback_rate_limit_by_ip: { Args: { client_ip: string }; Returns: boolean }
       generate_automatic_tags: { Args: { plan_data: Json }; Returns: string[] }
       get_follower_count: { Args: { user_uuid: string }; Returns: number }
       get_following_count: { Args: { user_uuid: string }; Returns: number }
