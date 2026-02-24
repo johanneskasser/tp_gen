@@ -19,6 +19,7 @@ create index if not exists idx_personal_bests_user_id on public.personal_bests(u
 create index if not exists idx_personal_bests_user_date on public.personal_bests(user_id, date desc);
 
 -- Updated_at trigger
+drop trigger if exists update_personal_bests_updated_at on public.personal_bests;
 create trigger update_personal_bests_updated_at
   before update on public.personal_bests
   for each row execute function public.update_updated_at_column();

@@ -53,26 +53,6 @@ export const feedbackService = {
   },
 
   /**
-   * Check if an IP address can submit feedback (once-ever per IP for anonymous)
-   */
-  async canSubmitFeedbackByIp(ip: string): Promise<boolean> {
-    try {
-      const { data, error } = await supabase.rpc('check_feedback_rate_limit_by_ip', {
-        client_ip: ip,
-      });
-      if (error) {
-        console.error('Error checking IP rate limit:', error);
-        // Fail open — don't block user just because IP check failed
-        return true;
-      }
-      return data === true;
-    } catch (err) {
-      console.error('Error in canSubmitFeedbackByIp:', err);
-      return true;
-    }
-  },
-
-  /**
    * Submit feedback — works for both authenticated and anonymous users.
    * Pass userId=null for anonymous submissions.
    */
@@ -95,42 +75,31 @@ export const feedbackService = {
       const isAnonymous = userId === null;
 
       if (isAnonymous) {
-        // Anonymous: check IP-based rate limit (server-side guard)
-        if (feedback.ipAddress) {
-          const canSubmit = await this.canSubmitFeedbackByIp(feedback.ipAddress);
-          if (!canSubmit) {
-            return {
-              success: false,
-              error: 'Von dieser IP-Adresse wurde bereits Feedback eingereicht. Danke!',
-            };
-          }
+        // Anonymous: call SECURITY DEFINER function (bypasses RLS safely)
+        // Rate limiting and validation happen inside the function
+        const { data, error: rpcError } = await supabase.rpc('submit_anonymous_feedback', {
+          p_overall_rating:      feedback.overallRating      ?? null,
+          p_features_rating:     feedback.featuresRating     ?? null,
+          p_editor_rating:       feedback.editorRating       ?? null,
+          p_marketplace_rating:  feedback.marketplaceRating  ?? null,
+          p_individual_feedback: feedback.individualFeedback ?? null,
+          p_feature_suggestion:  feedback.featureSuggestion  ?? null,
+          p_anonymous_name:      feedback.anonymousName      ?? null,
+          p_anonymous_email:     feedback.anonymousEmail     ?? null,
+          p_ip_address:          feedback.ipAddress          ?? null,
+        });
+
+        if (rpcError) {
+          console.error('Error calling submit_anonymous_feedback:', rpcError);
+          throw new Error(rpcError.message);
         }
 
-        const { data: insertedFeedback, error: insertError } = await supabase
-          .from('user_feedback')
-          .insert({
-            user_id: null,
-            is_anonymous: true,
-            anonymous_name: feedback.anonymousName?.trim() || null,
-            anonymous_email: feedback.anonymousEmail?.trim() || null,
-            ip_address: feedback.ipAddress || null,
-            overall_rating: feedback.overallRating || null,
-            features_rating: feedback.featuresRating || null,
-            editor_rating: feedback.editorRating || null,
-            marketplace_rating: feedback.marketplaceRating || null,
-            individual_feedback: feedback.individualFeedback?.trim() || null,
-            feature_suggestion: feedback.featureSuggestion?.trim() || null,
-          })
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error('Error inserting anonymous feedback:', insertError);
-          throw new Error(insertError.message);
+        if (!data?.success) {
+          return { success: false, error: data?.error || 'Ein Fehler ist aufgetreten.' };
         }
 
-        // Trigger email notification
-        this._triggerEmailNotification(insertedFeedback.id);
+        // Trigger email notification with the returned feedback id
+        if (data.id) this._triggerEmailNotification(data.id);
         return { success: true };
       } else {
         // Authenticated: check user-based once-ever rate limit
