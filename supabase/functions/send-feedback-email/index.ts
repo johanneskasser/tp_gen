@@ -9,13 +9,15 @@ const corsHeaders = {
 
 interface FeedbackData {
   id: string;
-  user_id: string;
+  user_id: string | null;
   overall_rating?: number;
   features_rating?: number;
   editor_rating?: number;
   marketplace_rating?: number;
   individual_feedback?: string;
   feature_suggestion?: string;
+  anonymous_name?: string;
+  anonymous_email?: string;
   created_at: string;
   user_name: string;
   user_email: string;
@@ -57,20 +59,32 @@ serve(async (req) => {
       throw new Error('Feedback not found');
     }
 
-    // Fetch user details from auth.users (email) and user_profiles (name)
-    const { data: authUser, error: authError } = await supabaseClient.auth.admin
-      .getUserById(feedback.user_id);
+    // Fetch user details — skip for anonymous submissions (user_id is null)
+    let userName = 'Anonym';
+    let userEmail = 'N/A';
 
-    const { data: userProfile } = await supabaseClient
-      .from('user_profiles')
-      .select('full_name')
-      .eq('id', feedback.user_id)
-      .single();
+    if (feedback.user_id) {
+      const { data: authUser } = await supabaseClient.auth.admin
+        .getUserById(feedback.user_id);
+
+      const { data: userProfile } = await supabaseClient
+        .from('user_profiles')
+        .select('full_name')
+        .eq('id', feedback.user_id)
+        .single();
+
+      userName = userProfile?.full_name || 'Unknown User';
+      userEmail = authUser?.user?.email || 'N/A';
+    } else {
+      // Anonymous submission — use fields stored in the feedback row
+      userName = feedback.anonymous_name || 'Anonym';
+      userEmail = feedback.anonymous_email || 'N/A';
+    }
 
     const typedFeedback = {
       ...feedback,
-      user_name: userProfile?.full_name || 'Unknown User',
-      user_email: authUser?.user?.email || 'N/A',
+      user_name: userName,
+      user_email: userEmail,
     } as FeedbackData;
 
     // Get Resend API key from environment
