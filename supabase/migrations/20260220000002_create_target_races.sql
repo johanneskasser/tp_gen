@@ -18,6 +18,7 @@ create index if not exists idx_target_races_user_id on public.target_races(user_
 create index if not exists idx_target_races_user_date on public.target_races(user_id, date asc);
 
 -- Updated_at trigger
+drop trigger if exists update_target_races_updated_at on public.target_races;
 create trigger update_target_races_updated_at
   before update on public.target_races
   for each row execute function public.update_updated_at_column();

@@ -76,22 +76,28 @@ export const feedbackService = {
 
       if (isAnonymous) {
         // Anonymous: call SECURITY DEFINER function (bypasses RLS safely)
-        // Rate limiting and validation happen inside the function
-        const { data, error: rpcError } = await supabase.rpc('submit_anonymous_feedback', {
-          p_overall_rating:      feedback.overallRating      ?? null,
-          p_features_rating:     feedback.featuresRating     ?? null,
-          p_editor_rating:       feedback.editorRating       ?? null,
-          p_marketplace_rating:  feedback.marketplaceRating  ?? null,
-          p_individual_feedback: feedback.individualFeedback ?? null,
-          p_feature_suggestion:  feedback.featureSuggestion  ?? null,
-          p_anonymous_name:      feedback.anonymousName      ?? null,
-          p_anonymous_email:     feedback.anonymousEmail     ?? null,
-          p_ip_address:          feedback.ipAddress          ?? null,
-        });
+        // Rate limiting and validation happen inside the function.
+        // Cast to `any` because the Supabase-generated types don't know about
+        // submit_anonymous_feedback yet — run `supabase gen types` to fix properly.
+        type AnonFeedbackResult = { success: boolean; error?: string; id?: string };
+        const { data, error: rpcError } = await (supabase as any).rpc(
+          'submit_anonymous_feedback',
+          {
+            p_overall_rating:      feedback.overallRating      ?? null,
+            p_features_rating:     feedback.featuresRating     ?? null,
+            p_editor_rating:       feedback.editorRating       ?? null,
+            p_marketplace_rating:  feedback.marketplaceRating  ?? null,
+            p_individual_feedback: feedback.individualFeedback ?? null,
+            p_feature_suggestion:  feedback.featureSuggestion  ?? null,
+            p_anonymous_name:      feedback.anonymousName      ?? null,
+            p_anonymous_email:     feedback.anonymousEmail     ?? null,
+            p_ip_address:          feedback.ipAddress          ?? null,
+          }
+        ) as { data: AnonFeedbackResult | null; error: unknown };
 
         if (rpcError) {
           console.error('Error calling submit_anonymous_feedback:', rpcError);
-          throw new Error(rpcError.message);
+          throw new Error((rpcError as any).message ?? 'RPC error');
         }
 
         if (!data?.success) {
