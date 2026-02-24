@@ -20,6 +20,10 @@ serve(async (req) => {
       throw new Error('RESEND_API_KEY not configured');
     }
 
+    if (!FORWARD_TO) {
+      throw new Error('EMAIL_FORWARD_TO not configured');
+    }
+
     // Read the raw payload for signature verification
     const rawBody = await req.text();
     const webhookSecret = Deno.env.get('RESEND_WEBHOOK_SECRET');
