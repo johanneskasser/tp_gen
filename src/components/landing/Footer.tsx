@@ -53,19 +53,24 @@ export function Footer() {
             <h4 className="font-display font-semibold text-white mb-3">Legal</h4>
             <ul className="space-y-2 font-body text-sm">
               <li>
-                <a href="/privacy" className="hover:text-white transition-colors">
+                <Link to="/privacy" className="hover:text-white transition-colors">
                   {t('landing.footer.links.privacy')}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/terms" className="hover:text-white transition-colors">
+                <Link to="/terms" className="hover:text-white transition-colors">
                   {t('landing.footer.links.terms')}
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/contact" className="hover:text-white transition-colors">
+                <Link to="/impressum" className="hover:text-white transition-colors">
+                  Impressum
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-white transition-colors">
                   {t('landing.footer.links.contact')}
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

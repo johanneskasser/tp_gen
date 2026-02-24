@@ -17,6 +17,9 @@ import PlanDetailPage from './pages/PlanDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
 import OnboardingPage from './pages/OnboardingPage';
 import PrivacyPage from './pages/PrivacyPage';
+import ImpressumPage from './pages/ImpressumPage';
+import TermsPage from './pages/TermsPage';
+import ContactPage from './pages/ContactPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import { OnboardingGuard } from './components/OnboardingGuard';
 import { AppLayout } from './components/AppLayout';
@@ -112,18 +115,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/feedback"
-        element={
-          <ProtectedRoute>
-            <OnboardingGuard>
-              <AppLayout>
-                <FeedbackPage />
-              </AppLayout>
-            </OnboardingGuard>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/feedback" element={<FeedbackPage />} />
       {/* Marketplace routes - public with conditional layout */}
       <Route
         path="/marketplace"
@@ -154,8 +146,11 @@ function AppRoutes() {
         }
       />
 
-      {/* Privacy policy - public route */}
+      {/* Legal pages - public routes */}
       <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/impressum" element={<ImpressumPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/contact" element={<ContactPage />} />
 
       {/* Fallback - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />

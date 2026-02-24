@@ -82,7 +82,7 @@ serve(async (req) => {
     // Prepare email payload
     const emailPayload = {
       from: 'zenit-it Feedback <feedback@zenit-it.fit>',
-      to: 'johanneskasser@outlook.de',
+      to: Deno.env.get('EMAIL_FORWARD_TO') ?? '',
       subject: `⭐ Neues Feedback von ${typedFeedback.user_name}`,
       html: generateEmailHTML(typedFeedback),
     };

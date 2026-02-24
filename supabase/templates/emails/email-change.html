@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ .Locale }}">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ if eq .Locale "de" }}E-Mail-Änderung bestätigen{{ else }}Confirm Email Change{{ end }}</title>
+    <title>E-Mail-Änderung bestätigen</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -101,7 +101,6 @@
                 <h1>🏃 zenit-it</h1>
             </div>
             <div class="content">
-                {{ if eq .Locale "de" }}
                 <h2>E-Mail-Änderung bestätigen</h2>
                 <p>Du hast eine Änderung deiner E-Mail-Adresse angefordert. Um die neue E-Mail-Adresse zu bestätigen, klicke bitte auf den folgenden Button:</p>
 
@@ -125,38 +124,9 @@
                     Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br>
                     <a href="{{ .ConfirmationURL }}" style="color: #f59e0b; word-break: break-all;">{{ .ConfirmationURL }}</a>
                 </p>
-                {{ else }}
-                <h2>Confirm Email Change</h2>
-                <p>You requested to change your email address. To confirm your new email address, please click the button below:</p>
-
-                <div style="text-align: center;">
-                    <a href="{{ .ConfirmationURL }}" class="button">Confirm Email Change</a>
-                </div>
-
-                <div class="highlight">
-                    <p style="margin: 0;"><strong>⚠️ Important:</strong> This link is valid for 24 hours.</p>
-                </div>
-
-                <div class="security-notice">
-                    <p style="margin: 0; font-size: 14px;">
-                        <strong>🔒 Security Notice:</strong> If you didn't request this change, please ignore this email and contact us immediately. Your email address will remain unchanged unless you confirm this link.
-                    </p>
-                </div>
-
-                <div class="divider"></div>
-
-                <p style="font-size: 14px; color: #64748b;">
-                    If the button doesn't work, copy this link into your browser:<br>
-                    <a href="{{ .ConfirmationURL }}" style="color: #f59e0b; word-break: break-all;">{{ .ConfirmationURL }}</a>
-                </p>
-                {{ end }}
             </div>
             <div class="footer">
-                {{ if eq .Locale "de" }}
                 <p>Diese E-Mail wurde automatisch generiert. Bitte antworte nicht auf diese E-Mail.</p>
-                {{ else }}
-                <p>This email was automatically generated. Please do not reply to this email.</p>
-                {{ end }}
             </div>
         </div>
     </div>

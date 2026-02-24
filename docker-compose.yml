@@ -26,6 +26,7 @@ services:
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - /etc/letsencrypt:/etc/nginx/certs:ro
       - nginx-webroot:/var/www/certbot
+      - ./supabase/templates/emails:/etc/nginx/email-templates:ro
     depends_on:
       - app
       - dynamic-renderer
@@ -151,6 +152,7 @@ services:
 
       GOTRUE_SITE_URL: ${SITE_URL}
       GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
+      GOTRUE_MAILER_EXTERNAL_HOSTS: ${GOTRUE_MAILER_EXTERNAL_HOSTS:-zenit-it.fit}
       GOTRUE_DISABLE_SIGNUP: false
 
       GOTRUE_JWT_ADMIN_ROLES: service_role
@@ -183,13 +185,11 @@ services:
       GOTRUE_SMTP_ADMIN_EMAIL: ${AUTH_EMAIL_FROM}
       GOTRUE_SMTP_SENDER_NAME: ${AUTH_EMAIL_FROM_NAME}
 
-      # Custom email templates (mounted below)
-      GOTRUE_MAILER_TEMPLATES_CONFIRMATION: /templates/confirm-signup.html
-      GOTRUE_MAILER_TEMPLATES_RECOVERY: /templates/recovery.html
-      GOTRUE_MAILER_TEMPLATES_EMAIL_CHANGE: /templates/email-change.html
-      GOTRUE_MAILER_TEMPLATES_MAGIC_LINK: /templates/magic-link.html
-    volumes:
-      - ./supabase/templates/emails:/templates:ro
+      # Custom email templates — fetched internally from nginx
+      GOTRUE_MAILER_TEMPLATES_CONFIRMATION: http://nginx:80/email-templates/confirm-signup.html
+      GOTRUE_MAILER_TEMPLATES_RECOVERY: http://nginx:80/email-templates/recovery.html
+      GOTRUE_MAILER_TEMPLATES_EMAIL_CHANGE: http://nginx:80/email-templates/email-change.html
+      GOTRUE_MAILER_TEMPLATES_MAGIC_LINK: http://nginx:80/email-templates/magic-link.html
     depends_on:
       db:
         condition: service_healthy

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="{{ .Locale }}">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ if eq .Locale "de" }}Bestätige deine E-Mail{{ else }}Confirm your email{{ end }}</title>
+    <title>Bestätige deine E-Mail</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -98,7 +98,6 @@
                 <h1>🏃 zenit-it</h1>
             </div>
             <div class="content">
-                {{ if eq .Locale "de" }}
                 <h2>Willkommen bei zenit-it!</h2>
                 <p>Vielen Dank für deine Registrierung. Um mit der Erstellung deiner personalisierten Trainingspläne zu beginnen, bestätige bitte deine E-Mail-Adresse.</p>
 
@@ -116,34 +115,10 @@
                     Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br>
                     <a href="{{ .ConfirmationURL }}" style="color: #3b82f6; word-break: break-all;">{{ .ConfirmationURL }}</a>
                 </p>
-                {{ else }}
-                <h2>Welcome to zenit-it!</h2>
-                <p>Thank you for signing up. To start creating your personalized training plans, please confirm your email address.</p>
-
-                <div style="text-align: center;">
-                    <a href="{{ .ConfirmationURL }}" class="button">Confirm Email Address</a>
-                </div>
-
-                <div class="highlight">
-                    <p style="margin: 0;"><strong>Note:</strong> This link is valid for 24 hours.</p>
-                </div>
-
-                <div class="divider"></div>
-
-                <p style="font-size: 14px; color: #64748b;">
-                    If the button doesn't work, copy this link into your browser:<br>
-                    <a href="{{ .ConfirmationURL }}" style="color: #3b82f6; word-break: break-all;">{{ .ConfirmationURL }}</a>
-                </p>
-                {{ end }}
             </div>
             <div class="footer">
-                {{ if eq .Locale "de" }}
                 <p>Diese E-Mail wurde automatisch generiert. Bitte antworte nicht auf diese E-Mail.</p>
                 <p>Falls du dich nicht registriert hast, kannst du diese E-Mail ignorieren.</p>
-                {{ else }}
-                <p>This email was automatically generated. Please do not reply to this email.</p>
-                <p>If you didn't sign up, you can safely ignore this email.</p>
-                {{ end }}
             </div>
         </div>
     </div>
