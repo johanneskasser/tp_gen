@@ -325,23 +325,41 @@
       "ctaSecondary": "Demo ansehen"
     },
     "features": {
-      "title": "Alles, was du brauchst",
-      "subtitle": "Professionelle Trainingsplanung, die wirklich kostenlos ist",
-      "smartPlanning": {
-        "title": "Intelligente Planung",
-        "description": "VDOT-basierte Trainingszonen und personalisierte Intensitätsberechnungen für optimale Fortschritte"
+      "badge": "Warum dieser Editor?",
+      "title": "Trainingsplanung,",
+      "titleAccent": "wie sie sein sollte",
+      "description": "Kein Generator. Kein Abo. Kein Datenhunger. Ein professioneller Editor für Läufer, die ihre Pläne selbst in der Hand haben wollen.",
+      "cards": {
+        "editor": {
+          "label": "Editor",
+          "title": "Dein Plan, deine Struktur",
+          "description": "Wochen anlegen, Einheiten eintragen, Intervalle definieren. Kein Zauberer, kein Generator — einfach ein gutes Werkzeug das aus dem Weg geht.",
+          "detail": "Intervalle · Tempo · Langläufe"
+        },
+        "calculations": {
+          "label": "Berechnungen",
+          "title": "Pace & VDOT als Orientierung",
+          "description": "VDOT aus deiner letzten Wettkampfzeit, Trainingspaces für verschiedene Einheiten — als Anhaltspunkt. Du entscheidest ob das zu dir passt, nicht der Algorithmus.",
+          "detail": "VDOT · min/km · Trainingszonen"
+        },
+        "openSource": {
+          "label": "Open Source",
+          "title": "Kein Account nötig, keine Tricks",
+          "description": "Der Editor läuft im Browser, der Plan bleibt bei dir. PDF und JSON Export ohne Anmeldung. Open Source auf GitHub — du kannst reinschauen was hier passiert.",
+          "detail": "Kein Tracking · DSGVO · GitHub"
+        },
+        "marketplace": {
+          "label": "Marktplatz",
+          "title": "Pläne die wirklich gelaufen wurden",
+          "description": "Andere Läufer teilen ihre Pläne — mit Kontext, nicht als PDF-Anhang. Anschauen, klonen, für sich anpassen. Keine KI-generierten Vorlagen.",
+          "detail": "Marktplatz · Klonen · Anpassen"
+        }
       },
-      "exportAnywhere": {
-        "title": "Export überall hin",
-        "description": "Export als PDF, JSON & FIT-Dateien für Garmin und andere Sportuhren"
-      },
-      "marketplace": {
-        "title": "Community-Marktplatz",
-        "description": "Teile und entdecke Trainingspläne mit Bewertungen, Likes und Kommentaren"
-      },
-      "autoSync": {
-        "title": "Immer synchronisiert",
-        "description": "Auto-Save alle 2 Sekunden und Cloud-Speicher – deine Pläne sind immer sicher"
+      "trust": {
+        "free": "100% kostenlos",
+        "noAccount": "Kein Account nötig für den Editor",
+        "openSource": "Open Source auf GitHub",
+        "madeIn": "Made in Austria 🇦🇹"
       }
     },
     "usp": {
@@ -465,6 +483,78 @@
         "date": "Datum festlegen",
         "done": "Fertig!"
       }
+    },
+    "manifesto": {
+      "badge": "Unsere Überzeugung",
+      "headline": "Kein Generator.",
+      "headlineAccent": "Ein Werkzeug.",
+      "description": "Ich habe diesen Editor gebaut um meine eigenen Trainingspläne aus Excel in eine strukturierte, einfache Weboberfläche zu bringen. Man wird von Pace- und Intensitätsberechnungen unterstützt — aber nicht überwältigt.",
+      "rejectLabel": "Was wir ablehnen",
+      "believeLabel": "Woran wir glauben",
+      "rejects": [
+        "Von ChatGPT generierte 08/15-Pläne",
+        "Bezahlschranken für Grundfunktionen",
+        "Plattformen die deine Daten als Produkt sehen",
+        "Algorithmen die dir nicht erklären warum",
+        "Formate die dich einsperren"
+      ],
+      "believes": [
+        "Du weißt selbst am besten wie sich dein Körper anfühlt",
+        "Ein Plan den du verstehst ist besser als einer den du blindlings läufst",
+        "Pace- und VDOT-Berechnungen helfen — aber ersetzen kein Gefühl",
+        "Pläne von echten Läufern sind wertvoller als KI-Output",
+        "Deine Daten gehören dir — nicht uns"
+      ],
+      "principlesLabel": "Die drei Prinzipien",
+      "principles": [
+        { "title": "Aus einer Excel-Liste entstanden", "body": "Ich habe diesen Editor ursprünglich für mich selbst gebaut — um meine eigenen Trainingspläne aus Excel in eine klare, strukturierte Oberfläche zu bringen. Mehr nicht." },
+        { "title": "Unterstützung, nicht Übernahme", "body": "Pace-Zonen, VDOT, Intensitätsverteilung — das sind Hilfsmittel. Du bekommst Orientierung, aber du entscheidest was in deinen Plan kommt. Kein Plan wird für dich generiert." },
+        { "title": "Echte Pläne, echte Läufer", "body": "Im Marktplatz findest du Pläne die Menschen wirklich gelaufen sind. Kein ChatGPT-Output, keine Vorlage. Anschauen, klonen, anpassen — so funktioniert das hier." }
+      ],
+      "ctaHint": "Überzeug dich selbst — kein Account nötig",
+      "cta": "Editor öffnen"
+    },
+    "cta": {
+      "badge": "Keine Kreditkarte · Kein Abo · Kein Bullshit",
+      "headline": "Dein Plan,",
+      "headlineAccent": "deine Regeln.",
+      "description": "Starte den Editor direkt — ohne Anmeldung. Plan als PDF oder JSON exportieren, oder mit Account in der Community teilen.",
+      "primaryTitle": "Editor öffnen",
+      "primarySubtitle": "Ohne Anmeldung · Lokal gespeichert",
+      "primaryCta": "Jetzt starten",
+      "secondaryTitle": "Pläne entdecken",
+      "secondarySubtitle": "Echte Pläne von echten Läufern",
+      "secondaryCta": "Marktplatz",
+      "openSource": "Open Source — Quellcode auf GitHub"
+    },
+    "betaCommunity": {
+      "badge": "Öffentliche Beta",
+      "headline": "Du bist früh dabei.",
+      "headlineAccent": "Das ist ein Vorteil.",
+      "props": [
+        { "title": "Kostenlos — und bleibt es", "body": "Der Trainingsplan-Editor ist und bleibt kostenlos. Kein Abo, kein Paywall. Künftig kommt ein Marketplace, auf dem Läufer ihre Pläne für faire Preise teilen können — die App selbst bleibt gratis." },
+        { "title": "Dein Feedback zählt", "body": "Du bist früh dabei. Dein direktes Feedback beeinflusst, welche Features wir als nächstes bauen und wie die App sich anfühlt." },
+        { "title": "Teil der ersten Community", "body": "Frühe User prägen mit, wie die App wird. Wir hören zu, reagieren schnell und bauen das hier gemeinsam." }
+      ],
+      "cta": "Feedback geben"
+    },
+    "interactive": {
+      "title": "Visualisiere deinen Fortschritt",
+      "description": "Professionelle Diagramme und Analysen zeigen dir genau, wie dein Training aufgebaut ist",
+      "typesTitle": "12 verschiedene Trainingstypen",
+      "tooltips": {
+        "easy": "Lockere Dauerläufe",
+        "long": "Lange Läufe für Grundlagenausdauer",
+        "intervals": "Hochintensive Intervalleinheiten",
+        "tempo": "Tempodauerläufe im Schwellenbereich",
+        "recovery": "Regenerationsläufe",
+        "race": "Wettkampf oder Testwettkampf"
+      },
+      "highlights": [
+        { "title": "Visuelle Analyse", "description": "Verstehe auf einen Blick die Verteilung deiner Trainingseinheiten und die wöchentliche Intensität" },
+        { "title": "Personalisiert", "description": "Die Intensitätsberechnung passt sich an dein Fitnesslevel an und zeigt relative Belastung" },
+        { "title": "Export-Ready", "description": "Alle Diagramme können als PDF exportiert werden – perfekt zum Ausdrucken oder Teilen" }
+      ]
     }
   },
   "seo": {

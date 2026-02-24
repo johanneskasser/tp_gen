@@ -207,7 +207,7 @@ export function exportToICal(plan: TrainingPlan): void {
 
   icalContent += '\r\n' + [
     'BEGIN:VEVENT',
-    `UID:race-${plan.event.date}@trainingsplan-generator`,
+    `UID:race-${plan.event.date}@zenit-it.fit`,
     `DTSTAMP:${dtstamp}`,
     `DTSTART:${formatICalDate(raceStart)}`,
     `DTEND:${formatICalDate(raceEnd)}`,
@@ -238,7 +238,7 @@ export function exportToICal(plan: TrainingPlan): void {
 
       icalContent += '\r\n' + [
         'BEGIN:VEVENT',
-        `UID:${session.id}@trainingsplan-generator`,
+        `UID:${session.id}@zenit-it.fit`,
         `DTSTAMP:${dtstamp}`,
         `DTSTART:${formatICalDate(startDateTime)}`,
         `DTEND:${formatICalDate(endDateTime)}`,

@@ -164,7 +164,7 @@ export default function FeedbackPage() {
           <h1 className="text-2xl font-bold text-slate-900">Feedback bereits eingereicht</h1>
           <p className="text-slate-600">
             Du hast bereits Feedback eingereicht — herzlichen Dank! Deine Meinung hilft uns,
-            den Trainingsplan-Generator zu verbessern.
+            den zenit-it.fit zu verbessern.
           </p>
           <Link
             to="/"

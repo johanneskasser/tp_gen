@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Menu, X, Globe } from 'lucide-react';
+import { Menu, X, Globe, LogIn } from 'lucide-react';
 import { Button } from '../ui';
 import { BetaAnnouncementBar } from './BetaAnnouncementBar';
 
@@ -94,11 +94,16 @@ export function LandingNavbar() {
               <span className="text-sm uppercase">{i18n.language}</span>
             </button>
 
-            <Link to="/login" className="text-text-secondary hover:text-text-primary font-body font-medium transition-colors">
-              {t('landing.nav.login')}
+            <Link
+              to="/login"
+              className="text-text-secondary hover:text-text-primary transition-colors"
+              aria-label={t('landing.nav.login')}
+              title={t('landing.nav.login')}
+            >
+              <LogIn size={20} />
             </Link>
 
-            <Link to="/login">
+            <Link to="/editor">
               <Button variant="default" size="default">
                 {t('landing.nav.getStarted')}
               </Button>

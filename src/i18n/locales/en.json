@@ -326,23 +326,41 @@
       "ctaSecondary": "Watch Demo"
     },
     "features": {
-      "title": "Everything You Need",
-      "subtitle": "Professional training planning that's actually free",
-      "smartPlanning": {
-        "title": "Smart Planning",
-        "description": "VDOT-based training zones and personalized intensity calculations for optimal progress"
+      "badge": "Why this editor?",
+      "title": "Training planning,",
+      "titleAccent": "the way it should be",
+      "description": "No generator. No subscription. No data hunger. A professional editor for runners who want to keep control of their own plans.",
+      "cards": {
+        "editor": {
+          "label": "Editor",
+          "title": "Your plan, your structure",
+          "description": "Add weeks, enter sessions, define intervals. No wizard, no generator — just a good tool that stays out of the way.",
+          "detail": "Intervals · Pace · Long runs"
+        },
+        "calculations": {
+          "label": "Calculations",
+          "title": "Pace & VDOT as guidance",
+          "description": "VDOT from your last race time, training paces for different sessions — as a reference point. You decide if that works for you, not the algorithm.",
+          "detail": "VDOT · min/km · Training zones"
+        },
+        "openSource": {
+          "label": "Open Source",
+          "title": "No account needed, no tricks",
+          "description": "The editor runs in the browser, your plan stays with you. PDF and JSON export without signing up. Open Source on GitHub — you can see exactly what's happening here.",
+          "detail": "No tracking · GDPR · GitHub"
+        },
+        "marketplace": {
+          "label": "Marketplace",
+          "title": "Plans that were actually run",
+          "description": "Other runners share their plans — with context, not as a PDF attachment. Browse, clone, adapt. No AI-generated templates.",
+          "detail": "Marketplace · Clone · Adapt"
+        }
       },
-      "exportAnywhere": {
-        "title": "Export Anywhere",
-        "description": "Export as PDF, JSON & FIT files for Garmin and other sports watches"
-      },
-      "marketplace": {
-        "title": "Community Marketplace",
-        "description": "Share and discover training plans with ratings, likes, and comments"
-      },
-      "autoSync": {
-        "title": "Always Synced",
-        "description": "Auto-save every 2 seconds and cloud storage – your plans are always safe"
+      "trust": {
+        "free": "100% free",
+        "noAccount": "No account needed for the editor",
+        "openSource": "Open Source on GitHub",
+        "madeIn": "Made in Austria 🇦🇹"
       }
     },
     "usp": {
@@ -466,6 +484,78 @@
         "date": "Set the date",
         "done": "Done!"
       }
+    },
+    "manifesto": {
+      "badge": "Our belief",
+      "headline": "No generator.",
+      "headlineAccent": "A tool.",
+      "description": "I built this editor to move my own training plans from Excel into a structured, simple web interface. You get support from pace and intensity calculations — but you're never overwhelmed.",
+      "rejectLabel": "What we reject",
+      "believeLabel": "What we believe",
+      "rejects": [
+        "AI-generated cookie-cutter plans",
+        "Paywalls for basic features",
+        "Platforms that treat your data as a product",
+        "Algorithms that don't explain their reasoning",
+        "Formats that lock you in"
+      ],
+      "believes": [
+        "You know best how your body feels",
+        "A plan you understand beats one you follow blindly",
+        "Pace and VDOT calculations help — but can't replace intuition",
+        "Plans from real runners are worth more than AI output",
+        "Your data belongs to you — not us"
+      ],
+      "principlesLabel": "Three principles",
+      "principles": [
+        { "title": "Born from a spreadsheet", "body": "I originally built this editor for myself — to move my own training plans from Excel into a clean, structured interface. Nothing more." },
+        { "title": "Support, not takeover", "body": "Pace zones, VDOT, intensity distribution — these are tools. You get guidance, but you decide what goes into your plan. No plan is generated for you." },
+        { "title": "Real plans, real runners", "body": "In the marketplace you'll find plans that people actually ran. No ChatGPT output, no template. Browse, clone, adapt — that's how this works." }
+      ],
+      "ctaHint": "See for yourself — no account needed",
+      "cta": "Open editor"
+    },
+    "cta": {
+      "badge": "No credit card · No subscription · No BS",
+      "headline": "Your plan,",
+      "headlineAccent": "your rules.",
+      "description": "Start the editor directly — no sign-up needed. Export your plan as PDF or JSON, or share it with the community using an account.",
+      "primaryTitle": "Open editor",
+      "primarySubtitle": "No sign-up · Saved locally",
+      "primaryCta": "Start now",
+      "secondaryTitle": "Discover plans",
+      "secondarySubtitle": "Real plans from real runners",
+      "secondaryCta": "Marketplace",
+      "openSource": "Open Source — source code on GitHub"
+    },
+    "betaCommunity": {
+      "badge": "Public Beta",
+      "headline": "You're early.",
+      "headlineAccent": "That's an advantage.",
+      "props": [
+        { "title": "Free — and stays that way", "body": "The training plan editor is and will remain free. No subscription, no paywall. A marketplace is coming where runners can share their plans at fair prices — the app itself stays free." },
+        { "title": "Your feedback matters", "body": "You're here early. Your direct feedback shapes which features we build next and how the app feels." },
+        { "title": "Part of the first community", "body": "Early users help shape how the app evolves. We listen, respond quickly, and build this together." }
+      ],
+      "cta": "Give feedback"
+    },
+    "interactive": {
+      "title": "Visualize your progress",
+      "description": "Professional charts and analytics show you exactly how your training is structured",
+      "typesTitle": "12 different session types",
+      "tooltips": {
+        "easy": "Easy aerobic runs",
+        "long": "Long runs for base endurance",
+        "intervals": "High-intensity interval training",
+        "tempo": "Threshold tempo runs",
+        "recovery": "Recovery runs",
+        "race": "Race or time trial"
+      },
+      "highlights": [
+        { "title": "Visual analysis", "description": "Understand at a glance the distribution of your training sessions and weekly intensity" },
+        { "title": "Personalized", "description": "Intensity calculations adapt to your fitness level and show relative load" },
+        { "title": "Export-ready", "description": "All charts can be exported as PDF – perfect for printing or sharing" }
+      ]
     }
   },
   "seo": {

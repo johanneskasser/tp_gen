@@ -258,12 +258,34 @@ export default function PrivacyPage() {
 
           {/* 9. Speicherdauer */}
           <section>
-            <h2 className="text-xl font-semibold text-slate-900 mb-3">9. Speicherdauer</h2>
+            <h2 className="text-xl font-semibold text-slate-900 mb-3">9. Speicherdauer & automatische Kontolöschung</h2>
             <p>
               Ihre Daten werden so lange gespeichert, wie Ihr Nutzerkonto aktiv ist.
-              Nach Löschung Ihres Kontos werden alle personenbezogenen Daten innerhalb
-              von 30 Tagen unwiderruflich gelöscht. Daten, deren Aufbewahrung aufgrund
+              Nach manueller Löschung Ihres Kontos werden alle personenbezogenen Daten innerhalb
+              von 30 Tagen unwiderruflich entfernt. Daten, deren Aufbewahrung aufgrund
               gesetzlicher Vorschriften vorgeschrieben ist, bleiben davon unberührt.
+            </p>
+            <h3 className="font-medium text-slate-800 mt-4 mb-2">Automatische Löschung bei Inaktivität</h3>
+            <p>
+              Im Sinne des Grundsatzes der <strong>Datensparsamkeit</strong> (Art. 5 Abs. 1 lit. e DSGVO)
+              werden inaktive Nutzerkonten automatisch gelöscht:
+            </p>
+            <ul className="mt-3 list-disc pl-6 space-y-2">
+              <li>
+                Konten, die <strong>länger als 11 Monate</strong> nicht genutzt wurden, erhalten
+                eine E-Mail-Benachrichtigung mit dem Hinweis auf die bevorstehende Löschung.
+              </li>
+              <li>
+                Konten, die <strong>länger als 12 Monate</strong> nicht genutzt wurden, werden
+                automatisch samt allen zugehörigen personenbezogenen Daten unwiderruflich gelöscht.
+              </li>
+            </ul>
+            <p className="mt-3">
+              Als „Nutzung" gilt jede Anmeldung beim Dienst. Sie können die automatische Löschung
+              jederzeit verhindern, indem Sie sich erneut einloggen.
+            </p>
+            <p className="mt-3 text-sm text-slate-500">
+              Rechtsgrundlage: Art. 5 Abs. 1 lit. e DSGVO (Speicherbegrenzung)
             </p>
           </section>
 

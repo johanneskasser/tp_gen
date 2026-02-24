@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PenLine, BarChart2, Shield, Users } from 'lucide-react';
 
 interface FeatureCardProps {
@@ -60,48 +61,52 @@ function FeatureCard({
   );
 }
 
-const features = [
-  {
-    icon: <PenLine size={22} strokeWidth={2} />,
-    label: 'Editor',
-    title: 'Dein Plan, deine Struktur',
-    description:
-      'Wochen anlegen, Einheiten eintragen, Intervalle definieren. Kein Zauberer, kein Generator — einfach ein gutes Werkzeug das aus dem Weg geht.',
-    detail: 'Intervalle · Tempo · Langläufe',
-    accentColor: 'text-blue-600',
-  },
-  {
-    icon: <BarChart2 size={22} strokeWidth={2} />,
-    label: 'Berechnungen',
-    title: 'Pace & VDOT als Orientierung',
-    description:
-      'VDOT aus deiner letzten Wettkampfzeit, Trainingspaces für verschiedene Einheiten — als Anhaltspunkt. Du entscheidest ob das zu dir passt, nicht der Algorithmus.',
-    detail: 'VDOT · min/km · Trainingszonen',
-    accentColor: 'text-emerald-600',
-  },
-  {
-    icon: <Shield size={22} strokeWidth={2} />,
-    label: 'Open Source',
-    title: 'Kein Account nötig, keine Tricks',
-    description:
-      'Der Editor läuft im Browser, der Plan bleibt bei dir. PDF und JSON Export ohne Anmeldung. Open Source auf GitHub — du kannst reinschauen was hier passiert.',
-    detail: 'Kein Tracking · DSGVO · GitHub',
-    accentColor: 'text-orange-600',
-  },
-  {
-    icon: <Users size={22} strokeWidth={2} />,
-    label: 'Marktplatz',
-    title: 'Pläne die wirklich gelaufen wurden',
-    description:
-      'Andere Läufer teilen ihre Pläne — mit Kontext, nicht als PDF-Anhang. Anschauen, klonen, für sich anpassen. Keine KI-generierten Vorlagen.',
-    detail: 'Marktplatz · Klonen · Anpassen',
-    accentColor: 'text-purple-600',
-  },
-];
-
 export function FeaturesSection() {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+
+  const features = [
+    {
+      icon: <PenLine size={22} strokeWidth={2} />,
+      label: t('landing.features.cards.editor.label'),
+      title: t('landing.features.cards.editor.title'),
+      description: t('landing.features.cards.editor.description'),
+      detail: t('landing.features.cards.editor.detail'),
+      accentColor: 'text-blue-600',
+    },
+    {
+      icon: <BarChart2 size={22} strokeWidth={2} />,
+      label: t('landing.features.cards.calculations.label'),
+      title: t('landing.features.cards.calculations.title'),
+      description: t('landing.features.cards.calculations.description'),
+      detail: t('landing.features.cards.calculations.detail'),
+      accentColor: 'text-emerald-600',
+    },
+    {
+      icon: <Shield size={22} strokeWidth={2} />,
+      label: t('landing.features.cards.openSource.label'),
+      title: t('landing.features.cards.openSource.title'),
+      description: t('landing.features.cards.openSource.description'),
+      detail: t('landing.features.cards.openSource.detail'),
+      accentColor: 'text-orange-600',
+    },
+    {
+      icon: <Users size={22} strokeWidth={2} />,
+      label: t('landing.features.cards.marketplace.label'),
+      title: t('landing.features.cards.marketplace.title'),
+      description: t('landing.features.cards.marketplace.description'),
+      detail: t('landing.features.cards.marketplace.detail'),
+      accentColor: 'text-purple-600',
+    },
+  ];
+
+  const trustItems = [
+    t('landing.features.trust.free'),
+    t('landing.features.trust.noAccount'),
+    t('landing.features.trust.openSource'),
+    t('landing.features.trust.madeIn'),
+  ];
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -129,23 +134,22 @@ export function FeaturesSection() {
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
-            <span className="text-xs font-bold text-white uppercase tracking-widest">Warum dieser Editor?</span>
+            <span className="text-xs font-bold text-white uppercase tracking-widest">{t('landing.features.badge')}</span>
           </div>
           <h2
             className={`font-display font-bold text-4xl sm:text-5xl md:text-6xl text-slate-900 mb-4 transition-all duration-700 ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
-            Trainingsplanung,<br />
-            <span className="text-blue-600">wie sie sein sollte</span>
+            {t('landing.features.title')}<br />
+            <span className="text-blue-600">{t('landing.features.titleAccent')}</span>
           </h2>
           <p
             className={`font-body text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto transition-all duration-700 delay-100 ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
-            Kein Generator. Kein Abo. Kein Datenhunger. Ein professioneller Editor für Läufer,
-            die ihre Pläne selbst in der Hand haben wollen.
+            {t('landing.features.description')}
           </p>
         </div>
 
@@ -172,12 +176,7 @@ export function FeaturesSection() {
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
         >
-          {[
-            '100% kostenlos',
-            'Kein Account nötig für den Editor',
-            'Open Source auf GitHub',
-            'Made in Austria 🇦🇹',
-          ].map((item) => (
+          {trustItems.map((item) => (
             <div
               key={item}
               className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-slate-200 shadow-sm"

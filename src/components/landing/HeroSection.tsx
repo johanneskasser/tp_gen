@@ -1,8 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight, Calendar, Zap, Clock, MapPin, Trophy, TrendingUp, Pencil, Github, Shield } from 'lucide-react';
-import { Button } from '../ui';
+import { ArrowRight, Calendar, Pencil, Github, Shield } from 'lucide-react';
 import WeeklyChart from '../WeeklyChart';
 import { sampleWeeks } from '../../data/sampleData';
 import { analytics } from '../../utils/analytics';
@@ -136,51 +135,43 @@ export function HeroSection() {
             </p>
 
             <div
-              className={`flex flex-col sm:flex-row gap-4 transition-all duration-700 delay-200 ${
+              className={`flex flex-col sm:flex-row gap-3 transition-all duration-700 delay-200 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
               {/* Primary CTA — no login needed */}
               <Link to="/editor" onClick={() => analytics.trackHeroCTAClicked('editor')}>
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="group w-full sm:w-auto text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  <Pencil className="mr-2" size={18} />
+                <button className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold font-body text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-all duration-300 hover:-translate-y-0.5 shadow-lg hover:shadow-xl">
+                  <Pencil size={16} />
                   Editor öffnen
-                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" size={18} />
-                </Button>
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                </button>
               </Link>
               <Link to="/marketplace" onClick={() => analytics.trackHeroCTAClicked('marketplace')}>
-                <button className="group w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 text-lg font-semibold font-body text-primary-700 bg-white border-2 border-primary-200 rounded-lg hover:border-primary-300 hover:bg-primary-50/50 transition-all duration-300 hover:-translate-y-0.5 shadow-sm hover:shadow-md">
+                <button className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold font-body text-slate-700 bg-white border border-slate-200 rounded-lg hover:border-slate-300 hover:bg-slate-50 transition-all duration-300 hover:-translate-y-0.5 shadow-sm hover:shadow-md">
                   Pläne entdecken
-                  <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform opacity-50" size={18} />
+                  <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform opacity-50" />
                 </button>
               </Link>
             </div>
 
             {/* Trust badges */}
             <div
-              className={`flex flex-wrap items-center gap-3 text-sm text-text-tertiary transition-all duration-700 delay-300 ${
+              className={`flex flex-wrap items-center gap-3 transition-all duration-700 delay-300 ${
                 isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               }`}
             >
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200">
-                <Pencil size={12} className="text-slate-500" />
-                <span className="font-body font-semibold text-slate-700 text-xs">Kein Login nötig</span>
+              <div className="flex items-center gap-1.5">
+                <Shield size={13} className="text-green-600" />
+                <span className="text-xs text-slate-500">Kein Login nötig</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 border border-green-200">
-                <Shield size={12} className="text-green-600" />
-                <span className="font-body font-semibold text-green-800 text-xs">Datenschutz-First</span>
+              <span className="text-slate-200">·</span>
+              <div className="flex items-center gap-1.5">
+                <Github size={13} className="text-slate-500" />
+                <span className="text-xs text-slate-500">Open Source</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700">
-                <Github size={12} className="text-white" />
-                <span className="font-body font-semibold text-white text-xs">Open Source</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200">
-                <span className="font-body font-semibold text-blue-800 text-xs">Made in AT 🇦🇹</span>
-              </div>
+              <span className="text-slate-200">·</span>
+              <span className="text-xs text-slate-500">Made in Austria 🇦🇹</span>
             </div>
           </div>
 
@@ -276,62 +267,21 @@ export function HeroSection() {
               </div>
 
               {/* Stats Footer */}
-              <div className={`grid grid-cols-4 gap-3 p-4 sm:p-5 bg-white border-t border-slate-100 transition-all duration-700 ${animationPhase >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+              <div className={`grid grid-cols-3 gap-3 p-4 sm:p-5 bg-slate-50/80 border-t border-slate-100 transition-all duration-700 ${animationPhase >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                    <Clock size={12} />
-                  </div>
-                  <div className="text-lg sm:text-xl font-bold font-mono text-primary-900">16</div>
-                  <div className="text-[10px] text-slate-500 font-body">Wochen</div>
+                  <div className="text-lg sm:text-xl font-bold font-mono text-slate-900">16</div>
+                  <div className="text-[10px] text-slate-400 font-body">Wochen</div>
                 </div>
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                    <TrendingUp size={12} />
-                  </div>
-                  <div className="text-lg sm:text-xl font-bold font-mono text-primary-900">52</div>
-                  <div className="text-[10px] text-slate-500 font-body">km/Woche</div>
+                  <div className="text-lg sm:text-xl font-bold font-mono text-slate-900">52</div>
+                  <div className="text-[10px] text-slate-400 font-body">km/Woche</div>
                 </div>
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                    <Zap size={12} />
-                  </div>
-                  <div className="text-lg sm:text-xl font-bold font-mono text-primary-900">84</div>
-                  <div className="text-[10px] text-slate-500 font-body">Sessions</div>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                    <MapPin size={12} />
-                  </div>
-                  <div className="text-lg sm:text-xl font-bold font-mono text-primary-900">680</div>
-                  <div className="text-[10px] text-slate-500 font-body">km total</div>
+                  <div className="text-lg sm:text-xl font-bold font-mono text-slate-900">680</div>
+                  <div className="text-[10px] text-slate-400 font-body">km total</div>
                 </div>
               </div>
             </div>
-
-            {/* Floating Badges */}
-            <div
-              className={`absolute -top-3 -right-3 sm:-top-4 sm:-right-4 transition-all duration-700 ${animationPhase >= 2 ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}
-              style={{ transitionDelay: '400ms' }}
-            >
-              <div className="px-3 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl shadow-lg font-display font-semibold text-xs sm:text-sm flex items-center gap-1.5 animate-float-gentle">
-                <Trophy size={14} />
-                <span>Berlin Marathon</span>
-              </div>
-            </div>
-
-            <div
-              className={`absolute -bottom-2 -left-2 sm:-bottom-3 sm:-left-3 transition-all duration-700 ${animationPhase >= 3 ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}
-              style={{ transitionDelay: '600ms' }}
-            >
-              <div className="px-3 py-2 bg-white border border-green-200 text-green-700 rounded-xl shadow-lg font-body font-semibold text-xs sm:text-sm flex items-center gap-1.5 animate-float-gentle" style={{ animationDelay: '1s' }}>
-                <Calendar size={14} />
-                <span>iCal Sync</span>
-              </div>
-            </div>
-
-            {/* Decorative elements */}
-            <div className="absolute -z-10 top-1/2 -right-20 w-40 h-40 bg-blue-500/5 rounded-full blur-2xl" />
-            <div className="absolute -z-10 bottom-1/4 -left-16 w-32 h-32 bg-green-500/5 rounded-full blur-2xl" />
           </div>
         </div>
       </div>

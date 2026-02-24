@@ -271,7 +271,7 @@ function generateICalContent(plan: TrainingPlan, planId: string): string {
 
   icalContent += '\r\n' + [
     'BEGIN:VEVENT',
-    `UID:race-${plan.event.date}-${planId}@trainingsplan-generator`,
+    `UID:race-${plan.event.date}-${planId}@zenit-it.fit`,
     `DTSTAMP:${dtstamp}`,
     `DTSTART:${formatICalDate(raceStart)}`,
     `DTEND:${formatICalDate(raceEnd)}`,
@@ -300,7 +300,7 @@ function generateICalContent(plan: TrainingPlan, planId: string): string {
 
       icalContent += '\r\n' + [
         'BEGIN:VEVENT',
-        `UID:${session.id}-${planId}@trainingsplan-generator`,
+        `UID:${session.id}-${planId}@zenit-it.fit`,
         `DTSTAMP:${dtstamp}`,
         `DTSTART:${formatICalDate(startDateTime)}`,
         `DTEND:${formatICalDate(endDateTime)}`,

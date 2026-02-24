@@ -1,53 +1,17 @@
-/**
- * EditorManifestoSection
- *
- * Aesthetik: Rohes Editorial — schwarze Druckseite meets Running-Kultur.
- * Dicke Typografie, harte Kontraste, ehrliche Sprache.
- * "Kein AI-Bloat. Kein Generator. Ein Werkzeug für Menschen."
- */
-
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowRight, X, Check } from 'lucide-react';
 import { analytics } from '../../utils/analytics';
 
-const rejects = [
-  'Von ChatGPT generierte 08/15-Pläne',
-  'Bezahlschranken für Grundfunktionen',
-  'Plattformen die deine Daten als Produkt sehen',
-  'Algorithmen die dir nicht erklären warum',
-  'Formate die dich einsperren',
-];
-
-const believes = [
-  'Du weißt selbst am besten wie sich dein Körper anfühlt',
-  'Ein Plan den du verstehst ist besser als einer den du blindlings läufst',
-  'Pace- und VDOT-Berechnungen helfen — aber ersetzen kein Gefühl',
-  'Pläne von echten Läufern sind wertvoller als KI-Output',
-  'Deine Daten gehören dir — nicht uns',
-];
-
-const philosophyPoints = [
-  {
-    number: '01',
-    title: 'Aus einer Excel-Liste entstanden',
-    body: 'Ich habe diesen Editor ursprünglich für mich selbst gebaut — um meine eigenen Trainingspläne aus Excel in eine klare, strukturierte Oberfläche zu bringen. Mehr nicht.',
-  },
-  {
-    number: '02',
-    title: 'Unterstützung, nicht Übernahme',
-    body: 'Pace-Zonen, VDOT, Intensitätsverteilung — das sind Hilfsmittel. Du bekommst Orientierung, aber du entscheidest was in deinen Plan kommt. Kein Plan wird für dich generiert.',
-  },
-  {
-    number: '03',
-    title: 'Echte Pläne, echte Läufer',
-    body: 'Im Marktplatz findest du Pläne die Menschen wirklich gelaufen sind. Kein ChatGPT-Output, keine Vorlage. Anschauen, klonen, anpassen — so funktioniert das hier.',
-  },
-];
-
 export function EditorManifestoSection() {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+
+  const rejects = t('landing.manifesto.rejects', { returnObjects: true }) as string[];
+  const believes = t('landing.manifesto.believes', { returnObjects: true }) as string[];
+  const principles = t('landing.manifesto.principles', { returnObjects: true }) as Array<{ title: string; body: string }>;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -75,19 +39,17 @@ export function EditorManifestoSection() {
         >
           <div className="inline-block mb-6">
             <span className="text-xs font-bold uppercase tracking-[0.3em] text-blue-600">
-              Unsere Überzeugung
+              {t('landing.manifesto.badge')}
             </span>
           </div>
           <h2 className="font-display font-black text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-slate-900 leading-[0.95] mb-8 max-w-5xl">
-            Kein Generator.<br />
+            {t('landing.manifesto.headline')}<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-blue-700">
-              Ein Werkzeug.
+              {t('landing.manifesto.headlineAccent')}
             </span>
           </h2>
           <p className="font-body text-slate-500 text-lg sm:text-xl max-w-2xl leading-relaxed">
-            Ich habe diesen Editor gebaut um meine eigenen Trainingspläne aus Excel
-            in eine strukturierte, einfache Weboberfläche zu bringen. Man wird von
-            Pace- und Intensitätsberechnungen unterstützt — aber nicht überwältigt.
+            {t('landing.manifesto.description')}
           </p>
         </div>
 
@@ -104,7 +66,7 @@ export function EditorManifestoSection() {
                 <X size={12} className="text-red-500" strokeWidth={3} />
               </div>
               <span className="text-xs font-bold uppercase tracking-widest text-red-500">
-                Was wir ablehnen
+                {t('landing.manifesto.rejectLabel')}
               </span>
             </div>
             <div className="space-y-4">
@@ -136,7 +98,7 @@ export function EditorManifestoSection() {
                 <Check size={12} className="text-green-600" strokeWidth={3} />
               </div>
               <span className="text-xs font-bold uppercase tracking-widest text-green-700">
-                Woran wir glauben
+                {t('landing.manifesto.believeLabel')}
               </span>
             </div>
             <div className="space-y-4">
@@ -164,21 +126,21 @@ export function EditorManifestoSection() {
         >
           <div className="text-center mb-12">
             <span className="text-xs font-bold uppercase tracking-[0.3em] text-slate-400">
-              Die drei Prinzipien
+              {t('landing.manifesto.principlesLabel')}
             </span>
           </div>
 
           <div className="grid md:grid-cols-3 gap-px bg-slate-200 rounded-2xl overflow-hidden shadow-sm">
-            {philosophyPoints.map((point, i) => (
+            {principles.map((point, i) => (
               <div
-                key={point.number}
+                key={i}
                 className={`bg-white p-8 md:p-10 transition-all duration-500 ${
                   isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{ transitionDelay: `${600 + i * 100}ms` }}
               >
                 <div className="font-mono text-5xl font-black text-slate-300 mb-4 leading-none select-none">
-                  {point.number}
+                  {String(i + 1).padStart(2, '0')}
                 </div>
                 <div className="h-0.5 w-8 bg-blue-500 mb-5" />
                 <h3 className="font-display font-bold text-slate-900 text-lg mb-3">
@@ -197,14 +159,14 @@ export function EditorManifestoSection() {
           }`}
         >
           <p className="text-slate-400 text-sm mb-6 uppercase tracking-widest">
-            Überzeug dich selbst — kein Account nötig
+            {t('landing.manifesto.ctaHint')}
           </p>
           <Link
             to="/editor"
             onClick={() => analytics.trackManifestoCTAClicked()}
             className="inline-flex items-center gap-3 bg-slate-900 text-white font-bold text-lg px-8 py-4 rounded-xl hover:bg-slate-800 transition-colors group shadow-lg"
           >
-            Editor öffnen
+            {t('landing.manifesto.cta')}
             <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>

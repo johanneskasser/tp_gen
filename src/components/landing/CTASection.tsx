@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Compass, Pencil, Github } from 'lucide-react';
 import { analytics } from '../../utils/analytics';
 
 export function CTASection() {
+  const { t } = useTranslation();
+
   return (
     <section className="relative py-20 md:py-32 overflow-hidden">
       {/* Background */}
@@ -20,20 +23,19 @@ export function CTASection() {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/15 mb-6">
             <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             <span className="text-xs font-semibold text-white/90 uppercase tracking-widest">
-              Keine Kreditkarte · Kein Abo · Kein Bullshit
+              {t('landing.cta.badge')}
             </span>
           </div>
 
           <h2 className="font-display font-black text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white mb-6 leading-tight">
-            Dein Plan,<br />
+            {t('landing.cta.headline')}<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-500">
-              deine Regeln.
+              {t('landing.cta.headlineAccent')}
             </span>
           </h2>
 
           <p className="font-body text-lg sm:text-xl text-white/70 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Starte den Editor direkt — ohne Anmeldung. Plan als PDF oder JSON exportieren,
-            oder mit Account in der Community teilen.
+            {t('landing.cta.description')}
           </p>
         </div>
 
@@ -45,10 +47,10 @@ export function CTASection() {
               <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-xl mx-auto mb-4 group-hover:scale-110 transition-transform">
                 <Pencil size={18} className="text-white" />
               </div>
-              <h3 className="font-display font-bold text-lg mb-1">Editor öffnen</h3>
-              <p className="text-slate-500 text-sm mb-4">Ohne Anmeldung · Lokal gespeichert</p>
+              <h3 className="font-display font-bold text-lg mb-1">{t('landing.cta.primaryTitle')}</h3>
+              <p className="text-slate-500 text-sm mb-4">{t('landing.cta.primarySubtitle')}</p>
               <div className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600">
-                Jetzt starten
+                {t('landing.cta.primaryCta')}
                 <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
@@ -60,10 +62,10 @@ export function CTASection() {
               <div className="flex items-center justify-center w-10 h-10 bg-white/10 rounded-xl mx-auto mb-4 group-hover:scale-110 transition-transform border border-white/10">
                 <Compass size={18} className="text-white" />
               </div>
-              <h3 className="font-display font-bold text-lg mb-1">Pläne entdecken</h3>
-              <p className="text-white/50 text-sm mb-4">Echte Pläne von echten Läufern</p>
+              <h3 className="font-display font-bold text-lg mb-1">{t('landing.cta.secondaryTitle')}</h3>
+              <p className="text-white/50 text-sm mb-4">{t('landing.cta.secondarySubtitle')}</p>
               <div className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/80">
-                Marktplatz
+                {t('landing.cta.secondaryCta')}
                 <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
               </div>
             </div>
@@ -79,7 +81,7 @@ export function CTASection() {
             className="inline-flex items-center gap-2 text-white/40 hover:text-white/70 transition-colors text-sm"
           >
             <Github size={15} />
-            Open Source — Quellcode auf GitHub
+            {t('landing.cta.openSource')}
           </a>
         </div>
       </div>

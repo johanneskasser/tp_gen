@@ -33,7 +33,7 @@ export function BetaAnnouncementBar() {
         <div className="flex items-center gap-2 min-w-0">
           <Zap size={14} className="text-yellow-400 shrink-0" />
           <span className="font-body text-white/90 truncate">
-            Trainingsplan-Generator ist jetzt in der <strong className="text-white">öffentlichen Beta</strong> — dein Feedback hilft uns enorm&nbsp;🙏
+            zenit-it.fit ist jetzt in der <strong className="text-white">öffentlichen Beta</strong> — dein Feedback hilft uns enorm&nbsp;🙏
           </span>
         </div>
         <div className="flex items-center gap-3 shrink-0">

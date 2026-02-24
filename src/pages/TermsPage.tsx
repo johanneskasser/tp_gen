@@ -18,7 +18,7 @@ export default function TermsPage() {
             <h2 className="text-xl font-semibold text-slate-900 mb-3">1. Geltungsbereich</h2>
             <p>
               Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für die Nutzung der
-              Webanwendung <strong>Trainingsplan-Generator</strong> (im Folgenden „Dienst"),
+              Webanwendung <strong>zenit-it.fit</strong> (im Folgenden „Dienst"),
               betrieben von:
             </p>
             <div className="mt-3 p-4 bg-slate-50 rounded-lg border border-slate-200 text-sm space-y-1">
@@ -41,7 +41,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-xl font-semibold text-slate-900 mb-3">2. Leistungsbeschreibung</h2>
             <p>
-              Der Trainingsplan-Generator ist eine webbasierte SaaS-Anwendung, die Nutzern
+              zenit-it.fit ist eine webbasierte SaaS-Anwendung, die Nutzern
               ermöglicht, personalisierte Lauftrainingspläne zu erstellen, zu verwalten,
               zu exportieren und (optional) im Marketplace zu veröffentlichen.
             </p>

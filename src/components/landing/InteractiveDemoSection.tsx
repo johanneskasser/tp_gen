@@ -1,12 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import WeeklyChart from '../WeeklyChart';
 import { sampleWeeks } from '../../data/sampleData';
 import { SESSION_TYPE_CONFIG, getSessionTypeLabel, getSessionTypeColor } from '../../constants/sessionTypes';
 import { SessionType } from '../../types';
 
 export function InteractiveDemoSection() {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+
+  const highlights = t('landing.interactive.highlights', { returnObjects: true }) as Array<{ title: string; description: string }>;
+  const highlightEmojis = ['📊', '🎯', '📈'];
+
+  const tooltips: Record<string, string> = {
+    easy: t('landing.interactive.tooltips.easy'),
+    long: t('landing.interactive.tooltips.long'),
+    intervals: t('landing.interactive.tooltips.intervals'),
+    tempo: t('landing.interactive.tooltips.tempo'),
+    recovery: t('landing.interactive.tooltips.recovery'),
+    race: t('landing.interactive.tooltips.race'),
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -17,9 +31,7 @@ export function InteractiveDemoSection() {
           }
         });
       },
-      {
-        threshold: 0.1,
-      }
+      { threshold: 0.1 }
     );
 
     if (sectionRef.current) {
@@ -49,14 +61,14 @@ export function InteractiveDemoSection() {
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
-            Visualisiere deinen Fortschritt
+            {t('landing.interactive.title')}
           </h2>
           <p
             className={`font-body text-lg sm:text-xl text-text-secondary max-w-2xl mx-auto transition-all duration-700 delay-100 ${
               isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
-            Professionelle Diagramme und Analysen zeigen dir genau, wie dein Training aufgebaut ist
+            {t('landing.interactive.description')}
           </p>
         </div>
 
@@ -76,7 +88,7 @@ export function InteractiveDemoSection() {
           }`}
         >
           <h3 className="font-display font-semibold text-2xl text-primary-900 mb-6 text-center">
-            12 verschiedene Trainingstypen
+            {t('landing.interactive.typesTitle')}
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {featuredTypes.map((type, index) => {
@@ -105,12 +117,7 @@ export function InteractiveDemoSection() {
 
                   {/* Hover tooltip */}
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                    {type === 'easy' && 'Lockere Dauerläufe'}
-                    {type === 'long' && 'Lange Läufe für Grundlagenausdauer'}
-                    {type === 'intervals' && 'Hochintensive Intervalleinheiten'}
-                    {type === 'tempo' && 'Tempodauerläufe im Schwellenbereich'}
-                    {type === 'recovery' && 'Regenerationsläufe'}
-                    {type === 'race' && 'Wettkampf oder Testwettkampf'}
+                    {tooltips[type]}
                   </div>
                 </div>
               );
@@ -124,35 +131,13 @@ export function InteractiveDemoSection() {
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`}
         >
-          <div className="bg-white rounded-xl p-6 border border-primary-100 shadow-sm">
-            <div className="text-3xl mb-3">📊</div>
-            <h4 className="font-display font-semibold text-lg text-primary-900 mb-2">
-              Visuelle Analyse
-            </h4>
-            <p className="font-body text-text-secondary text-sm leading-relaxed">
-              Verstehe auf einen Blick die Verteilung deiner Trainingseinheiten und die wöchentliche Intensität
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 border border-primary-100 shadow-sm">
-            <div className="text-3xl mb-3">🎯</div>
-            <h4 className="font-display font-semibold text-lg text-primary-900 mb-2">
-              Personalisiert
-            </h4>
-            <p className="font-body text-text-secondary text-sm leading-relaxed">
-              Die Intensitätsberechnung passt sich an dein Fitnesslevel an und zeigt relative Belastung
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 border border-primary-100 shadow-sm">
-            <div className="text-3xl mb-3">📈</div>
-            <h4 className="font-display font-semibold text-lg text-primary-900 mb-2">
-              Export-Ready
-            </h4>
-            <p className="font-body text-text-secondary text-sm leading-relaxed">
-              Alle Diagramme können als PDF exportiert werden – perfekt zum Ausdrucken oder Teilen
-            </p>
-          </div>
+          {highlights.map((h, i) => (
+            <div key={i} className="bg-white rounded-xl p-6 border border-primary-100 shadow-sm">
+              <div className="text-3xl mb-3">{highlightEmojis[i]}</div>
+              <h4 className="font-display font-semibold text-lg text-primary-900 mb-2">{h.title}</h4>
+              <p className="font-body text-text-secondary text-sm leading-relaxed">{h.description}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>

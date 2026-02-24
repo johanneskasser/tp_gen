@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { MessageSquarePlus, Coins, Users } from 'lucide-react';
 
@@ -30,8 +31,20 @@ function ValueProp({ icon, title, body, delay, isVisible }: ValuePropProps) {
 }
 
 export function BetaCommunitySection() {
+  const { t } = useTranslation();
   const sectionRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
+
+  const propData = t('landing.betaCommunity.props', { returnObjects: true }) as Array<{ title: string; body: string }>;
+  const icons = [<Coins size={22} />, <MessageSquarePlus size={22} />, <Users size={22} />];
+
+  const props: ValuePropProps[] = propData.map((p, i) => ({
+    icon: icons[i],
+    title: p.title,
+    body: p.body,
+    delay: 100 + i * 150,
+    isVisible,
+  }));
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -45,30 +58,6 @@ export function BetaCommunitySection() {
       observer.disconnect();
     };
   }, []);
-
-  const props: ValuePropProps[] = [
-    {
-      icon: <Coins size={22} />,
-      title: 'Kostenlos — und bleibt es',
-      body: 'Der Trainingsplan-Generator ist und bleibt kostenlos. Kein Abo, kein Paywall. Künftig kommt ein Marketplace, auf dem Läufer ihre Pläne für faire Preise teilen können — die App selbst bleibt gratis.',
-      delay: 100,
-      isVisible,
-    },
-    {
-      icon: <MessageSquarePlus size={22} />,
-      title: 'Dein Feedback zählt',
-      body: 'Du bist früh dabei. Dein direktes Feedback beeinflusst, welche Features wir als nächstes bauen und wie die App sich anfühlt.',
-      delay: 250,
-      isVisible,
-    },
-    {
-      icon: <Users size={22} />,
-      title: 'Teil der ersten Community',
-      body: 'Frühe User prägen mit, wie die App wird. Wir hören zu, reagieren schnell und bauen das hier gemeinsam.',
-      delay: 400,
-      isVisible,
-    },
-  ];
 
   return (
     <section
@@ -95,13 +84,13 @@ export function BetaCommunitySection() {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-400/15 border border-yellow-400/30 mb-6">
             <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
             <span className="font-body text-sm font-semibold text-yellow-300 tracking-wide uppercase">
-              Öffentliche Beta
+              {t('landing.betaCommunity.badge')}
             </span>
           </div>
           <h2 className="font-display font-bold text-4xl sm:text-5xl md:text-6xl text-white leading-tight max-w-2xl">
-            Du bist früh dabei.
+            {t('landing.betaCommunity.headline')}
             <br />
-            <span className="text-white/50">Das ist ein Vorteil.</span>
+            <span className="text-white/50">{t('landing.betaCommunity.headlineAccent')}</span>
           </h2>
         </div>
 
@@ -123,7 +112,7 @@ export function BetaCommunitySection() {
             className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-900 font-body font-semibold rounded-xl hover:bg-white/90 transition-colors shadow-lg"
           >
             <MessageSquarePlus size={18} />
-            Feedback geben
+            {t('landing.betaCommunity.cta')}
           </Link>
         </div>
       </div>
