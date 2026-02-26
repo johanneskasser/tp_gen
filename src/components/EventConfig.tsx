@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { de } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -7,11 +7,12 @@ import { RaceEvent, RaceDistance, TerrainType } from '../types';
 import {
   Calendar,
   Mountain,
-  MapPin,
   Timer,
   Zap,
   Pencil,
   Route,
+  ChevronDown,
+  Copy,
 } from 'lucide-react';
 import { calculatePace, formatPace } from '../utils/paceCalculator';
 import { getRaceDistanceKm } from '../utils/calculationUtils';
@@ -24,6 +25,19 @@ interface EventConfigProps {
   onSubmit: (event: RaceEvent, startDate: string) => void;
   initialData?: RaceEvent;
   initialStartDate?: string;
+  /** Fires whenever distance, targetTime, or the date pickers change — used by the parent to drive marketplace search */
+  onSearchParamsChange?: (
+    distance: RaceDistance,
+    targetTime: string,
+    startDate: Date | null,
+    eventDate: Date | null
+  ) => void;
+  /** When defined the form shows a "Plan klonen" primary button (clone mode) */
+  onClone?: (event: RaceEvent, startDate: string) => void;
+  /** Called when user clicks "Neu erstellen" to exit clone mode */
+  onDeselect?: () => void;
+  /** Shows a loading spinner on the "Plan klonen" button */
+  isCloneLoading?: boolean;
 }
 
 const distanceOptions: { value: RaceDistance; label: string; km: string }[] = [
@@ -38,6 +52,10 @@ export default function EventConfig({
   onSubmit,
   initialData,
   initialStartDate,
+  onSearchParamsChange,
+  onClone,
+  onDeselect,
+  isCloneLoading = false,
 }: EventConfigProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [eventDate, setEventDate] = useState<Date | null>(
@@ -60,32 +78,54 @@ export default function EventConfig({
   );
   const [targetTime, setTargetTime] = useState(initialData?.targetTime || '');
 
+  const [showAdvanced, setShowAdvanced] = useState(
+    Boolean(initialData?.name || initialData?.terrain === 'trail' || initialData?.customDistance)
+  );
+
+  // Tracks which submit button was clicked so handleSubmit knows which action to run.
+  // React onClick fires synchronously before the form's onSubmit, so the ref is
+  // always set before handleSubmit reads it.
+  const cloneModeRef = useRef(false);
+
+  // Notify parent whenever search-relevant fields change
+  useEffect(() => {
+    onSearchParamsChange?.(distance, targetTime, startDate, eventDate);
+  }, [distance, targetTime, startDate, eventDate, onSearchParamsChange]);
+
+  const buildEvent = (): RaceEvent => ({
+    name:
+      name.trim() ||
+      `${distance === 'CUSTOM' ? customDistance + ' km' : distance} Event`,
+    date: formatDate(eventDate!),
+    distance,
+    customDistance:
+      distance === 'CUSTOM' ? parseFloat(customDistance) : undefined,
+    terrain,
+    elevationGain:
+      terrain === 'trail' && elevationGain ? parseInt(elevationGain) : undefined,
+    targetTime: targetTime || undefined,
+  });
+
+  const formatDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!eventDate || !startDate) return;
 
-    const formatDate = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
+    const event = buildEvent();
+    const startDateStr = formatDate(startDate);
 
-    const event: RaceEvent = {
-      name,
-      date: formatDate(eventDate),
-      distance,
-      customDistance:
-        distance === 'CUSTOM' ? parseFloat(customDistance) : undefined,
-      terrain,
-      elevationGain:
-        terrain === 'trail' && elevationGain
-          ? parseInt(elevationGain)
-          : undefined,
-      targetTime: targetTime || undefined,
-    };
-
-    onSubmit(event, formatDate(startDate));
+    if (cloneModeRef.current && onClone) {
+      onClone(event, startDateStr);
+    } else {
+      onSubmit(event, startDateStr);
+    }
+    cloneModeRef.current = false;
   };
 
   const calculatedPace = (() => {
@@ -117,68 +157,95 @@ export default function EventConfig({
     return { totalDays, weeks, remainingDays, daysUntilStart };
   })();
 
-  // Consistent date input class that matches the Input component styling
   const dateInputClass =
     'w-full px-3 py-2 text-sm rounded-lg border border-border-medium bg-white text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-primary-400 transition-colors';
 
+  const sectionLabel =
+    'block text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400';
+
+  const isCloneMode = Boolean(onClone);
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {/* ── Section 1: Event details ── */}
-      <section className="space-y-4">
-        <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-          Event Details
-        </h3>
+    <form onSubmit={handleSubmit} className="space-y-6">
 
-        <Input
-          label="Event Name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="z.B. Berlin Marathon 2025"
-          required
-          leftIcon={<Route className="w-4 h-4" />}
-        />
+      {/* ── Hero: Distance selection ── */}
+      <div className="space-y-3">
+        <span className={sectionLabel}>Wettkampfdistanz</span>
+        <div className="flex flex-wrap gap-2">
+          {distanceOptions.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setDistance(opt.value)}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold tracking-tight border-2 transition-all duration-200',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
+                distance === opt.value
+                  ? 'border-primary-600 bg-primary-600 text-white shadow-md shadow-primary-200 scale-[1.04]'
+                  : 'border-slate-200 bg-white text-slate-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700'
+              )}
+            >
+              {opt.value === 'CUSTOM' && <Pencil size={13} className="shrink-0" />}
+              {opt.label}
+            </button>
+          ))}
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {distance === 'CUSTOM' && (
+          <div className="pt-1">
+            <Input
+              type="number"
+              step="0.1"
+              value={customDistance}
+              onChange={(e) => setCustomDistance(e.target.value)}
+              placeholder="Distanz in km"
+              required
+              rightIcon={
+                <span className="text-xs font-bold text-slate-400">km</span>
+              }
+            />
+          </div>
+        )}
+      </div>
+
+      {/* ── Dates ── */}
+      <div className="space-y-2.5">
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-text-secondary">
-              Trainingsstart
-            </label>
+            <label className={sectionLabel}>Trainingsstart</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-tertiary">
-                <Calendar className="w-4 h-4" />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Calendar className="w-3.5 h-3.5 text-slate-400" />
               </div>
               <DatePicker
                 selected={startDate}
                 onChange={(date: Date | null) => setStartDate(date)}
                 locale="de"
                 dateFormat="dd.MM.yyyy"
-                className={cn(dateInputClass, 'pl-10')}
-                placeholderText="Datum wählen"
+                className={cn(dateInputClass, 'pl-9')}
+                placeholderText="TT.MM.JJJJ"
                 required
                 calendarStartDay={1}
               />
             </div>
-            <p className="text-xs text-text-tertiary">
-              Wochentag bestimmt den Wochenstart
+            <p className="text-[11px] text-text-tertiary">
+              Wochentag = Wochenstart
             </p>
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-text-secondary">
-              Event Datum
-            </label>
+            <label className={sectionLabel}>Event Datum</label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-tertiary">
-                <Calendar className="w-4 h-4" />
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Calendar className="w-3.5 h-3.5 text-slate-400" />
               </div>
               <DatePicker
                 selected={eventDate}
                 onChange={(date: Date | null) => setEventDate(date)}
                 locale="de"
                 dateFormat="dd.MM.yyyy"
-                className={cn(dateInputClass, 'pl-10')}
-                placeholderText="Datum wählen"
+                className={cn(dateInputClass, 'pl-9')}
+                placeholderText="TT.MM.JJJJ"
                 required
                 calendarStartDay={1}
                 minDate={startDate || undefined}
@@ -187,170 +254,171 @@ export default function EventConfig({
           </div>
         </div>
 
-        {/* Training overview - appears once dates are set */}
+        {/* Training duration summary */}
         {trainingInfo && (
-          <div className="rounded-lg border border-primary-200 bg-primary-50/60 p-3">
-            <div className="flex items-center gap-6 text-sm">
-              <span className="text-text-secondary">
-                <span className="font-semibold text-primary-700 font-mono">
-                  {trainingInfo.weeks}
-                </span>{' '}
-                {trainingInfo.weeks === 1 ? 'Woche' : 'Wochen'}
-                {trainingInfo.remainingDays > 0 && (
-                  <span className="text-text-tertiary">
-                    {' '}
-                    + {trainingInfo.remainingDays}d
-                  </span>
-                )}
-              </span>
-              <span className="text-slate-300">|</span>
-              <span className="text-text-secondary">
-                <span className="font-semibold text-primary-700 font-mono">
-                  {trainingInfo.totalDays}
-                </span>{' '}
-                Tage gesamt
-              </span>
-              <span className="text-slate-300">|</span>
-              <span className="text-text-secondary">
-                Noch{' '}
-                <span className="font-semibold text-primary-700 font-mono">
-                  {trainingInfo.daysUntilStart}
-                </span>{' '}
-                Tage bis Start
-              </span>
-            </div>
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
+            <span className="font-bold text-primary-600 font-mono">
+              {trainingInfo.weeks}
+            </span>
+            <span>{trainingInfo.weeks === 1 ? 'Woche' : 'Wochen'}</span>
+            {trainingInfo.remainingDays > 0 && (
+              <span className="text-slate-400">+{trainingInfo.remainingDays}d</span>
+            )}
+            <span className="text-slate-300">·</span>
+            <span className="font-bold text-primary-600 font-mono">
+              {trainingInfo.totalDays}
+            </span>
+            <span>Tage</span>
+            <span className="text-slate-300">·</span>
+            <span>Noch</span>
+            <span className="font-bold text-primary-600 font-mono">
+              {trainingInfo.daysUntilStart}
+            </span>
+            <span>Tage bis Start</span>
           </div>
         )}
-      </section>
+      </div>
 
-      {/* ── Section 2: Distance & Terrain ── */}
-      <section className="space-y-4">
-        <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-          Distanz & Terrain
-        </h3>
-
-        {/* Distance pills */}
-        <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-text-secondary flex items-center gap-1.5">
-            <MapPin size={14} />
-            Distanz
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {distanceOptions.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setDistance(opt.value)}
-                className={cn(
-                  'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium border transition-colors',
-                  distance === opt.value
-                    ? 'border-primary-600 bg-primary-600 text-white'
-                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                )}
-              >
-                {opt.value === 'CUSTOM' && <Pencil size={13} />}
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
-          {distance === 'CUSTOM' && (
-            <div className="pt-1">
-              <Input
-                type="number"
-                step="0.1"
-                value={customDistance}
-                onChange={(e) => setCustomDistance(e.target.value)}
-                placeholder="Distanz in km"
-                required
-                rightIcon={<span className="text-xs text-text-tertiary">km</span>}
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Terrain toggle */}
-        <div className="space-y-1.5">
-          <label className="block text-sm font-medium text-text-secondary">
-            Terrain
-          </label>
-          <div className="inline-flex rounded-lg border border-slate-200 p-1 bg-slate-50">
-            <button
-              type="button"
-              onClick={() => setTerrain('road')}
-              className={cn(
-                'inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
-                terrain === 'road'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-              )}
-            >
-              <Zap size={16} />
-              Straße
-            </button>
-            <button
-              type="button"
-              onClick={() => setTerrain('trail')}
-              className={cn(
-                'inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
-                terrain === 'trail'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-              )}
-            >
-              <Mountain size={16} />
-              Trail
-            </button>
-          </div>
-        </div>
-
-        {terrain === 'trail' && (
-          <Input
-            type="number"
-            label="Höhenmeter (optional)"
-            value={elevationGain}
-            onChange={(e) => setElevationGain(e.target.value)}
-            placeholder="z.B. 1500"
-            leftIcon={<Mountain className="w-4 h-4" />}
-            rightIcon={<span className="text-xs text-text-tertiary">hm</span>}
-          />
-        )}
-      </section>
-
-      {/* ── Section 3: Performance ── */}
-      <section className="space-y-4">
-        <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-          Leistungsziel (optional)
-        </h3>
-
+      {/* ── Zielzeit ── */}
+      <div className="space-y-2">
         <Input
           type="text"
-          label="Zielzeit"
+          label={
+            <span>
+              Zielzeit{' '}
+              <span className="text-xs font-normal text-text-tertiary normal-case tracking-normal">
+                (optional)
+              </span>
+            </span>
+          }
           value={targetTime}
           onChange={(e) => setTargetTime(e.target.value)}
           placeholder="z.B. 45:00 oder 1:30:00"
           leftIcon={<Timer className="w-4 h-4" />}
           helperText="Format: MM:SS oder HH:MM:SS"
         />
-
         {calculatedPace && (
-          <div className="flex items-center gap-2 text-sm text-primary-700 bg-primary-50 border border-primary-100 px-3 py-2.5 rounded-lg">
-            <Zap size={14} className="shrink-0" />
+          <div className="flex items-center gap-2 text-xs font-semibold text-primary-700 bg-primary-50/80 border border-primary-100 px-3 py-2 rounded-lg">
+            <Zap size={12} className="shrink-0 text-primary-500" />
             <span>
-              Durchschnittliche Pace:{' '}
-              <span className="font-semibold font-mono">
-                {formatPace(calculatedPace)}
-              </span>
+              Ø Pace:{' '}
+              <span className="font-mono">{formatPace(calculatedPace)}</span>{' '}
+              min/km
             </span>
           </div>
         )}
-      </section>
+      </div>
 
-      {/* ── Submit ── */}
-      <div className="pt-2">
-        <Button type="submit" fullWidth size="lg">
-          Trainingsplan erstellen
-        </Button>
+      {/* ── Advanced toggle ── */}
+      <div>
+        <div className="border-t border-slate-100 pt-4">
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="flex items-center gap-2 text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors focus:outline-none"
+          >
+            <ChevronDown
+              size={13}
+              className={cn(
+                'transition-transform duration-200',
+                showAdvanced && 'rotate-180'
+              )}
+            />
+            Weitere Details {showAdvanced ? 'ausblenden' : 'einblenden'}
+          </button>
+        </div>
+
+        {showAdvanced && (
+          <div className="mt-4 space-y-4">
+            <Input
+              label="Event Name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="z.B. Berlin Marathon 2025"
+              leftIcon={<Route className="w-4 h-4" />}
+            />
+
+            <div className="space-y-1.5">
+              <label className={sectionLabel}>Terrain</label>
+              <div className="inline-flex rounded-lg border border-slate-200 p-1 bg-slate-50">
+                <button
+                  type="button"
+                  onClick={() => setTerrain('road')}
+                  className={cn(
+                    'inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
+                    terrain === 'road'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
+                  )}
+                >
+                  <Zap size={15} />
+                  Straße
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTerrain('trail')}
+                  className={cn(
+                    'inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors',
+                    terrain === 'trail'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-500 hover:text-slate-700'
+                  )}
+                >
+                  <Mountain size={15} />
+                  Trail
+                </button>
+              </div>
+            </div>
+
+            {terrain === 'trail' && (
+              <Input
+                type="number"
+                label="Höhenmeter (optional)"
+                value={elevationGain}
+                onChange={(e) => setElevationGain(e.target.value)}
+                placeholder="z.B. 1500"
+                leftIcon={<Mountain className="w-4 h-4" />}
+                rightIcon={
+                  <span className="text-xs font-bold text-slate-400">hm</span>
+                }
+              />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Submit area ── */}
+      <div className="pt-2 space-y-2">
+        {isCloneMode ? (
+          <>
+            {/* Clone mode: primary = clone, secondary = create fresh */}
+            <Button
+              type="submit"
+              fullWidth
+              size="lg"
+              loading={isCloneLoading}
+              onClick={() => { cloneModeRef.current = true; }}
+            >
+              <Copy size={16} />
+              Plan klonen
+            </Button>
+            <button
+              type="submit"
+              onClick={() => {
+                cloneModeRef.current = false;
+                onDeselect?.();
+              }}
+              className="w-full text-sm text-slate-400 hover:text-slate-600 py-1.5 transition-colors focus:outline-none"
+            >
+              Lieber neu erstellen →
+            </button>
+          </>
+        ) : (
+          <Button type="submit" fullWidth size="lg">
+            Trainingsplan erstellen
+          </Button>
+        )}
       </div>
     </form>
   );
