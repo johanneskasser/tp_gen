@@ -537,13 +537,13 @@ export default function PlanDetailPage() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  onClick={() => user ? setShowCloneModal(true) : navigate(loginRedirect)}
+                  onClick={() => setShowCloneModal(true)}
                   variant="default"
                   size="sm"
                   className="gap-1.5"
                 >
                   <Copy size={16} />
-                  <span>{user ? 'Kopieren' : t('publicCta.signUpFree')}</span>
+                  <span>Kopieren</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Plan kopieren & anpassen</TooltipContent>
@@ -597,7 +597,7 @@ export default function PlanDetailPage() {
               </h1>
 
               <Button
-                onClick={() => user ? setShowCloneModal(true) : navigate(loginRedirect)}
+                onClick={() => setShowCloneModal(true)}
                 variant="default"
                 size="sm"
                 className="px-2"
@@ -1277,7 +1277,11 @@ export default function PlanDetailPage() {
             onSuccess={(newPlanId) => {
               setShowCloneModal(false);
               toast.success('Plan erfolgreich kopiert!');
-              navigate(`/plan/${newPlanId}`);
+              if (newPlanId === 'guest') {
+                navigate('/editor');
+              } else {
+                navigate(`/plan/${newPlanId}`);
+              }
             }}
           />
         )}
