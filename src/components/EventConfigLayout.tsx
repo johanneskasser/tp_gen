@@ -8,6 +8,7 @@ import { useMarketplaceSearch } from '../hooks/useMarketplaceSearch';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { marketplaceService } from '../services/marketplaceService';
+import { GUEST_PLAN_KEY } from '../hooks/useGuestPlanMigration';
 import { calculateWeeks } from '../utils/dateUtils';
 import { calculateWeeklyKm, getRaceDistanceKm } from '../utils/calculationUtils';
 import { ArrowLeft, Upload } from 'lucide-react';
@@ -174,11 +175,6 @@ export default function EventConfigLayout({
     async (event: RaceEvent, startDateStr: string) => {
       if (!selectedPlan) return;
 
-      if (!user) {
-        navigate('/login', { state: { from: '/plan/new' } });
-        return;
-      }
-
       setCloningLoading(true);
       try {
         const weekData = calculateWeeks(startDateStr, event.date);
@@ -230,18 +226,43 @@ export default function EventConfigLayout({
         });
 
         const newPlan: TrainingPlan = { event, startDate: startDateStr, weeks };
-        const newPlanId = await marketplaceService.clonePlan(
-          selectedPlan.id,
-          newPlan
-        );
-        if (droppedWeeks > 0) {
-          toast.success(
-            `Plan geklont! Die ersten ${droppedWeeks} Aufbau-${droppedWeeks === 1 ? 'Woche wurde' : 'Wochen wurden'} gekürzt — der Plan startet jetzt direkt mit der intensiveren Phase.`
-          );
+
+        if (!user) {
+          // Guest path: save to localStorage so the plan is available in /editor
+          const existingPlan = localStorage.getItem(GUEST_PLAN_KEY);
+          if (existingPlan) {
+            const confirmed = window.confirm(
+              'Du hast bereits einen Gast-Plan. Soll er durch den kopierten Plan ersetzt werden?'
+            );
+            if (!confirmed) {
+              setCloningLoading(false);
+              return;
+            }
+          }
+          try {
+            localStorage.setItem(GUEST_PLAN_KEY, JSON.stringify(newPlan));
+          } catch {
+            toast.error('Der Plan konnte nicht lokal gespeichert werden. Möglicherweise ist der Speicher voll.');
+            setCloningLoading(false);
+            return;
+          }
+          await marketplaceService.incrementCloneCount(selectedPlan.id);
+          toast.success('Plan kopiert! Du kannst ihn jetzt bearbeiten.');
+          navigate('/editor');
         } else {
-          toast.success('Plan geklont! Du kannst ihn jetzt bearbeiten.');
+          const newPlanId = await marketplaceService.clonePlan(
+            selectedPlan.id,
+            newPlan
+          );
+          if (droppedWeeks > 0) {
+            toast.success(
+              `Plan geklont! Die ersten ${droppedWeeks} Aufbau-${droppedWeeks === 1 ? 'Woche wurde' : 'Wochen wurden'} gekürzt — der Plan startet jetzt direkt mit der intensiveren Phase.`
+            );
+          } else {
+            toast.success('Plan geklont! Du kannst ihn jetzt bearbeiten.');
+          }
+          navigate(`/plan/${newPlanId}`);
         }
-        navigate(`/plan/${newPlanId}`);
       } catch (err) {
         console.error(err);
         toast.error('Klonen fehlgeschlagen – bitte erneut versuchen');
