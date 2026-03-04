@@ -10,6 +10,7 @@ import { typography, cn } from '../lib/designSystem';
 import { Calendar, Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { analytics } from '../utils/analytics';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ClonePlanModalProps {
   plan: MarketplacePlan;
@@ -22,6 +23,8 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
   const [eventDate, setEventDate] = useState('');
   const [eventName, setEventName] = useState(plan.plan_data.event.name);
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const GUEST_PLAN_KEY = 'tp_guest_plan';
 
   const originalWeeksCount = plan.plan_data.weeks.length;
 
@@ -47,7 +50,6 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
 
       // Map original sessions to new week structure
       const newWeeks: TrainingWeek[] = newWeekStructures.map((weekStructure, idx) => {
-        // Get original week data (reuse if available, or use last week as template)
         const originalWeek =
           plan.plan_data.weeks[idx] || plan.plan_data.weeks[plan.plan_data.weeks.length - 1];
 
@@ -56,16 +58,14 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
           sessions: originalWeek.sessions.map((session: TrainingSession) => ({
             ...session,
           })),
-          totalKm: 0, // Will be recalculated below
+          totalKm: 0,
         };
 
-        // Recalculate totalKm
         newWeek.totalKm = calculateWeeklyKm(newWeek.sessions);
-
         return newWeek;
       });
 
-      // Create new plan
+      // Create new plan object
       const newPlan: TrainingPlan = {
         ...plan.plan_data,
         event: {
@@ -77,11 +77,28 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
         weeks: newWeeks,
       };
 
-      // Clone via service
-      const newPlanId = await marketplaceService.clonePlan(plan.id, newPlan);
-
-      analytics.trackPlanCloned(plan.plan_data.event.distance);
-      onSuccess(newPlanId);
+      if (!user) {
+        // Guest path: save to localStorage
+        const existingPlan = localStorage.getItem(GUEST_PLAN_KEY);
+        if (existingPlan) {
+          const confirmed = window.confirm(
+            'Du hast bereits einen Gast-Plan. Soll er durch den kopierten Plan ersetzt werden?'
+          );
+          if (!confirmed) {
+            setLoading(false);
+            return;
+          }
+        }
+        localStorage.setItem(GUEST_PLAN_KEY, JSON.stringify(newPlan));
+        await marketplaceService.incrementCloneCount(plan.id);
+        analytics.trackPlanCloned(plan.plan_data.event.distance);
+        onSuccess('guest');
+      } else {
+        // Auth path: save to Supabase
+        const newPlanId = await marketplaceService.clonePlan(plan.id, newPlan);
+        analytics.trackPlanCloned(plan.plan_data.event.distance);
+        onSuccess(newPlanId);
+      }
     } catch (err) {
       console.error('Error cloning plan:', err);
       alert('Fehler beim Kopieren des Plans');
@@ -130,8 +147,9 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
         {/* Info */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className={cn(typography.bodySmall, 'text-blue-800')}>
-            Du kannst diesen Plan an deinen eigenen Zeitraum anpassen. Die Trainingseinheiten
-            werden automatisch auf die neuen Wochen verteilt.
+            {user
+              ? 'Du kannst diesen Plan an deinen eigenen Zeitraum anpassen. Die Trainingseinheiten werden automatisch auf die neuen Wochen verteilt.'
+              : 'Der Plan wird lokal in deinem Browser gespeichert. Erstelle einen Account, um ihn dauerhaft zu sichern und zu veröffentlichen.'}
           </p>
         </div>
 
@@ -216,8 +234,10 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
         {/* Additional Info */}
         <div className="border-t border-gray-200 pt-4">
           <p className={cn(typography.bodySmall, 'text-text-tertiary')}>
-            <strong>Hinweis:</strong> Nach dem Kopieren kannst du den Plan in deinem Dashboard
-            weiter bearbeiten und an deine Bedürfnisse anpassen.
+            <strong>Hinweis:</strong>{' '}
+            {user
+              ? 'Nach dem Kopieren kannst du den Plan in deinem Dashboard weiter bearbeiten und an deine Bedürfnisse anpassen.'
+              : 'Nach dem Kopieren öffnet sich der Editor. Du kannst den Plan jederzeit exportieren oder nach der Registrierung in deinem Account speichern.'}
           </p>
         </div>
       </div>
