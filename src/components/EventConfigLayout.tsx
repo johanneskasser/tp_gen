@@ -248,7 +248,7 @@ export default function EventConfigLayout({
           }
           await marketplaceService.incrementCloneCount(selectedPlan.id);
           toast.success('Plan kopiert! Du kannst ihn jetzt bearbeiten.');
-          navigate('/editor');
+          window.location.href = '/editor';
         } else {
           const newPlanId = await marketplaceService.clonePlan(
             selectedPlan.id,
