@@ -11,6 +11,7 @@ import { Calendar, Loader2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { analytics } from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
+import { GUEST_PLAN_KEY } from '../hooks/useGuestPlanMigration';
 
 interface ClonePlanModalProps {
   plan: MarketplacePlan;
@@ -24,7 +25,6 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
   const [eventName, setEventName] = useState(plan.plan_data.event.name);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
-  const GUEST_PLAN_KEY = 'tp_guest_plan';
 
   const originalWeeksCount = plan.plan_data.weeks.length;
 
@@ -89,7 +89,13 @@ export default function ClonePlanModal({ plan, onClose, onSuccess }: ClonePlanMo
             return;
           }
         }
-        localStorage.setItem(GUEST_PLAN_KEY, JSON.stringify(newPlan));
+        try {
+          localStorage.setItem(GUEST_PLAN_KEY, JSON.stringify(newPlan));
+        } catch {
+          alert('Der Plan konnte nicht lokal gespeichert werden. Möglicherweise ist der Speicher voll.');
+          setLoading(false);
+          return;
+        }
         await marketplaceService.incrementCloneCount(plan.id);
         analytics.trackPlanCloned(plan.plan_data.event.distance);
         onSuccess('guest');
