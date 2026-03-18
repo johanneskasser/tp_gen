@@ -18,6 +18,7 @@ export interface Database {
           view_count: number;
           clone_count: number;
           is_template: boolean;
+          coach_id?: string | null;
         };
         Insert: {
           id?: string;
@@ -33,6 +34,7 @@ export interface Database {
           view_count?: number;
           clone_count?: number;
           is_template?: boolean;
+          coach_id?: string | null;
         };
         Update: {
           id?: string;
@@ -48,6 +50,59 @@ export interface Database {
           view_count?: number;
           clone_count?: number;
           is_template?: boolean;
+          coach_id?: string | null;
+        };
+      };
+      coaching_requests: {
+        Row: {
+          id: string;
+          coach_id: string;
+          athlete_id: string;
+          status: 'pending' | 'approved' | 'rejected';
+          created_at: string;
+          responded_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          coach_id: string;
+          athlete_id: string;
+          status?: 'pending' | 'approved' | 'rejected';
+          created_at?: string;
+          responded_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          coach_id?: string;
+          athlete_id?: string;
+          status?: 'pending' | 'approved' | 'rejected';
+          created_at?: string;
+          responded_at?: string | null;
+        };
+      };
+      notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          type: 'coaching_request' | 'coaching_plan_received';
+          payload: Record<string, unknown>;
+          read: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          type: 'coaching_request' | 'coaching_plan_received';
+          payload: Record<string, unknown>;
+          read?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          type?: 'coaching_request' | 'coaching_plan_received';
+          payload?: Record<string, unknown>;
+          read?: boolean;
+          created_at?: string;
         };
       };
       plan_likes: {

@@ -12,6 +12,7 @@ export interface PersonalBest {
 
 export interface UserProfile {
   id: string;
+  username?: string;
   name: string;
   age?: number;
   gender?: 'male' | 'female' | 'other';

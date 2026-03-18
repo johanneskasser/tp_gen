@@ -47,6 +47,60 @@ export type Database = {
         }
         Relationships: []
       }
+      coaching_requests: {
+        Row: {
+          id: string
+          coach_id: string
+          athlete_id: string
+          status: 'pending' | 'approved' | 'rejected'
+          created_at: string
+          responded_at: string | null
+        }
+        Insert: {
+          id?: string
+          coach_id: string
+          athlete_id: string
+          status?: 'pending' | 'approved' | 'rejected'
+          created_at?: string
+          responded_at?: string | null
+        }
+        Update: {
+          id?: string
+          coach_id?: string
+          athlete_id?: string
+          status?: 'pending' | 'approved' | 'rejected'
+          created_at?: string
+          responded_at?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: 'coaching_request' | 'coaching_plan_received'
+          payload: Record<string, unknown>
+          read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: 'coaching_request' | 'coaching_plan_received'
+          payload: Record<string, unknown>
+          read?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: 'coaching_request' | 'coaching_plan_received'
+          payload?: Record<string, unknown>
+          read?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
       plan_comments: {
         Row: {
           comment: string
@@ -264,6 +318,7 @@ export type Database = {
           user_id: string
           view_count: number
           visibility: Database["public"]["Enums"]["plan_visibility"]
+          coach_id?: string | null
         }
         Insert: {
           clone_count?: number
@@ -280,6 +335,7 @@ export type Database = {
           user_id: string
           view_count?: number
           visibility?: Database["public"]["Enums"]["plan_visibility"]
+          coach_id?: string | null
         }
         Update: {
           clone_count?: number
@@ -296,6 +352,7 @@ export type Database = {
           user_id?: string
           view_count?: number
           visibility?: Database["public"]["Enums"]["plan_visibility"]
+          coach_id?: string | null
         }
         Relationships: []
       }
@@ -381,6 +438,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          username: string | null
           estimated_vo2_max: number | null
           follower_count: number
           following_count: number
@@ -426,6 +484,7 @@ export type Database = {
           weight_kg?: number | null
           weekly_km_base?: number | null
           years_running?: number | null
+          username?: string | null
         }
         Update: {
           age?: number | null
@@ -452,6 +511,7 @@ export type Database = {
           weight_kg?: number | null
           weekly_km_base?: number | null
           years_running?: number | null
+          username?: string | null
         }
         Relationships: []
       }

@@ -76,6 +76,7 @@ export async function fetchRunnerProfile(userId: string): Promise<UserProfile | 
 
     const profile: UserProfile = {
       id: profileData.id,
+      username: profileData.username || undefined,
       name: profileData.full_name || 'Läufer',
       age: profileData.age || undefined,
       gender: profileData.gender as 'male' | 'female' | 'other' | undefined,
