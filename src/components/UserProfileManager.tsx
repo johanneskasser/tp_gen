@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { UserProfile, PersonalBest } from '../types/userProfile';
 import { getBestVDOT, calculateTrainingZones, getFitnessCategory, formatPace, projectRaceTime } from '../utils/vdotCalculator';
-import { User, Plus, TrendingUp, Award, Target } from 'lucide-react';
+import { User, Plus, TrendingUp, Award, Target, Check, X, Loader2 } from 'lucide-react';
 import { PersonalBestInput } from './PersonalBestInput';
 import { PersonalBestCard } from './PersonalBestCard';
+import { checkUsernameAvailable, updateUsername } from '../services/runnerProfileService';
 
 interface Props {
   profile: UserProfile;
@@ -16,8 +18,46 @@ interface Props {
  * for personalized intensity calculations
  */
 export function UserProfileManager({ profile, onUpdateProfile }: Props) {
+  const { t } = useTranslation();
   const [showPBForm, setShowPBForm] = useState(false);
   const [deletingIndex, setDeletingIndex] = useState<number | null>(null);
+
+  const [usernameInput, setUsernameInput] = useState(profile?.username || '');
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
+  const [usernameDebounceTimer, setUsernameDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (usernameDebounceTimer) clearTimeout(usernameDebounceTimer);
+    if (!usernameInput || usernameInput === profile?.username) {
+      setUsernameStatus('idle');
+      return;
+    }
+    const isValid = /^[a-zA-Z0-9_]+$/.test(usernameInput);
+    if (!isValid) {
+      setUsernameStatus('invalid');
+      return;
+    }
+    setUsernameStatus('checking');
+    const timer = setTimeout(async () => {
+      try {
+        const available = await checkUsernameAvailable(usernameInput, profile!.id);
+        setUsernameStatus(available ? 'available' : 'taken');
+      } catch {
+        setUsernameStatus('idle');
+      }
+    }, 500);
+    setUsernameDebounceTimer(timer);
+  }, [usernameInput]);
+
+  const handleSaveUsername = async () => {
+    if (usernameStatus !== 'available') return;
+    try {
+      await updateUsername(profile!.id, usernameInput);
+      setUsernameStatus('idle');
+    } catch (err) {
+      console.error('Username update failed:', err);
+    }
+  };
 
   const handleAddPB = async (pb: PersonalBest) => {
     try {
@@ -125,6 +165,58 @@ export function UserProfileManager({ profile, onUpdateProfile }: Props) {
         <p className="text-xs text-slate-500 mt-1">
           Dein durchschnittliches wöchentliches Laufvolumen
         </p>
+      </div>
+
+      {/* Username */}
+      <div>
+        <label className="block text-sm font-medium text-slate-700 mb-2">
+          {t('profile.username')}
+        </label>
+        <div className="flex items-center gap-2">
+          <div className="relative flex items-center w-full sm:w-64">
+            <span className="absolute left-3 text-slate-400 select-none">@</span>
+            <input
+              type="text"
+              value={usernameInput}
+              onChange={(e) => setUsernameInput(e.target.value)}
+              placeholder={t('profile.usernamePlaceholder').replace('@', '')}
+              className="w-full pl-7 pr-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <button
+            onClick={handleSaveUsername}
+            disabled={usernameStatus !== 'available'}
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {t('profile.updateUsername')}
+          </button>
+        </div>
+        <div className="mt-1 min-h-[1.25rem]">
+          {usernameStatus === 'checking' && (
+            <span className="flex items-center gap-1 text-xs text-slate-500">
+              <Loader2 size={12} className="animate-spin" />
+              Wird geprüft...
+            </span>
+          )}
+          {usernameStatus === 'available' && (
+            <span className="flex items-center gap-1 text-xs text-green-600">
+              <Check size={12} />
+              {t('profile.usernameAvailable')}
+            </span>
+          )}
+          {usernameStatus === 'taken' && (
+            <span className="flex items-center gap-1 text-xs text-red-600">
+              <X size={12} />
+              {t('profile.usernameTaken')}
+            </span>
+          )}
+          {usernameStatus === 'invalid' && (
+            <span className="flex items-center gap-1 text-xs text-red-600">
+              <X size={12} />
+              {t('profile.usernameInvalid')}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Personal Bests */}
