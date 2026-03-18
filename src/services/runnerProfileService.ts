@@ -322,3 +322,36 @@ export async function initializeRunnerProfile(userId: string, email: string): Pr
     throw error;
   }
 }
+
+/**
+ * Check if username is available
+ */
+export async function checkUsernameAvailable(
+  username: string,
+  currentUserId: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .ilike('username', username)
+    .neq('id', currentUserId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data === null; // true = available
+}
+
+/**
+ * Update user username
+ */
+export async function updateUsername(
+  userId: string,
+  username: string
+): Promise<void> {
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ username })
+    .eq('id', userId);
+
+  if (error) throw error;
+}
