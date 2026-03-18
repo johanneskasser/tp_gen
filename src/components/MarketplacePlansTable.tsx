@@ -10,6 +10,7 @@ import {
   Check,
 } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
+import { formatTargetTime } from '../utils/timeInputFormatter';
 import {
   Table,
   TableBody,
@@ -139,7 +140,7 @@ export function MarketplacePlansTable({ plans, runnerProfile }: MarketplacePlans
                   {/* Target Time */}
                   <TableCell>
                     {plan.plan_data?.event?.targetTime ? (
-                      <span className="text-sm">{plan.plan_data.event.targetTime}</span>
+                      <span className="text-sm">{formatTargetTime(plan.plan_data.event.targetTime)}</span>
                     ) : (
                       <span className="text-muted-foreground text-sm">—</span>
                     )}

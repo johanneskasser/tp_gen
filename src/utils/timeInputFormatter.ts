@@ -129,3 +129,34 @@ export function getAdjustedCursorPosition(
 
   return oldCursor;
 }
+
+/**
+ * Format a raw target time string for display.
+ * "1:30:00" -> "1h 30min"
+ * "0:45:00" -> "45min"
+ * "45:00"   -> "45min"
+ * "3:00:00" -> "3h"
+ */
+export function formatTargetTime(timeString: string | undefined | null): string {
+  if (!timeString) return '';
+
+  const parts = timeString.split(':').map(Number);
+  let hours = 0, minutes = 0;
+
+  if (parts.length === 3) {
+    [hours, minutes] = parts;
+  } else if (parts.length === 2) {
+    // Could be HH:MM or MM:SS — treat as MM:SS if first part <= 60
+    if (parts[0] <= 60) {
+      minutes = parts[0];
+    } else {
+      hours = parts[0];
+      minutes = parts[1];
+    }
+  }
+
+  if (hours > 0 && minutes > 0) return `${hours}h ${minutes}min`;
+  if (hours > 0) return `${hours}h`;
+  if (minutes > 0) return `${minutes}min`;
+  return timeString; // fallback: return as-is
+}

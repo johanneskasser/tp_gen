@@ -13,6 +13,7 @@ import {
 import { useToast } from '../../contexts/ToastContext';
 import { cn, typography, flex } from '../../lib/designSystem';
 import { DISTANCE_COLORS, type RaceDistance } from '../../constants/distanceColors';
+import { formatTargetTime } from '../../utils/timeInputFormatter';
 
 interface PlanCardProps {
   plan: MarketplacePlan;
@@ -168,7 +169,7 @@ export function PlanCard({ plan }: PlanCardProps) {
               <span>•</span>
               <div className={flex.rowTight}>
                 <TrendingUp size={12} style={{ color: colors.hex }} />
-                <span className="font-semibold">Ziel: {plan.plan_data.event.targetTime}</span>
+                <span className="font-semibold">Ziel: {formatTargetTime(plan.plan_data.event.targetTime)}</span>
               </div>
             </>
           )}
