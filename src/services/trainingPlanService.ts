@@ -51,24 +51,35 @@ export const trainingPlanService = {
   },
 
   // Create new plan
-  async createPlan(plan: TrainingPlan): Promise<SavedTrainingPlan> {
+  async createPlan(plan: TrainingPlan, coachId?: string, athleteId?: string): Promise<SavedTrainingPlan> {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     if (!user) throw new Error('Not authenticated');
 
+    const planPayload = {
+      user_id: athleteId ?? user.id,
+      name: plan.event.name,
+      plan_data: plan as any,
+      ...(coachId ? { coach_id: coachId } : {}),
+    };
+
     const { data, error } = await supabase
       .from('training_plans')
-      .insert({
-        user_id: user.id,
-        name: plan.event.name,
-        plan_data: plan as any,
-      })
+      .insert(planPayload)
       .select()
       .single();
 
     if (error) throw error;
+
+    if (coachId && data?.id) {
+      // Fire-and-forget: edge function sends email AND creates notification for athlete
+      supabase.functions
+        .invoke('send-coaching-plan-email', { body: { planId: data.id } })
+        .catch((err) => console.error('Plan email failed (non-fatal):', err));
+    }
+
     return data as unknown as SavedTrainingPlan;
   },
 
