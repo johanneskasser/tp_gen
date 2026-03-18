@@ -1,4 +1,9 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
+import { calculateTrainingPacesFromVDOT, vdotPacesToTrainingZones } from '../expertSystem/vdotPaceCalculator';
+import { TrainingZones } from '../types/userProfile';
+import { getAthleteTrainingZones } from '../services/coachingService';
+import { PaceZoneHint, getRecommendedZone } from './pace/PaceZoneHint';
+import { PaceZonePanel } from './pace/PaceZonePanel';
 import {
   TrainingSession,
   SessionType,
@@ -24,6 +29,7 @@ interface SessionEditorProps {
   onSave: (session: TrainingSession) => void;
   onCancel: () => void;
   onDelete: () => void;
+  athleteId?: string; // set when editing a coaching plan
 }
 
 // Session type icons mapping
@@ -47,6 +53,7 @@ export default function SessionEditor({
   onSave,
   onCancel,
   onDelete,
+  athleteId,
 }: SessionEditorProps) {
   const { runnerProfile } = useRunnerProfile();
 
@@ -88,6 +95,29 @@ export default function SessionEditor({
 
   // Exercises (Strength & Plyometrics)
   const [exercises, setExercises] = useState<Exercise[]>(session.exercises || []);
+
+  // Pace zone state (for coaching / own profile)
+  const [athleteZones, setAthleteZones] = useState<TrainingZones | null>(null);
+  const [zonesLoading, setZonesLoading] = useState(false);
+
+  useEffect(() => {
+    if (athleteId) {
+      setZonesLoading(true);
+      getAthleteTrainingZones(athleteId)
+        .then(setAthleteZones)
+        .catch(console.error)
+        .finally(() => setZonesLoading(false));
+    }
+  }, [athleteId]);
+
+  const ownZones = useMemo<TrainingZones | null>(() => {
+    if (athleteId) return null;
+    if (!runnerProfile?.vdot) return null;
+    const paces = calculateTrainingPacesFromVDOT(runnerProfile.vdot);
+    return vdotPacesToTrainingZones(paces);
+  }, [runnerProfile?.vdot, athleteId]);
+
+  const activeZones = athleteId ? athleteZones : ownZones;
 
   const sessionTypes = Object.entries(SESSION_TYPE_CONFIG).map(([value, config]) => ({
     value: value as SessionType,
@@ -1149,6 +1179,22 @@ export default function SessionEditor({
                         />
                       </div>
                     </div>
+
+                    {type === 'intervals' && (
+                      <>
+                        <PaceZoneHint
+                          distanceKm={parseFloat(interval.distance?.toString() || '0') || null}
+                          zones={activeZones}
+                          loading={zonesLoading}
+                        />
+                        <PaceZonePanel
+                          zones={activeZones}
+                          recommendedZone={activeZones && interval.distance
+                            ? getRecommendedZone(parseFloat(interval.distance.toString()))
+                            : null}
+                        />
+                      </>
+                    )}
 
                     <div className="flex gap-2 items-end">
                       <div className="flex-1">
