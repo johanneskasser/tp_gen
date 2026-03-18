@@ -59,7 +59,8 @@ serve(async (req) => {
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     if (!resendApiKey) throw new Error('RESEND_API_KEY not configured');
 
-    const coachName = request.coach.full_name || `@${request.coach.username}`;
+    const coachName = escapeHtml(request.coach.full_name || `@${request.coach.username}`);
+    const coachUsername = escapeHtml(request.coach.username);
     const appUrl = Deno.env.get('APP_URL') ?? 'https://app.zenit-it.fit';
 
     await fetch('https://api.resend.com/emails', {
@@ -69,7 +70,7 @@ serve(async (req) => {
         from: 'zenit-it Training <noreply@zenit-it.fit>',
         to: athleteEmail,
         subject: `${coachName} möchte dir einen Trainingsplan erstellen`,
-        html: generateRequestEmailHTML(coachName, request.coach.username, appUrl),
+        html: generateRequestEmailHTML(coachName, coachUsername, appUrl),
       }),
     });
 
@@ -79,6 +80,15 @@ serve(async (req) => {
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), { status: 400, headers: corsHeaders });
   }
 });
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 function generateRequestEmailHTML(coachName: string, coachUsername: string, appUrl: string): string {
   return `

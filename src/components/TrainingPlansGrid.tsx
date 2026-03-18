@@ -193,6 +193,11 @@ export function TrainingPlansGrid({
                       <p className="text-sm text-slate-600 truncate">
                         {plan.plan_data.event.name}
                       </p>
+                      {plan.coach_id && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                          {t('coaching.coachBadge')}
+                        </span>
+                      )}
                     </div>
 
                     {/* Active Badge */}

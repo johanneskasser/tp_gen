@@ -284,6 +284,7 @@
     "noAthletes": "Noch keine genehmigten Athleten",
     "createPlan": "Plan erstellen",
     "planForAthlete": "Plan für @{{username}}",
+    "coachBadge": "Von Coach erstellt",
     "status": {
       "pending": "Ausstehend",
       "approved": "Genehmigt",

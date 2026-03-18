@@ -80,10 +80,13 @@ export async function respondToRequest(
   requestId: string,
   status: 'approved' | 'rejected'
 ): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
   const { error } = await supabase
     .from('coaching_requests')
     .update({ status })
-    .eq('id', requestId);
+    .eq('id', requestId)
+    .eq('athlete_id', user.id);
 
   if (error) throw error;
 }

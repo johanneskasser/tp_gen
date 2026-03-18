@@ -17,6 +17,7 @@ export interface SavedTrainingPlan {
   clone_count: number;
   is_template: boolean;
   is_active: boolean;
+  coach_id: string | null;
 }
 
 export const trainingPlanService = {

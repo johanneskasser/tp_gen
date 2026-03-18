@@ -58,7 +58,9 @@ serve(async (req) => {
     };
     const distance = distanceMap[planData?.event?.distance] || `${planData?.event?.customDistance} km`;
     const weeks = planData?.weeks?.length || 0;
-    const coachName = plan.coach.full_name || `@${plan.coach.username}`;
+    const coachName = escapeHtml(plan.coach.full_name || `@${plan.coach.username}`);
+    const coachUsername = escapeHtml(plan.coach.username);
+    const planName = escapeHtml(plan.name);
     const appUrl = Deno.env.get('APP_URL') ?? 'https://app.zenit-it.fit';
 
     // Create notification for athlete
@@ -85,7 +87,7 @@ serve(async (req) => {
         from: 'zenit-it Training <noreply@zenit-it.fit>',
         to: athleteEmail,
         subject: `${coachName} hat dir einen Trainingsplan erstellt`,
-        html: generatePlanEmailHTML(coachName, plan.coach.username, plan.name, distance, weeks, planId, appUrl),
+        html: generatePlanEmailHTML(coachName, coachUsername, planName, distance, weeks, planId, appUrl),
       }),
     });
 
@@ -105,6 +107,15 @@ serve(async (req) => {
     );
   }
 });
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 function generatePlanEmailHTML(
   coachName: string,
