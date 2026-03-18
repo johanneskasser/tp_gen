@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { TrainingPlan, TrainingWeek, RaceEvent } from '../types';
 import { calculateWeeks } from '../utils/dateUtils';
 import { calculateWeeklyKm, getRaceDistanceKm } from '../utils/calculationUtils';
@@ -20,12 +21,19 @@ import { typography, cn, flex } from '../lib/designSystem';
 import { useToast } from '../contexts/ToastContext';
 import { useRunnerProfile } from '../contexts/RunnerProfileContext';
 import { analytics } from '../utils/analytics';
+import { useTranslation } from 'react-i18next';
 
 export default function PlanEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const toast = useToast();
   const { runnerProfile } = useRunnerProfile();
+  const coachingContext = location.state?.coachingContext as
+    | { athleteId: string; username: string }
+    | undefined;
+  const { t } = useTranslation();
   const [isNewPlan, setIsNewPlan] = useState(id === 'new');
 
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
@@ -96,7 +104,11 @@ export default function PlanEditor() {
       setSaving(true);
       if (isNewPlan) {
         // Create new plan
-        const saved = await trainingPlanService.createPlan(plan);
+        const saved = await trainingPlanService.createPlan(
+          plan,
+          coachingContext ? user!.id : undefined,
+          coachingContext?.athleteId,
+        );
         setSavedPlan(saved);
         setIsNewPlan(false); // Mark as no longer new
         // Track Day Zero Activation (only once per plan creation)
@@ -352,6 +364,13 @@ export default function PlanEditor() {
           <>
             {plan && (
               <>
+                {/* Coaching context banner */}
+                {coachingContext && (
+                  <div className="bg-blue-50 border-b border-blue-200 px-4 py-2 text-sm text-blue-800">
+                    {t('coaching.planForAthlete', { username: coachingContext.username })}
+                  </div>
+                )}
+
                 {/* Compact Sticky Header */}
                 <CompactPlanHeader
                   plan={plan}

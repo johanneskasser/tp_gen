@@ -17,6 +17,7 @@ import MarketplacePage from './pages/MarketplacePage';
 import PlanDetailPage from './pages/PlanDetailPage';
 import UserProfilePage from './pages/UserProfilePage';
 import OnboardingPage from './pages/OnboardingPage';
+import CoachingPage from './pages/CoachingPage';
 import PrivacyPage from './pages/PrivacyPage';
 import ImpressumPage from './pages/ImpressumPage';
 import TermsPage from './pages/TermsPage';
@@ -142,6 +143,18 @@ function AppRoutes() {
           <MarketplaceLayout>
             <PlanDetailPage />
           </MarketplaceLayout>
+        }
+      />
+      <Route
+        path="/coaching"
+        element={
+          <ProtectedRoute>
+            <OnboardingGuard>
+              <AppLayout>
+                <CoachingPage />
+              </AppLayout>
+            </OnboardingGuard>
+          </ProtectedRoute>
         }
       />
       <Route

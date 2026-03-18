@@ -7,6 +7,7 @@ import {
   User,
   Store,
   MessageSquare,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn, typography, flex } from '../lib/designSystem';
@@ -39,6 +40,11 @@ export function Sidebar({ isCollapsed, isMobile = false }: SidebarProps) {
       name: t('navigation.marketplace'),
       href: '/marketplace',
       icon: Store,
+    },
+    {
+      name: t('coaching.title'),
+      href: '/coaching',
+      icon: Users,
     },
     {
       name: t('navigation.profile'),
