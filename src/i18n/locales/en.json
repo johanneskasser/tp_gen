@@ -265,7 +265,57 @@
     "followers": "Followers",
     "following": "Following",
     "follow": "Follow",
-    "unfollow": "Unfollow"
+    "unfollow": "Unfollow",
+    "username": "Username",
+    "usernamePlaceholder": "@yourusername",
+    "usernameAvailable": "Username available",
+    "usernameTaken": "Username already taken",
+    "usernameInvalid": "Only letters, numbers, and underscores allowed",
+    "updateUsername": "Save username"
+  },
+  "coaching": {
+    "title": "Coaching",
+    "subtitle": "Create training plans for other athletes",
+    "searchPlaceholder": "Search athlete (@username)",
+    "searchNoResult": "No athlete found with this username",
+    "requestAccess": "Request training zones",
+    "requestSent": "Request sent",
+    "requestAlreadySent": "Request already sent",
+    "myAthletes": "My Athletes",
+    "noAthletes": "No approved athletes yet",
+    "createPlan": "Create Plan",
+    "planForAthlete": "Plan for @{{username}}",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No new notifications",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "viewPlan": "View Plan",
+    "coachingRequest": "@{{username}} wants to see your training zones",
+    "coachingRequestBody": "to create a personalized plan for you",
+    "coachingPlanReceived": "@{{username}} created a plan for you",
+    "coachingPlanReceivedBody": "{{planName}} · {{distance}} · {{weeks}} weeks"
+  },
+  "paceZones": {
+    "title": "Pace Zones",
+    "recommended": "Recommended",
+    "showAll": "All Zones",
+    "hideAll": "Hide",
+    "noVdot": "No VDOT set — complete your profile",
+    "recovery": "Recovery",
+    "easy": "Easy (E)",
+    "marathon": "Marathon (M)",
+    "threshold": "Threshold (T)",
+    "interval": "Interval (I)",
+    "repetition": "Repetition (R)"
   },
   "settings": {
     "title": "Settings",

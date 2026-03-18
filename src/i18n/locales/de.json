@@ -264,7 +264,57 @@
     "followers": "Follower",
     "following": "Folge ich",
     "follow": "Folgen",
-    "unfollow": "Nicht mehr folgen"
+    "unfollow": "Nicht mehr folgen",
+    "username": "Username",
+    "usernamePlaceholder": "@deinusername",
+    "usernameAvailable": "Username verfügbar",
+    "usernameTaken": "Username bereits vergeben",
+    "usernameInvalid": "Nur Buchstaben, Ziffern und Unterstriche erlaubt",
+    "updateUsername": "Username speichern"
+  },
+  "coaching": {
+    "title": "Coaching",
+    "subtitle": "Erstelle Trainingspläne für andere Athleten",
+    "searchPlaceholder": "Athlet suchen (@username)",
+    "searchNoResult": "Kein Athlet mit diesem Username gefunden",
+    "requestAccess": "Trainingszonen anfragen",
+    "requestSent": "Anfrage gesendet",
+    "requestAlreadySent": "Anfrage bereits gesendet",
+    "myAthletes": "Meine Athleten",
+    "noAthletes": "Noch keine genehmigten Athleten",
+    "createPlan": "Plan erstellen",
+    "planForAthlete": "Plan für @{{username}}",
+    "status": {
+      "pending": "Ausstehend",
+      "approved": "Genehmigt",
+      "rejected": "Abgelehnt"
+    }
+  },
+  "notifications": {
+    "title": "Mitteilungen",
+    "empty": "Keine neuen Mitteilungen",
+    "approve": "Genehmigen",
+    "reject": "Ablehnen",
+    "approved": "Genehmigt",
+    "rejected": "Abgelehnt",
+    "viewPlan": "Plan ansehen",
+    "coachingRequest": "@{{username}} möchte deine Trainingszonen sehen",
+    "coachingRequestBody": "um dir einen personalisierten Plan zu erstellen",
+    "coachingPlanReceived": "@{{username}} hat dir einen Plan erstellt",
+    "coachingPlanReceivedBody": "{{planName}} · {{distance}} · {{weeks}} Wochen"
+  },
+  "paceZones": {
+    "title": "Pace-Zonen",
+    "recommended": "Empfohlen",
+    "showAll": "Alle Zonen",
+    "hideAll": "Ausblenden",
+    "noVdot": "Kein VDOT gesetzt — Profil vervollständigen",
+    "recovery": "Recovery",
+    "easy": "Easy (E)",
+    "marathon": "Marathon (M)",
+    "threshold": "Threshold (T)",
+    "interval": "Interval (I)",
+    "repetition": "Repetition (R)"
   },
   "settings": {
     "title": "Einstellungen",
