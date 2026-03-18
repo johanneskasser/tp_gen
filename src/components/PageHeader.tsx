@@ -3,6 +3,7 @@ import { Menu, Plus } from 'lucide-react';
 import { cn, typography } from '../lib/designSystem';
 import { useTranslation } from 'react-i18next';
 import { Button } from './ui';
+import { NotificationBell } from './notifications/NotificationBell';
 
 interface PageHeaderProps {
   onMenuClick: () => void;
@@ -39,6 +40,10 @@ export function PageHeader({ onMenuClick, isMobileMenuOpen }: PageHeaderProps) {
       '/settings': {
         title: t('settings.title'),
         description: 'Passe deine App-Einstellungen an',
+      },
+      '/coaching': {
+        title: t('coaching.title'),
+        description: t('coaching.subtitle'),
       },
     };
 
@@ -109,6 +114,9 @@ export function PageHeader({ onMenuClick, isMobileMenuOpen }: PageHeaderProps) {
             {pageInfo.description}
           </p>
         </div>
+
+        {/* Notification Bell */}
+        <NotificationBell />
 
         {/* "Neuen Plan erstellen" Button - only on Dashboard */}
         {location.pathname === '/dashboard' && (
