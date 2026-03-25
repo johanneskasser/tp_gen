@@ -282,9 +282,19 @@
     "requestAlreadySent": "Anfrage bereits gesendet",
     "myAthletes": "Meine Athleten",
     "noAthletes": "Noch keine genehmigten Athleten",
+    "selectAthlete": "Wähle einen Athleten aus der Liste",
+    "noRequests": "Noch keine Anfragen gesendet",
     "createPlan": "Plan erstellen",
     "planForAthlete": "Plan für @{{username}}",
     "coachBadge": "Von Coach erstellt",
+    "reRequest": "Erneut anfragen",
+    "noPlansYet": "Noch keine Pläne erstellt",
+    "openPlan": "Öffnen",
+    "tabs": {
+      "search": "Suchen",
+      "requests": "Suchen & Anfragen",
+      "athletes": "Athleten"
+    },
     "status": {
       "pending": "Ausstehend",
       "approved": "Genehmigt",

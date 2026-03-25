@@ -45,6 +45,7 @@ export function NotificationPanel({
               <NotificationItem
                 key={n.id}
                 notification={n}
+                responseStatus={n.request_status}
                 onApproveRequest={onApproveRequest}
                 onRejectRequest={onRejectRequest}
               />

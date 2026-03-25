@@ -18,6 +18,7 @@ interface WeeklyPlanProps {
   weekIndex: number;
   onUpdate: (updatedWeek: TrainingWeek) => void;
   plan?: TrainingPlan; // Optional: for suggestion engine
+  athleteId?: string; // set when editing a coaching plan
 }
 
 export default function WeeklyPlan({
@@ -25,6 +26,7 @@ export default function WeeklyPlan({
   weekIndex,
   onUpdate,
   plan,
+  athleteId,
 }: WeeklyPlanProps) {
   const { runnerProfile } = useRunnerProfile();
   const [isExpanded, setIsExpanded] = useState(weekIndex === 0);
@@ -389,6 +391,7 @@ export default function WeeklyPlan({
           onSave={handleUpdateSession}
           onCancel={handleCancelEdit}
           onDelete={() => handleDeleteSession(editingSession.id)}
+          athleteId={athleteId}
         />
       )}
     </div>

@@ -59,28 +59,46 @@ export const trainingPlanService = {
 
     if (!user) throw new Error('Not authenticated');
 
-    const planPayload = {
-      user_id: athleteId ?? user.id,
-      name: plan.event.name,
-      plan_data: plan as any,
-      ...(coachId ? { coach_id: coachId } : {}),
-    };
+    let planId: string;
 
-    const { data, error } = await supabase
-      .from('training_plans')
-      .insert(planPayload)
-      .select()
-      .single();
+    if (coachId && athleteId) {
+      // Coaching plan: use RPC (SECURITY DEFINER bypasses RLS)
+      const { data: rpcData, error: rpcError } = await supabase.rpc('create_coaching_plan', {
+        p_athlete_id: athleteId,
+        p_name: plan.event.name,
+        p_plan_data: plan as any,
+      });
+      if (rpcError) throw rpcError;
 
-    if (error) throw error;
+      // RPC may return UUID string (old) or array of rows (new SETOF) — handle both
+      const planId: string = typeof rpcData === 'string'
+        ? rpcData
+        : Array.isArray(rpcData) ? rpcData[0]?.id : (rpcData as any)?.id;
 
-    if (coachId && data?.id) {
-      // Fire-and-forget: edge function sends email AND creates notification for athlete
+      if (!planId) throw new Error('create_coaching_plan returned no plan id');
+
       supabase.functions
-        .invoke('send-coaching-plan-email', { body: { planId: data.id } })
+        .invoke('send-coaching-plan-email', { body: { planId } })
         .catch((err) => console.error('Plan email failed (non-fatal):', err));
+
+      // Fetch full row — allowed by coach_select_coaching_plans policy
+      const { data: saved, error: fetchError } = await supabase
+        .from('training_plans').select('*').eq('id', planId).single();
+      if (fetchError) throw fetchError;
+      return saved as unknown as SavedTrainingPlan;
     }
 
+    // Own plan: direct insert
+    const { data, error } = await supabase
+      .from('training_plans')
+      .insert({
+        user_id: user.id,
+        name: plan.event.name,
+        plan_data: plan as any,
+      })
+      .select()
+      .single();
+    if (error) throw error;
     return data as unknown as SavedTrainingPlan;
   },
 
@@ -98,6 +116,20 @@ export const trainingPlanService = {
 
     if (error) throw error;
     return data as unknown as SavedTrainingPlan;
+  },
+
+  // Get all coaching plans the current user (coach) created for a specific athlete
+  async getCoachPlansForAthlete(athleteId: string): Promise<SavedTrainingPlan[]> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    const { data, error } = await supabase
+      .from('training_plans')
+      .select('*')
+      .eq('coach_id', user.id)
+      .eq('user_id', athleteId)
+      .order('updated_at', { ascending: false });
+    if (error) throw error;
+    return (data || []) as unknown as SavedTrainingPlan[];
   },
 
   // Delete plan

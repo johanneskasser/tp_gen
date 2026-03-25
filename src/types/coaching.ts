@@ -44,4 +44,6 @@ export interface AppNotification {
   payload: CoachingRequestNotificationPayload | CoachingPlanNotificationPayload;
   read: boolean;
   created_at: string;
+  /** For coaching_request notifications: current DB status of the request */
+  request_status?: CoachingRequestStatus;
 }

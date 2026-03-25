@@ -20,25 +20,27 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
 
-    const supabaseUser = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-    const { data: { user } } = await supabaseUser.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    if (userError || !user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
 
     const { requestId } = await req.json();
 
-    // Fetch request and verify caller is the coach
+    // Fetch request (no FK join — coach_id/athlete_id reference auth.users, not user_profiles)
     const { data: request, error } = await supabaseAdmin
       .from('coaching_requests')
-      .select('*, coach:user_profiles!coach_id(id, username, full_name), athlete:user_profiles!athlete_id(id, username, full_name)')
+      .select('id, coach_id, athlete_id')
       .eq('id', requestId)
       .single();
 
     if (error || !request) throw new Error('Request not found');
     if (request.coach_id !== user.id) return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
+
+    // Fetch coach and athlete profiles separately
+    const [{ data: coachProfile }, { data: athleteProfile }] = await Promise.all([
+      supabaseAdmin.from('user_profiles').select('id, username, full_name').eq('id', request.coach_id).single(),
+      supabaseAdmin.from('user_profiles').select('id, username, full_name').eq('id', request.athlete_id).single(),
+    ]);
 
     // Get athlete email
     const { data: athleteAuth } = await supabaseAdmin.auth.admin.getUserById(request.athlete_id);
@@ -51,16 +53,18 @@ serve(async (req) => {
       type: 'coaching_request',
       payload: {
         request_id: requestId,
-        coach: { id: request.coach.id, username: request.coach.username, full_name: request.coach.full_name },
+        coach: { id: coachProfile?.id, username: coachProfile?.username, full_name: coachProfile?.full_name },
       },
     });
+
+    void athleteProfile; // fetched for future use / completeness
 
     // Send email via Resend
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     if (!resendApiKey) throw new Error('RESEND_API_KEY not configured');
 
-    const coachName = escapeHtml(request.coach.full_name || `@${request.coach.username}`);
-    const coachUsername = escapeHtml(request.coach.username);
+    const coachName = escapeHtml(coachProfile?.full_name || `@${coachProfile?.username ?? ''}`);
+    const coachUsername = escapeHtml(coachProfile?.username ?? '');
     const appUrl = Deno.env.get('APP_URL') ?? 'https://app.zenit-it.fit';
 
     await fetch('https://api.resend.com/emails', {

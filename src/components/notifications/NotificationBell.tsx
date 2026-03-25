@@ -33,10 +33,26 @@ export function NotificationBell() {
 
   const handleApprove = async (requestId: string) => {
     await respondToRequest(requestId, 'approved');
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n.type === 'coaching_request' &&
+        (n.payload as { request_id: string }).request_id === requestId
+          ? { ...n, request_status: 'approved' as const }
+          : n
+      )
+    );
   };
 
   const handleReject = async (requestId: string) => {
     await respondToRequest(requestId, 'rejected');
+    setNotifications((prev) =>
+      prev.map((n) =>
+        n.type === 'coaching_request' &&
+        (n.payload as { request_id: string }).request_id === requestId
+          ? { ...n, request_status: 'rejected' as const }
+          : n
+      )
+    );
   };
 
   return (

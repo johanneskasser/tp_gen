@@ -1,0 +1,242 @@
+import { useNavigate } from 'react-router-dom';
+import { SavedTrainingPlan } from '../services/trainingPlanService';
+import { format } from 'date-fns';
+import { de, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import {
+  Edit,
+  Trash2,
+  Share2,
+  MoreHorizontal,
+  Calendar,
+  ChevronRight,
+  Sparkles,
+} from 'lucide-react';
+import { Button } from '../components/ui';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { getDistanceColors, type RaceDistance } from '../constants/distanceColors';
+
+interface PlanCardProps {
+  plan: SavedTrainingPlan;
+  index?: number;
+  /** Whether this card is being deleted (shows disabled state) */
+  deleting?: boolean;
+  /** Callback to delete this plan */
+  onDelete?: (id: string, name: string) => void;
+  /** Callback to publish/manage visibility of this plan */
+  onPublish?: (id: string) => void;
+  /** Callback to toggle active status (omit to hide the button) */
+  onSetActive?: (id: string) => void;
+}
+
+function calculatePlanProgress(plan: SavedTrainingPlan): number {
+  if (!plan.plan_data?.startDate || !plan.plan_data?.weeks) return 0;
+  const startDate = new Date(plan.plan_data.startDate);
+  const today = new Date();
+  const totalWeeks = plan.plan_data.weeks.length;
+  const daysPassed = Math.max(0, Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)));
+  return Math.min(100, Math.round((Math.floor(daysPassed / 7) / totalWeeks) * 100));
+}
+
+function getPlanStatus(plan: SavedTrainingPlan): { type: 'active' | 'upcoming' | 'ended'; days?: number } {
+  if (!plan.plan_data?.startDate || !plan.plan_data?.weeks) return { type: 'active' };
+  const startDate = new Date(plan.plan_data.startDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  startDate.setHours(0, 0, 0, 0);
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + plan.plan_data.weeks.length * 7);
+  const daysToStart = Math.ceil((startDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const daysAfterEnd = Math.ceil((today.getTime() - endDate.getTime()) / (1000 * 60 * 60 * 24));
+  if (daysToStart > 0) return { type: 'upcoming', days: daysToStart };
+  if (daysAfterEnd > 0) return { type: 'ended', days: daysAfterEnd };
+  return { type: 'active' };
+}
+
+export function PlanCard({ plan, index = 0, deleting, onDelete, onPublish, onSetActive }: PlanCardProps) {
+  const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'de' ? de : enUS;
+
+  const distance = plan.plan_data.event.distance as RaceDistance;
+  const colors = getDistanceColors(distance);
+  const status = getPlanStatus(plan);
+  const progress = calculatePlanProgress(plan);
+
+  const getDistanceLabel = () => {
+    const { distance: d, customDistance } = plan.plan_data.event;
+    if (d === 'CUSTOM' && customDistance) return `${customDistance} km`;
+    return d;
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('[role="menuitem"]') || target.closest('[data-radix-collection-item]')) return;
+    navigate(`/plan/${plan.id}`);
+  };
+
+  const hasMenu = onDelete || onPublish;
+
+  return (
+    <div
+      className="group relative bg-white rounded-2xl border border-slate-200 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
+      onClick={handleCardClick}
+      style={{ animation: `fadeInUp 0.4s ease-out ${index * 0.05}s both` }}
+    >
+      {/* Racing Stripe */}
+      <div
+        className="absolute left-0 top-0 bottom-0 w-1 transition-all duration-300 group-hover:w-1.5"
+        style={{ background: colors.hex, boxShadow: `0 0 20px ${colors.glow}` }}
+      />
+
+      {/* Active Indicator */}
+      {plan.is_active && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-400 via-green-500 to-green-600" />
+      )}
+
+      <div className="p-6 pl-8 space-y-4">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-lg text-slate-900 truncate mb-1 group-hover:text-slate-700 transition-colors">
+              {plan.name}
+            </h3>
+            <p className="text-sm text-slate-600 truncate">{plan.plan_data.event.name}</p>
+            {plan.coach_id && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                {t('coaching.coachBadge')}
+              </span>
+            )}
+          </div>
+          {plan.is_active && (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-500 text-white rounded-full shadow-sm flex-shrink-0">
+              <Sparkles className="h-3 w-3" />
+              <span className="text-xs font-semibold">Aktiv</span>
+            </div>
+          )}
+        </div>
+
+        {/* Distance Badge */}
+        <div className="flex items-start gap-3">
+          <div
+            className="inline-flex items-center px-4 py-2 rounded-xl font-bold text-lg text-white shadow-lg transition-all duration-300 group-hover:shadow-xl group-hover:scale-105"
+            style={{ background: colors.hex, boxShadow: `0 4px 14px ${colors.glow}` }}
+          >
+            {getDistanceLabel()}
+          </div>
+          <div className="flex-1">
+            <span className="text-slate-500 text-xs block mb-0.5">{t('dashboard.table.eventDate')}</span>
+            <div className="font-semibold text-slate-900">
+              {format(new Date(plan.plan_data.event.date), 'dd. MMM yy', { locale: dateLocale })}
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        {plan.is_active && status.type === 'active' && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-600 font-medium">Fortschritt</span>
+              <span className="text-green-600 font-bold">{progress}%</span>
+            </div>
+            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-green-500 to-green-600 rounded-full transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Status Badges */}
+        {status.type === 'upcoming' && status.days && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium">
+            <Calendar className="h-3.5 w-3.5" />
+            Startet in {status.days} {status.days === 1 ? 'Tag' : 'Tagen'}
+          </div>
+        )}
+        {status.type === 'ended' && status.days && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-medium">
+            <Calendar className="h-3.5 w-3.5" />
+            Beendet vor {status.days} {status.days === 1 ? 'Tag' : 'Tagen'}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 pt-2 border-t border-slate-200/50">
+          {/* Set Active Button (only when callback provided) */}
+          {onSetActive && (
+            <Button
+              onClick={(e) => { e.stopPropagation(); onSetActive(plan.id); }}
+              variant="outline"
+              size="sm"
+              className={`flex-1 font-semibold transition-all ${
+                plan.is_active
+                  ? 'bg-green-50 text-green-700 border-green-300 hover:bg-green-100'
+                  : 'bg-white hover:bg-slate-50'
+              }`}
+            >
+              {plan.is_active ? (
+                <><Sparkles className="h-3.5 w-3.5 mr-1.5" />Aktiv</>
+              ) : (
+                <><Calendar className="h-3.5 w-3.5 mr-1.5" />Aktivieren</>
+              )}
+            </Button>
+          )}
+
+          {/* Open Plan Button */}
+          <Button
+            onClick={(e) => { e.stopPropagation(); navigate(`/plan/${plan.id}`); }}
+            size="sm"
+            className="bg-slate-900 text-white hover:bg-slate-800 shadow-sm px-4"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+
+          {/* More Actions Dropdown */}
+          {hasMenu && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="sm" className="h-9 w-9 p-0 hover:bg-slate-100">
+                  <MoreHorizontal className="h-4 w-4" />
+                  <span className="sr-only">{t('dashboard.openMenu')}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); navigate(`/plan/${plan.id}`); }}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  {t('common.edit')}
+                </DropdownMenuItem>
+                {onPublish && (
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPublish(plan.id); }}>
+                    <Share2 className="mr-2 h-4 w-4" />
+                    {plan.visibility !== 'private' ? t('dashboard.managePublication') : t('dashboard.publish')}
+                  </DropdownMenuItem>
+                )}
+                {onDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={(e) => { e.stopPropagation(); onDelete(plan.id, plan.name); }}
+                      disabled={deleting}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      {t('common.delete')}
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

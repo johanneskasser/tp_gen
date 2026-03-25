@@ -10,17 +10,14 @@ import { calculateTrainingPacesFromVDOT, vdotPacesToTrainingZones } from '../exp
 
 // ─── Athlete Search ───────────────────────────────────────────────────────────
 
-export async function searchAthleteByUsername(
-  username: string
-): Promise<PublicAthleteProfile | null> {
+export async function searchAthletesByUsernamePrefix(
+  prefix: string
+): Promise<PublicAthleteProfile[]> {
   const { data, error } = await supabase
-    .from('user_profiles')
-    .select('id, username, full_name')
-    .ilike('username', username.replace('@', ''))
-    .maybeSingle();
+    .rpc('search_athletes_by_username', { prefix: prefix.replace('@', '') });
 
   if (error) throw error;
-  return data as PublicAthleteProfile | null;
+  return (data || []) as PublicAthleteProfile[];
 }
 
 // ─── Coaching Requests ────────────────────────────────────────────────────────
@@ -51,16 +48,38 @@ export async function sendCoachingRequest(athleteId: string): Promise<void> {
     .catch((err) => console.error('Email send failed (non-fatal):', err));
 }
 
+async function attachAthleteProfiles(
+  requests: CoachingRequest[]
+): Promise<(CoachingRequest & { athlete: PublicAthleteProfile })[]> {
+  if (requests.length === 0) return [];
+
+  const athleteIds = [...new Set(requests.map((r) => r.athlete_id))];
+  const { data: profiles, error: profileError } = await supabase
+    .rpc('get_public_profiles_by_ids', { user_ids: athleteIds });
+
+  if (profileError) throw profileError;
+
+  const profileMap = new Map((profiles || []).map((p: PublicAthleteProfile) => [p.id, p]));
+  return requests.map((r) => ({
+    ...r,
+    athlete: (profileMap.get(r.athlete_id) ?? {
+      id: r.athlete_id,
+      username: 'unknown',
+      full_name: null,
+    }) as PublicAthleteProfile,
+  }));
+}
+
 export async function getOutgoingRequests(): Promise<
   (CoachingRequest & { athlete: PublicAthleteProfile })[]
 > {
   const { data, error } = await supabase
     .from('coaching_requests')
-    .select('*, athlete:user_profiles!athlete_id(id, username, full_name)')
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data || []) as unknown as (CoachingRequest & { athlete: PublicAthleteProfile })[];
+  return attachAthleteProfiles((data || []) as CoachingRequest[]);
 }
 
 export async function getApprovedAthletes(): Promise<
@@ -68,12 +87,12 @@ export async function getApprovedAthletes(): Promise<
 > {
   const { data, error } = await supabase
     .from('coaching_requests')
-    .select('*, athlete:user_profiles!athlete_id(id, username, full_name)')
+    .select('*')
     .eq('status', 'approved')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return (data || []) as unknown as (CoachingRequest & { athlete: PublicAthleteProfile })[];
+  return attachAthleteProfiles((data || []) as CoachingRequest[]);
 }
 
 export async function respondToRequest(
@@ -119,7 +138,27 @@ export async function getNotifications(): Promise<AppNotification[]> {
     .limit(50);
 
   if (error) throw error;
-  return (data || []) as unknown as AppNotification[];
+  const notifications = (data || []) as unknown as AppNotification[];
+
+  // Enrich coaching_request notifications with current request status from DB
+  const requestIds = notifications
+    .filter((n) => n.type === 'coaching_request')
+    .map((n) => (n.payload as CoachingRequestNotificationPayload).request_id);
+
+  if (requestIds.length === 0) return notifications;
+
+  const { data: requests } = await supabase
+    .from('coaching_requests')
+    .select('id, status')
+    .in('id', requestIds);
+
+  const statusMap = new Map((requests || []).map((r) => [r.id, r.status]));
+
+  return notifications.map((n) => {
+    if (n.type !== 'coaching_request') return n;
+    const requestId = (n.payload as CoachingRequestNotificationPayload).request_id;
+    return { ...n, request_status: statusMap.get(requestId) ?? 'pending' };
+  });
 }
 
 export async function getUnreadCount(): Promise<number> {

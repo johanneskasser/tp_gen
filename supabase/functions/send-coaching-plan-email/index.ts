@@ -21,23 +21,19 @@ serve(async (req) => {
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
     }
-    const supabaseUser = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-    const { data: { user } } = await supabaseUser.auth.getUser();
-    if (!user) {
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: corsHeaders });
     }
 
     const { planId }: { planId: string } = await req.json();
     if (!planId) throw new Error('planId is required');
 
-    // Fetch plan + verify coach ownership
+    // Fetch plan (no FK join — coach_id references auth.users, not user_profiles)
     const { data: plan, error: planError } = await supabaseAdmin
       .from('training_plans')
-      .select('*, coach:user_profiles!coach_id(id, username, full_name)')
+      .select('id, name, coach_id, user_id, plan_data')
       .eq('id', planId)
       .single();
 
@@ -45,6 +41,13 @@ serve(async (req) => {
     if (plan.coach_id !== user.id) {
       return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
     }
+
+    // Fetch coach profile separately
+    const { data: coachProfile } = await supabaseAdmin
+      .from('user_profiles')
+      .select('id, username, full_name')
+      .eq('id', plan.coach_id)
+      .single();
 
     // Get athlete email
     const { data: athleteAuth } = await supabaseAdmin.auth.admin.getUserById(plan.user_id);
@@ -58,8 +61,8 @@ serve(async (req) => {
     };
     const distance = distanceMap[planData?.event?.distance] || `${planData?.event?.customDistance} km`;
     const weeks = planData?.weeks?.length || 0;
-    const coachName = escapeHtml(plan.coach.full_name || `@${plan.coach.username}`);
-    const coachUsername = escapeHtml(plan.coach.username);
+    const coachName = escapeHtml(coachProfile?.full_name || `@${coachProfile?.username ?? ''}`);
+    const coachUsername = escapeHtml(coachProfile?.username ?? '');
     const planName = escapeHtml(plan.name);
     const appUrl = Deno.env.get('APP_URL') ?? 'https://app.zenit-it.fit';
 
@@ -72,7 +75,7 @@ serve(async (req) => {
         plan_name: plan.name,
         distance,
         weeks,
-        coach: { id: plan.coach.id, username: plan.coach.username, full_name: plan.coach.full_name },
+        coach: { id: coachProfile?.id, username: coachProfile?.username, full_name: coachProfile?.full_name },
       },
     });
 

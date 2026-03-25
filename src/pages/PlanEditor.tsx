@@ -38,6 +38,9 @@ export default function PlanEditor() {
 
   const [plan, setPlan] = useState<TrainingPlan | null>(null);
   const [savedPlan, setSavedPlan] = useState<SavedTrainingPlan | null>(null);
+  // athleteId for session editor pace zones: from navigation state (new plan) or loaded saved plan (existing coaching plan)
+  const coachingAthleteId = coachingContext?.athleteId
+    ?? (savedPlan?.coach_id && savedPlan.user_id !== user?.id ? savedPlan.user_id : undefined);
   const [showEventConfig, setShowEventConfig] = useState(isNewPlan);
   const [loading, setLoading] = useState(!isNewPlan);
   const [saving, setSaving] = useState(false);
@@ -405,6 +408,7 @@ export default function PlanEditor() {
                           handleUpdateWeek(index, updatedWeek)
                         }
                         plan={plan}
+                        athleteId={coachingAthleteId}
                       />
                     ))}
                   </div>
